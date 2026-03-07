@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import homeBg from '../assets/01-home_bg.png';
 
@@ -7,40 +6,67 @@ interface Props {
 }
 
 export default function HomeScreen({ onStart }: Props) {
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const interval = setInterval(() => setVisible((v) => !v), 800);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <motion.div
-      className="fixed inset-0 flex flex-col items-center justify-end"
+      className="fixed inset-0 flex flex-col items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
+      style={{ backgroundColor: '#0a0a1a' }}
     >
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${homeBg})` }}
+      {/* Background image: contain so full height is always visible */}
+      <img
+        src={homeBg}
+        alt="Battleship"
+        className="absolute inset-0 w-full h-full object-contain"
+        draggable={false}
+        style={{ pointerEvents: 'none' }}
       />
-      <div className="absolute inset-0 bg-black/20" />
-      <div className="relative z-10 mb-24">
-        <button
+
+      {/* Button positioned just below the boat */}
+      <div
+        className="absolute left-1/2 z-10"
+        style={{ top: '72%', transform: 'translateX(-50%)' }}
+      >
+        <motion.button
           onClick={onStart}
-          className="px-8 py-4 text-lg tracking-wider cursor-pointer transition-transform hover:scale-105"
+          className="px-12 py-5 text-xl tracking-wider cursor-pointer"
           style={{
             fontFamily: '"Press Start 2P", cursive',
-            color: visible ? '#FFD700' : 'transparent',
-            backgroundColor: '#000',
-            border: `3px solid ${visible ? '#FFD700' : '#000'}`,
-            textShadow: visible ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none',
+            color: '#FFD700',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            border: '3px solid #FFD700',
+            textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
+            boxShadow: '0 0 15px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1)',
           }}
+          animate={{
+            textShadow: [
+              '0 0 10px rgba(255, 215, 0, 0.3)',
+              '0 0 25px rgba(255, 215, 0, 0.9), 0 0 50px rgba(255, 215, 0, 0.4)',
+              '0 0 10px rgba(255, 215, 0, 0.3)',
+            ],
+            boxShadow: [
+              '0 0 10px rgba(255, 215, 0, 0.2), inset 0 0 10px rgba(255, 215, 0, 0.05)',
+              '0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.15)',
+              '0 0 10px rgba(255, 215, 0, 0.2), inset 0 0 10px rgba(255, 215, 0, 0.05)',
+            ],
+            borderColor: [
+              'rgba(255, 215, 0, 0.6)',
+              'rgba(255, 215, 0, 1)',
+              'rgba(255, 215, 0, 0.6)',
+            ],
+          }}
+          transition={{
+            duration: 1.6,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
         >
           PRESS START
-        </button>
+        </motion.button>
       </div>
     </motion.div>
   );
