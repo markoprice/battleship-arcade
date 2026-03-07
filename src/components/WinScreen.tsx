@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import bgImage from '../assets/background.png';
 
 interface Props {
   onPlayAgain: () => void;
@@ -41,15 +42,22 @@ export default function WinScreen({ onPlayAgain }: Props) {
   return (
     <motion.div
       className="fixed inset-0 flex flex-col items-center justify-center"
-      style={{ background: 'radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1a 100%)' }}
+      style={{ background: '#0a0a1a' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
+      <img
+        src={bgImage}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+        draggable={false}
+      />
+      <div className="absolute inset-0 bg-black/30" />
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', duration: 0.8 }}
-        className="text-center"
+        className="relative z-10 text-center"
       >
         <div
           className="text-4xl md:text-6xl mb-4"
@@ -76,7 +84,7 @@ export default function WinScreen({ onPlayAgain }: Props) {
 
       <motion.button
         onClick={onPlayAgain}
-        className="px-8 py-4 text-sm tracking-wider cursor-pointer"
+        className="relative z-10 px-8 py-4 text-sm tracking-wider cursor-pointer"
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: '#FFD700',

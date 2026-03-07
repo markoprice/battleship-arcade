@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import bgImage from '../assets/background.png';
 
 interface Props {
   onPlayAgain: () => void;
@@ -8,10 +9,16 @@ export default function LoseScreen({ onPlayAgain }: Props) {
   return (
     <motion.div
       className="fixed inset-0 flex flex-col items-center justify-center"
-      style={{ background: 'radial-gradient(ellipse at center, #1a0a0a 0%, #0a0a0a 100%)' }}
+      style={{ background: '#0a0a0a' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
+      <img
+        src={bgImage}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+        draggable={false}
+      />
       <div className="absolute inset-0 bg-black/60" />
 
       <motion.div

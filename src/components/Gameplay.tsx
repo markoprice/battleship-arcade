@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Character, Board, PlacedShip } from '../types';
 import { ships } from '../data/ships';
@@ -227,13 +227,15 @@ export default function Gameplay({
   playShipSunk,
 }: Props) {
   const [processing, setProcessing] = useState(false);
+  const processingRef = useRef(false);
 
   const handlePlayerShot = useCallback(
     (row: number, col: number) => {
-      if (!isPlayerTurn || processing) return;
+      if (!isPlayerTurn || processingRef.current) return;
       const result = onPlayerFire(row, col);
       if (result === 'already') return;
 
+      processingRef.current = true;
       setProcessing(true);
 
       if (result === 'hit') {
@@ -268,6 +270,7 @@ export default function Gameplay({
 
           setTimeout(() => {
             onStartPlayerTurn();
+            processingRef.current = false;
             setProcessing(false);
           }, 500);
         }, 800);
@@ -292,6 +295,7 @@ export default function Gameplay({
   useEffect(() => {
     if (processing) {
       const timeout = setTimeout(() => {
+        processingRef.current = false;
         setProcessing(false);
         onStartPlayerTurn();
       }, 5000);
