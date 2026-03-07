@@ -11,6 +11,7 @@ export default function WinScreen({ onPlayAgain }: Props) {
     // Gold confetti explosion
     const duration = 3000;
     const end = Date.now() + duration;
+    let rafId: number;
 
     const frame = () => {
       confetti({
@@ -29,10 +30,12 @@ export default function WinScreen({ onPlayAgain }: Props) {
       });
 
       if (Date.now() < end) {
-        requestAnimationFrame(frame);
+        rafId = requestAnimationFrame(frame);
       }
     };
     frame();
+
+    return () => cancelAnimationFrame(rafId);
   }, []);
 
   return (

@@ -148,7 +148,7 @@ export function useGameState() {
   } => {
     const board = playerBoard;
     let row: number, col: number;
-    const currentAIState = { ...aiState, triedDirections: new Map(aiState.triedDirections) };
+    const currentAIState = { ...aiState, hitStack: [...aiState.hitStack], triedDirections: new Map(Array.from(aiState.triedDirections.entries(), ([k, v]) => [k, new Set(v)])) };
 
     if (currentAIState.mode === 'target' && currentAIState.hitStack.length > 0) {
       // Target mode: try adjacent cells to hits
