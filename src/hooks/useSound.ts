@@ -57,6 +57,9 @@ export function useSound() {
   }, []);
 
   const startSonarLoop = useCallback(() => {
+    if (sonarIntervalRef.current !== null) {
+      clearInterval(sonarIntervalRef.current);
+    }
     playSonar();
     sonarIntervalRef.current = window.setInterval(playSonar, 3000);
   }, [playSonar]);

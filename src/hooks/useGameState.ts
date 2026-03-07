@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { GameScreen, Character, PlacedShip, Board, BoardCell, AIState } from '../types';
 import { ships } from '../data/ships';
 
@@ -84,9 +84,17 @@ export function useGameState() {
     setAIState({ mode: 'hunt', hitStack: [], triedDirections: new Map() });
   }, []);
 
+  const calloutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const showCallout = useCallback((text: string) => {
+    if (calloutTimerRef.current !== null) {
+      clearTimeout(calloutTimerRef.current);
+    }
     setCalloutText(text);
-    setTimeout(() => setCalloutText(''), 2000);
+    calloutTimerRef.current = setTimeout(() => {
+      setCalloutText('');
+      calloutTimerRef.current = null;
+    }, 2000);
   }, []);
 
   const playerFire = useCallback(
