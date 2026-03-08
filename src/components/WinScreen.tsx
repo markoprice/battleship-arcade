@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import bgImage from '../assets/background.png';
+import bgImage from '../assets/background.jpg';
 
 interface Props {
   onPlayAgain: () => void;

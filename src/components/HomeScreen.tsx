@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import homeBg from '../assets/01-home_bg.png';
+import homeBg from '../assets/01-home_bg.jpg';
 
 interface Props {
   onStart: () => void;

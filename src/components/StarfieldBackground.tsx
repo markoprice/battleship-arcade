@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import bgImage from '../assets/background.png';
+import bgImage from '../assets/background.jpg';
 
 interface Twinkle {
   x: number;
