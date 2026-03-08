@@ -173,20 +173,20 @@ export default function PlaceFleet({ onReady }: Props) {
         </div>
 
         {/* Grid */}
-        <div className="flex-1 flex items-start justify-center overflow-auto">
+        <div className="flex-1 flex items-center justify-center overflow-auto">
           <div>
             {/* Column headers */}
             <div className="flex">
-              <div style={{ width: '32px' }} />
+              <div style={{ width: 'clamp(24px, 3.5vw, 40px)' }} />
               {COLS.map((col) => (
                 <div
                   key={col}
                   className="text-center"
                   style={{
-                    width: '36px',
+                    width: 'clamp(32px, 5vw, 56px)',
                     fontFamily: '"Press Start 2P", cursive',
                     color: '#00e5ff',
-                    fontSize: '9px',
+                    fontSize: 'clamp(7px, 1vw, 11px)',
                     paddingBottom: '4px',
                   }}
                 >
@@ -201,10 +201,10 @@ export default function PlaceFleet({ onReady }: Props) {
                 <div
                   className="flex items-center justify-center"
                   style={{
-                    width: '32px',
+                    width: 'clamp(24px, 3.5vw, 40px)',
                     fontFamily: '"Press Start 2P", cursive',
                     color: '#00e5ff',
-                    fontSize: '9px',
+                    fontSize: 'clamp(7px, 1vw, 11px)',
                   }}
                 >
                   {row + 1}
@@ -219,8 +219,8 @@ export default function PlaceFleet({ onReady }: Props) {
                       key={col}
                       className="cursor-pointer transition-all"
                       style={{
-                        width: '36px',
-                        height: '36px',
+                        width: 'clamp(32px, 5vw, 56px)',
+                        height: 'clamp(32px, 5vw, 56px)',
                         border: '1px solid rgba(0, 229, 255, 0.3)',
                         background: isShip
                           ? 'rgba(0, 255, 100, 0.4)'

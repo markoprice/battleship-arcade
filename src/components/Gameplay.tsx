@@ -85,16 +85,16 @@ function GameGrid({
       <div>
         {/* Column headers */}
         <div className="flex">
-          <div style={{ width: '24px' }} />
+          <div style={{ width: 'clamp(18px, 2.5vw, 32px)' }} />
           {COLS.map((col) => (
             <div
               key={col}
               className="text-center"
               style={{
-                width: '28px',
+                width: 'clamp(24px, 3.5vw, 44px)',
                 fontFamily: '"Press Start 2P", cursive',
                 color: borderColor,
-                fontSize: '6px',
+                fontSize: 'clamp(5px, 0.7vw, 8px)',
                 paddingBottom: '2px',
               }}
             >
@@ -108,10 +108,10 @@ function GameGrid({
             <div
               className="flex items-center justify-center"
               style={{
-                width: '24px',
+                width: 'clamp(18px, 2.5vw, 32px)',
                 fontFamily: '"Press Start 2P", cursive',
                 color: borderColor,
-                fontSize: '6px',
+                fontSize: 'clamp(5px, 0.7vw, 8px)',
               }}
             >
               {row + 1}
@@ -128,8 +128,8 @@ function GameGrid({
                   key={col}
                   className="transition-all"
                   style={{
-                    width: '28px',
-                    height: '28px',
+                    width: 'clamp(24px, 3.5vw, 44px)',
+                    height: 'clamp(24px, 3.5vw, 44px)',
                     border: `1px solid ${borderColor}33`,
                     background: isHit
                       ? 'rgba(255, 100, 0, 0.4)'

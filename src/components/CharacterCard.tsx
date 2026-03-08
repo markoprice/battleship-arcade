@@ -22,7 +22,7 @@ export default function CharacterCard({ character, selected, onClick, compact }:
       style={{
         border: `2px solid ${selected ? '#FFD700' : borderColor}`,
         background: 'rgba(0,0,0,0.6)',
-        padding: compact ? '8px' : '12px',
+        padding: compact ? '6px' : '12px',
         boxShadow: selected
           ? `0 0 20px ${glowColor}, inset 0 0 20px rgba(255, 215, 0, 0.1)`
           : `0 0 10px ${glowColor}`,
@@ -32,13 +32,13 @@ export default function CharacterCard({ character, selected, onClick, compact }:
     >
       {/* Portrait placeholder */}
       <div
-        className="w-full aspect-square mb-2 flex items-center justify-center text-3xl"
+        className="mb-1 flex items-center justify-center text-2xl"
         style={{
           background: tintBg,
           border: `2px solid ${borderColor}`,
           borderRadius: '2px',
-          maxWidth: compact ? '80px' : '120px',
-          maxHeight: compact ? '80px' : '120px',
+          width: compact ? '48px' : '120px',
+          height: compact ? '48px' : '120px',
         }}
       >
         <span style={{ filter: 'grayscale(20%)' }}>
@@ -72,7 +72,7 @@ export default function CharacterCard({ character, selected, onClick, compact }:
 
       {/* Nickname */}
       <div
-        className="text-center mb-2"
+        className="text-center mb-1"
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: isSales ? '#7B9FE8' : '#5DE8C5',

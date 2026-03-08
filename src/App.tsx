@@ -10,6 +10,7 @@ import PlaceFleet from './components/PlaceFleet';
 import Gameplay from './components/Gameplay';
 import WinScreen from './components/WinScreen';
 import LoseScreen from './components/LoseScreen';
+import ExitButton from './components/ExitButton';
 
 function App() {
   const game = useGameState();
@@ -63,8 +64,16 @@ function App() {
     game.resetGame();
   }, [sound, game]);
 
+  const handleAbandon = useCallback(() => {
+    sound.stopSonarLoop();
+    game.resetGame();
+  }, [sound, game]);
+
+  const showExitButton = game.screen !== 'home';
+
   return (
     <div className="w-full h-full">
+      {showExitButton && <ExitButton onExit={handleAbandon} />}
       <AnimatePresence mode="wait">
         {game.screen === 'home' && (
           <HomeScreen key="home" onStart={handleHomeStart} />

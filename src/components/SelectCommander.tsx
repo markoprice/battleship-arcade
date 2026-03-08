@@ -48,10 +48,10 @@ export default function SelectCommander({ onSelect }: Props) {
         </div>
 
         {/* Panels */}
-        <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
+        <div className="flex-1 flex gap-4 min-h-0 overflow-hidden" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           {/* Sales Panel */}
           <div
-            className="flex-1 flex flex-col p-3 rounded"
+            className="flex-1 flex flex-col p-3 rounded overflow-auto"
             style={{
               border: '2px solid #3969CA',
               background: 'rgba(57, 105, 202, 0.1)',
@@ -68,7 +68,7 @@ export default function SelectCommander({ onSelect }: Props) {
             >
               SALES
             </h2>
-            <div className="grid grid-cols-2 gap-2 flex-1 overflow-auto">
+            <div className="grid grid-cols-2 gap-2 flex-1 overflow-auto" style={{ alignContent: 'start' }}>
               {salesCharacters.map((char) => (
                 <CharacterCard
                   key={char.id}
@@ -83,7 +83,7 @@ export default function SelectCommander({ onSelect }: Props) {
 
           {/* Product Panel */}
           <div
-            className="flex-1 flex flex-col p-3 rounded"
+            className="flex-1 flex flex-col p-3 rounded overflow-auto"
             style={{
               border: '2px solid #21C19A',
               background: 'rgba(33, 193, 154, 0.1)',
@@ -100,7 +100,7 @@ export default function SelectCommander({ onSelect }: Props) {
             >
               PRODUCT
             </h2>
-            <div className="grid grid-cols-2 gap-2 flex-1 overflow-auto">
+            <div className="grid grid-cols-2 gap-2 flex-1 overflow-auto" style={{ alignContent: 'start' }}>
               {productCharacters.map((char) => (
                 <CharacterCard
                   key={char.id}
