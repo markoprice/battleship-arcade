@@ -338,11 +338,12 @@ export default function SelectCommander({ onSelect }: Props) {
           <StackedLabel text="PRODUCT" color="#21C19A" />
         </div>
 
-        {/* PLACE YOUR FLEET button — shows after both players are selected, right below tiles */}
+        {/* PLACE YOUR FLEET button — right below the tile area */}
         <AnimatePresence>
           {bothSelected && salesChar && productChar && (
             <motion.div
-              className="flex justify-center mt-4"
+              className="flex justify-center"
+              style={{ marginTop: '12px' }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}

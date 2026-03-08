@@ -41,18 +41,30 @@ export default function ArcadeCanvas({ children }: Props) {
       className="fixed inset-0 flex items-center justify-center"
       style={{ backgroundColor: '#050510' }}
     >
+      {/* Outer wrapper is the ACTUAL visual size so flex centering works correctly */}
       <div
         style={{
-          width: `${DESIGN_W}px`,
-          height: `${DESIGN_H}px`,
-          position: 'relative',
+          width: `${DESIGN_W * scale}px`,
+          height: `${DESIGN_H * scale}px`,
           overflow: 'hidden',
           boxShadow: '0 0 60px rgba(0, 0, 0, 0.8)',
-          transform: `scale(${scale})`,
-          transformOrigin: 'center center',
+          position: 'relative',
         }}
       >
-        {children}
+        {/* Inner div is always 1344×756 design space, CSS-scaled to fit */}
+        <div
+          style={{
+            width: `${DESIGN_W}px`,
+            height: `${DESIGN_H}px`,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

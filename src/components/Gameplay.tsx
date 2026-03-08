@@ -531,7 +531,12 @@ export default function Gameplay({
   const handleMissileComplete = useCallback(() => {
     if (cancelledRef.current) return;
     const shot = pendingShotRef.current;
-    if (!shot) return;
+    if (!shot) {
+      setMissileAnim(null);
+      processingRef.current = false;
+      setProcessing(false);
+      return;
+    }
     pendingShotRef.current = null;
     setMissileAnim(null);
 
