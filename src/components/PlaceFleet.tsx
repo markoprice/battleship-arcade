@@ -19,7 +19,7 @@ function createEmptyBoard(): Board {
 export default function PlaceFleet({ onReady }: Props) {
   const [board, setBoard] = useState<Board>(createEmptyBoard);
   const [placedShips, setPlacedShips] = useState<PlacedShip[]>([]);
-  const [selectedShip, setSelectedShip] = useState<Ship | null>(null);
+  const [selectedShip, setSelectedShip] = useState<Ship | null>(ships[0]);
   const [orientation, setOrientation] = useState<Orientation>('horizontal');
   const [hoverCells, setHoverCells] = useState<[number, number][]>([]);
 
@@ -64,9 +64,13 @@ export default function PlaceFleet({ onReady }: Props) {
         newBoard[r][c] = { state: 'ship', shipId: selectedShip.id };
       }
       setBoard(newBoard);
-      setPlacedShips([...placedShips, { shipId: selectedShip.id, cells, sunk: false }]);
-      setSelectedShip(null);
+      const newPlaced = [...placedShips, { shipId: selectedShip.id, cells, sunk: false }];
+      setPlacedShips(newPlaced);
       setHoverCells([]);
+      // Auto-advance to next unplaced ship
+      const newPlacedIds = newPlaced.map((s) => s.shipId);
+      const nextShip = ships.find((s) => !newPlacedIds.includes(s.id)) ?? null;
+      setSelectedShip(nextShip);
     },
     [selectedShip, orientation, board, placedShips, getCells]
   );
@@ -74,7 +78,7 @@ export default function PlaceFleet({ onReady }: Props) {
   const handleReset = () => {
     setBoard(createEmptyBoard());
     setPlacedShips([]);
-    setSelectedShip(null);
+    setSelectedShip(ships[0]);
     setHoverCells([]);
   };
 
@@ -173,7 +177,7 @@ export default function PlaceFleet({ onReady }: Props) {
         </div>
 
         {/* Grid */}
-        <div className="flex-1 flex items-center justify-center overflow-auto">
+        <div className="flex flex-col items-center justify-center overflow-auto">
           <div>
             {/* Column headers */}
             <div className="flex">
@@ -238,9 +242,7 @@ export default function PlaceFleet({ onReady }: Props) {
                       onClick={() => handleCellClick(row, col)}
                     >
                       {isShip && (
-                        <div className="w-full h-full flex items-center justify-center text-xs opacity-60">
-                          ▪
-                        </div>
+                        <span style={{ fontSize: 'clamp(12px, 2vw, 22px)', opacity: 0.7 }}>🚢</span>
                       )}
                     </div>
                   );
@@ -251,15 +253,16 @@ export default function PlaceFleet({ onReady }: Props) {
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-4 mt-4 pb-4">
+        <div className="flex gap-6 mt-3 pb-4">
           <button
             onClick={handleReset}
-            className="px-6 py-3 text-xs tracking-wider cursor-pointer"
+            className="px-8 py-4 text-sm tracking-wider cursor-pointer hover:scale-105 transition-all"
             style={{
               fontFamily: '"Press Start 2P", cursive',
               color: '#3969CA',
-              backgroundColor: 'transparent',
-              border: '2px solid #3969CA',
+              backgroundColor: 'rgba(57, 105, 202, 0.1)',
+              border: '3px solid #3969CA',
+              borderRadius: '2px',
             }}
           >
             RESET
@@ -269,13 +272,15 @@ export default function PlaceFleet({ onReady }: Props) {
               if (allPlaced) onReady(board, placedShips);
             }}
             disabled={!allPlaced}
-            className="px-6 py-3 text-xs tracking-wider cursor-pointer transition-all"
+            className="px-8 py-4 text-sm tracking-wider cursor-pointer transition-all hover:scale-105"
             style={{
               fontFamily: '"Press Start 2P", cursive',
               color: allPlaced ? '#FFD700' : '#555',
               backgroundColor: allPlaced ? 'rgba(255, 215, 0, 0.1)' : 'transparent',
-              border: `2px solid ${allPlaced ? '#FFD700' : '#333'}`,
+              border: `3px solid ${allPlaced ? '#FFD700' : '#333'}`,
+              borderRadius: '2px',
               opacity: allPlaced ? 1 : 0.5,
+              textShadow: allPlaced ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none',
             }}
           >
             START

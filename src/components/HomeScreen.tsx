@@ -24,14 +24,14 @@ export default function HomeScreen({ onStart }: Props) {
         style={{ pointerEvents: 'none' }}
       />
 
-      {/* Button positioned just below the boat */}
+      {/* Button positioned in the water below the boat */}
       <div
         className="absolute left-1/2 z-10"
-        style={{ top: '72%', transform: 'translateX(-50%)' }}
+        style={{ top: '80%', transform: 'translateX(-50%)' }}
       >
         <motion.button
           onClick={onStart}
-          className="px-12 py-5 text-xl tracking-wider cursor-pointer"
+          className="px-16 py-7 text-2xl md:text-3xl tracking-wider cursor-pointer"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFD700',

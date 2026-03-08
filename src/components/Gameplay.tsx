@@ -156,6 +156,9 @@ function GameGrid({
                       style={{ background: 'rgba(255,255,255,0.4)' }}
                     />
                   )}
+                  {isShip && !isHit && (
+                    <span style={{ fontSize: 'clamp(10px, 1.5vw, 18px)', opacity: 0.7 }}>🚢</span>
+                  )}
                 </div>
               );
             })}
