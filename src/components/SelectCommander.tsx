@@ -105,7 +105,7 @@ export default function SelectCommander({ onSelect }: Props) {
         {/* Panels */}
         <div
           className="flex-1 flex gap-4 min-h-0 overflow-hidden px-4"
-          style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', paddingTop: '12px' }}
+          style={{ maxWidth: '900px', margin: '0 auto', width: '100%', paddingTop: '12px' }}
         >
           {/* Sales Panel */}
           <div className="flex-1 flex flex-col min-h-0">
@@ -127,7 +127,7 @@ export default function SelectCommander({ onSelect }: Props) {
               >
                 SALES
               </h2>
-              <div className="grid grid-cols-2 gap-2" style={{ alignContent: 'start' }}>
+              <div className="grid grid-cols-2 gap-2" style={{ alignContent: 'start', maxWidth: '360px', margin: '0 auto' }}>
                 {salesCharacters.map((char) => (
                   <CharacterCard
                     key={char.id}
@@ -171,7 +171,7 @@ export default function SelectCommander({ onSelect }: Props) {
               >
                 PRODUCT
               </h2>
-              <div className="grid grid-cols-2 gap-2" style={{ alignContent: 'start' }}>
+              <div className="grid grid-cols-2 gap-2" style={{ alignContent: 'start', maxWidth: '360px', margin: '0 auto' }}>
                 {productCharacters.map((char, idx) => {
                   const isRouletteHighlighted = rouletteActive && rouletteIndex === idx;
                   return (

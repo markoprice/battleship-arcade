@@ -3,6 +3,10 @@ import arcadeAustin from '../assets/arcade-austin.png';
 import arcadeSebastian from '../assets/arcade-sebastian.png';
 import arcadeBobby from '../assets/arcade-bobby.png';
 import arcadeSatwik from '../assets/arcade-satwik.png';
+import productScott from '../assets/product-scott.png';
+import productWalden from '../assets/product-walden.png';
+import productSteven from '../assets/product-steven.png';
+import productRussell from '../assets/product-russell.png';
 
 export const salesCharacters: Character[] = [
   {
@@ -66,6 +70,7 @@ export const productCharacters: Character[] = [
     title: 'CEO',
     nickname: 'The Architect',
     team: 'product',
+    portrait: productScott,
     stats: [
       { label: 'FRONT-END', value: 90 },
       { label: 'BACK-END', value: 95 },
@@ -78,6 +83,7 @@ export const productCharacters: Character[] = [
     title: 'CPO',
     nickname: 'The Archivist',
     team: 'product',
+    portrait: productWalden,
     stats: [
       { label: 'FRONT-END', value: 85 },
       { label: 'BACK-END', value: 90 },
@@ -90,6 +96,7 @@ export const productCharacters: Character[] = [
     title: 'CTO',
     nickname: 'The Builder',
     team: 'product',
+    portrait: productSteven,
     stats: [
       { label: 'FRONT-END', value: 80 },
       { label: 'BACK-END', value: 95 },
@@ -102,6 +109,7 @@ export const productCharacters: Character[] = [
     title: 'President',
     nickname: 'The Wizard',
     team: 'product',
+    portrait: productRussell,
     stats: [
       { label: 'FRONT-END', value: 85 },
       { label: 'BACK-END', value: 80 },
