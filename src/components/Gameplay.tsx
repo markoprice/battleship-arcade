@@ -33,58 +33,36 @@ const CELL_SIZE = 32;
 const LABEL_WIDTH = 22;
 const HEADER_FONT = 7;
 
-// Animated fire component — pure CSS/Framer Motion, no emojis
+// Subtle 80s arcade hit indicator — soft warm glow, no hyperactive animation
 function FireAnimation() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      {/* Warm orange base glow — slow gentle pulse */}
       <motion.div
         style={{
           position: 'absolute',
-          inset: '10%',
-          borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
-          background: 'radial-gradient(ellipse at bottom, rgba(255,100,0,0.9) 0%, rgba(255,60,0,0.7) 30%, rgba(200,30,0,0.4) 60%, transparent 80%)',
-          filter: 'blur(1px)',
-        }}
-        animate={{
-          scaleX: [1, 1.15, 0.9, 1.1, 1],
-          scaleY: [1, 1.2, 0.85, 1.15, 1],
-          y: [0, -2, 1, -1, 0],
-        }}
-        transition={{ duration: 0.4, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        style={{
-          position: 'absolute',
-          inset: '25%',
-          borderRadius: '50% 50% 50% 50% / 70% 70% 30% 30%',
-          background: 'radial-gradient(ellipse at bottom, rgba(255,220,50,0.95) 0%, rgba(255,150,0,0.7) 50%, transparent 80%)',
-          filter: 'blur(0.5px)',
-        }}
-        animate={{
-          scaleX: [1, 0.8, 1.2, 0.9, 1],
-          scaleY: [1, 1.3, 0.8, 1.2, 1],
-          y: [0, -3, 1, -2, 0],
-        }}
-        transition={{ duration: 0.3, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        style={{
-          position: 'absolute',
-          width: '4px',
-          height: '4px',
+          inset: '15%',
           borderRadius: '50%',
-          background: '#fff',
-          left: '50%',
-          top: '30%',
-          filter: 'blur(1px)',
+          background: 'radial-gradient(ellipse at center, rgba(255,120,20,0.7) 0%, rgba(200,60,0,0.3) 60%, transparent 85%)',
         }}
         animate={{
-          opacity: [0.8, 0.2, 0.9, 0.3, 0.7],
-          y: [-2, -6, -1, -5, -2],
-          x: [-1, 2, -2, 1, -1],
-          scale: [1, 0.5, 1.2, 0.6, 1],
+          opacity: [0.7, 0.9, 0.7],
+          scale: [0.95, 1.05, 0.95],
         }}
-        transition={{ duration: 0.5, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Inner bright core — subtle flicker */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          inset: '30%',
+          borderRadius: '50%',
+          background: 'radial-gradient(ellipse at center, rgba(255,180,50,0.8) 0%, rgba(255,100,0,0.3) 70%, transparent 90%)',
+        }}
+        animate={{
+          opacity: [0.6, 0.85, 0.6],
+        }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
       />
     </div>
   );
@@ -159,135 +137,7 @@ function PlayerCard({
   );
 }
 
-// Animated missile — glowing arc from attacker card to target cell
-function MissileEffect({
-  targetRow,
-  targetCol,
-  fromSide,
-  result,
-  onComplete,
-  attackerCardRef,
-  targetGridRef,
-}: {
-  targetRow: number;
-  targetCol: number;
-  fromSide: 'left' | 'right';
-  result: 'hit' | 'miss' | 'sunk' | 'win';
-  onComplete: () => void;
-  attackerCardRef: React.RefObject<HTMLDivElement | null>;
-  targetGridRef: React.RefObject<HTMLDivElement | null>;
-}) {
-  const isHit = result === 'hit' || result === 'sunk' || result === 'win';
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [positions, setPositions] = useState<{
-    startX: number; startY: number; endX: number; endY: number; midY: number;
-  } | null>(null);
-
-  useEffect(() => {
-    const container = containerRef.current?.closest('.gameplay-container') as HTMLElement;
-    if (!container || !targetGridRef.current) return;
-
-    const cRect = container.getBoundingClientRect();
-    const gRect = targetGridRef.current.getBoundingClientRect();
-
-    const cellX = gRect.left - cRect.left + LABEL_WIDTH + targetCol * CELL_SIZE + CELL_SIZE / 2;
-    const cellY = gRect.top - cRect.top + 18 + targetRow * CELL_SIZE + CELL_SIZE / 2;
-
-    let sX: number, sY: number;
-    if (attackerCardRef.current) {
-      const aRect = attackerCardRef.current.getBoundingClientRect();
-      sX = aRect.left - cRect.left + aRect.width / 2;
-      sY = aRect.top - cRect.top;
-    } else {
-      sX = fromSide === 'left' ? 0 : cRect.width;
-      sY = cellY + 100;
-    }
-
-    setPositions({ startX: sX, startY: sY, endX: cellX, endY: cellY, midY: Math.min(sY, cellY) - 80 });
-  }, [targetRow, targetCol, fromSide, attackerCardRef, targetGridRef]);
-
-  if (!positions) {
-    return <div ref={(el) => { containerRef.current = el; }} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 30 }} />;
-  }
-
-  return (
-    <div ref={(el) => { containerRef.current = el; }} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 30 }}>
-      {/* Glowing projectile — arcs from attacker to target */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          width: '12px',
-          height: '12px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, #fff 0%, #FFD700 30%, #FF6600 60%, transparent 80%)',
-          boxShadow: '0 0 12px 4px rgba(255,150,0,0.8), 0 0 24px 8px rgba(255,100,0,0.4)',
-          transform: 'translate(-50%, -50%)',
-        }}
-        initial={{ left: positions.startX, top: positions.startY, opacity: 1, scale: 0.6 }}
-        animate={{
-          left: [positions.startX, (positions.startX + positions.endX) / 2, positions.endX],
-          top: [positions.startY, positions.midY, positions.endY],
-          opacity: 1,
-          scale: [0.6, 1.2, 0.8],
-        }}
-        transition={{ duration: 0.55, ease: 'easeIn', times: [0, 0.5, 1] }}
-        onAnimationComplete={onComplete}
-      />
-      {/* Trail */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          width: '6px',
-          height: '6px',
-          borderRadius: '50%',
-          background: 'rgba(255,150,0,0.5)',
-          boxShadow: '0 0 8px rgba(255,100,0,0.4)',
-          transform: 'translate(-50%, -50%)',
-        }}
-        initial={{ left: positions.startX, top: positions.startY, opacity: 0.8 }}
-        animate={{
-          left: [positions.startX, (positions.startX + positions.endX) / 2, positions.endX],
-          top: [positions.startY, positions.midY, positions.endY],
-          opacity: [0.8, 0.4, 0],
-        }}
-        transition={{ duration: 0.55, ease: 'easeIn', times: [0, 0.5, 1], delay: 0.05 }}
-      />
-      {/* Impact burst */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          zIndex: 25,
-          pointerEvents: 'none',
-          left: positions.endX,
-          top: positions.endY,
-          transform: 'translate(-50%, -50%)',
-          width: `${CELL_SIZE * 2}px`,
-          height: `${CELL_SIZE * 2}px`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: [0, 0, 1, 1, 0], scale: [0, 0, 1.5, 1.2, 0] }}
-        transition={{ duration: 1, times: [0, 0.5, 0.6, 0.8, 1] }}
-      >
-        {isHit ? (
-          <div style={{
-            width: '100%', height: '100%', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(255,100,0,0.9) 0%, rgba(255,50,0,0.6) 40%, transparent 70%)',
-            boxShadow: '0 0 30px rgba(255,100,0,0.8), 0 0 60px rgba(255,50,0,0.4)',
-          }} />
-        ) : (
-          <div style={{
-            width: '100%', height: '100%', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(100,180,255,0.8) 0%, rgba(50,120,255,0.4) 40%, transparent 70%)',
-            boxShadow: '0 0 20px rgba(100,180,255,0.6)',
-          }} />
-        )}
-      </motion.div>
-    </div>
-  );
-}
+// Missile animation removed per user request
 
 // Compute per-cell border edges for ship group outlines
 function getShipBorders(
@@ -409,10 +259,10 @@ function GameGrid({
                   style={{
                     width: `${CELL_SIZE}px`,
                     height: `${CELL_SIZE}px`,
-                    borderTop: borders?.top ? `${shipBorderWidth} solid ${shipBorderColor}` : `1px solid ${borderColor}33`,
-                    borderRight: borders?.right ? `${shipBorderWidth} solid ${shipBorderColor}` : `1px solid ${borderColor}33`,
-                    borderBottom: borders?.bottom ? `${shipBorderWidth} solid ${shipBorderColor}` : `1px solid ${borderColor}33`,
-                    borderLeft: borders?.left ? `${shipBorderWidth} solid ${shipBorderColor}` : `1px solid ${borderColor}33`,
+                    borderTop: borders?.top ? `${shipBorderWidth} solid ${shipBorderColor}` : (borders && !borders.top) ? `1px solid ${shipBorderColor}22` : `1px solid ${borderColor}33`,
+                    borderRight: borders?.right ? `${shipBorderWidth} solid ${shipBorderColor}` : (borders && !borders.right) ? `1px solid ${shipBorderColor}22` : `1px solid ${borderColor}33`,
+                    borderBottom: borders?.bottom ? `${shipBorderWidth} solid ${shipBorderColor}` : (borders && !borders.bottom) ? `1px solid ${shipBorderColor}22` : `1px solid ${borderColor}33`,
+                    borderLeft: borders?.left ? `${shipBorderWidth} solid ${shipBorderColor}` : (borders && !borders.left) ? `1px solid ${shipBorderColor}22` : `1px solid ${borderColor}33`,
                     background: isHit
                       ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(255, 80, 0, 0.3)')
                       : isMiss
@@ -437,24 +287,6 @@ function GameGrid({
                     <div
                       style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.4)' }}
                     />
-                  )}
-                  {/* Sunk indicator: red X overlay */}
-                  {sunk && isHit && (
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontFamily: '"Press Start 2P", cursive',
-                      fontSize: '10px',
-                      color: '#ff4444',
-                      textShadow: '0 0 6px rgba(255,0,0,0.6)',
-                      zIndex: 5,
-                      pointerEvents: 'none',
-                    }}>
-                      ✕
-                    </div>
                   )}
                 </div>
               );
@@ -554,17 +386,10 @@ export default function Gameplay({
   const [processing, setProcessing] = useState(false);
   const processingRef = useRef(false);
   const timeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const [missileAnim, setMissileAnim] = useState<{
-    row: number;
-    col: number;
-    result: 'hit' | 'miss' | 'sunk' | 'win';
-    fromSide: 'left' | 'right';
-    targetBoard: 'player' | 'ai';
-  } | null>(null);
 
   const cancelledRef = useRef(false);
 
-  // Refs for missile origin/target positions
+  // Refs for player card containers
   const playerCardContainerRef = useRef<HTMLDivElement>(null);
   const aiCardContainerRef = useRef<HTMLDivElement>(null);
   const playerGridRef = useRef<HTMLDivElement>(null);
@@ -583,105 +408,10 @@ export default function Gameplay({
   // Store pending shot info so we can defer onPlayerFire until after missile lands
   const pendingShotRef = useRef<{ row: number; col: number } | null>(null);
 
-  const handlePlayerShot = useCallback(
-    (row: number, col: number) => {
-      if (!isPlayerTurn || processingRef.current) return;
-      // Quick check if cell already hit/missed (without updating board yet)
-      const cell = aiBoard[row][col];
-      if (cell.state === 'hit' || cell.state === 'miss') return;
-
-      processingRef.current = true;
-      setProcessing(true);
-
-      // Store the shot coordinates; defer onPlayerFire until missile lands
-      pendingShotRef.current = { row, col };
-      // We don't know the result yet, but we know if it's a ship or water
-      const pendingResult = cell.state === 'ship' ? 'hit' : 'miss';
-      // Player fires from left side toward AI board (right)
-      setMissileAnim({ row, col, result: pendingResult as 'hit' | 'miss' | 'sunk' | 'win', fromSide: 'left', targetBoard: 'ai' });
-    },
-    [
-      isPlayerTurn,
-      processing,
-      aiBoard,
-    ]
-  );
-
-  // Handle missile animation completion — NOW fire and update board
-  const handleMissileComplete = useCallback(() => {
+  // Handle AI shot — fire and update board
+  const fireAIShot = useCallback(() => {
     if (cancelledRef.current) return;
-    const shot = pendingShotRef.current;
-    if (!shot) {
-      setMissileAnim(null);
-      processingRef.current = false;
-      setProcessing(false);
-      return;
-    }
-    pendingShotRef.current = null;
-    setMissileAnim(null);
 
-    // Actually fire now and update the board
-    const result = onPlayerFire(shot.row, shot.col);
-    if (result === 'already') {
-      processingRef.current = false;
-      setProcessing(false);
-      return;
-    }
-
-    if (result === 'hit') {
-      playExplosion();
-    } else if (result === 'miss') {
-      playSplash();
-    } else if (result === 'sunk') {
-      playShipSunk();
-    } else if (result === 'win') {
-      playShipSunk();
-      timeoutIdsRef.current.push(setTimeout(() => {
-        processingRef.current = false;
-        setProcessing(false);
-        onWin();
-      }, 1000));
-      return;
-    }
-
-    // End player turn, start AI turn with missile animation
-    timeoutIdsRef.current.push(setTimeout(() => {
-      onEndPlayerTurn();
-      timeoutIdsRef.current.push(setTimeout(() => {
-        if (cancelledRef.current) return;
-        // Peek at target WITHOUT updating board — animation plays first
-        const peek = onAIPeekTarget();
-
-        // Show AI missile animation from right side toward player board
-        setMissileAnim({
-          row: peek.row,
-          col: peek.col,
-          result: peek.predictedResult,
-          fromSide: 'right',
-          targetBoard: 'player',
-        });
-
-        // AI missile onComplete will be handled by handleAIMissileComplete
-      }, 800));
-    }, 500));
-  }, [
-    onPlayerFire,
-    onAIPeekTarget,
-    onEndPlayerTurn,
-    onStartPlayerTurn,
-    onWin,
-    onLose,
-    playExplosion,
-    playSplash,
-    playShipSunk,
-  ]);
-
-  // Handle AI missile animation completion — NOW fire and update board
-  const handleAIMissileComplete = useCallback(() => {
-    if (cancelledRef.current) return;
-    setMissileAnim(null);
-
-    // Actually fire now and update the board
     const aiResult = onAIFire();
 
     if (aiResult.result === 'hit') playExplosion();
@@ -711,6 +441,80 @@ export default function Gameplay({
     playShipSunk,
   ]);
 
+  // Process player shot result and trigger AI turn
+  const processPlayerShot = useCallback(() => {
+    if (cancelledRef.current) return;
+    const shot = pendingShotRef.current;
+    if (!shot) {
+      processingRef.current = false;
+      setProcessing(false);
+      return;
+    }
+    pendingShotRef.current = null;
+
+    const result = onPlayerFire(shot.row, shot.col);
+    if (result === 'already') {
+      processingRef.current = false;
+      setProcessing(false);
+      return;
+    }
+
+    if (result === 'hit') {
+      playExplosion();
+    } else if (result === 'miss') {
+      playSplash();
+    } else if (result === 'sunk') {
+      playShipSunk();
+    } else if (result === 'win') {
+      playShipSunk();
+      timeoutIdsRef.current.push(setTimeout(() => {
+        processingRef.current = false;
+        setProcessing(false);
+        onWin();
+      }, 1000));
+      return;
+    }
+
+    // End player turn, start AI turn
+    timeoutIdsRef.current.push(setTimeout(() => {
+      onEndPlayerTurn();
+      timeoutIdsRef.current.push(setTimeout(() => {
+        if (cancelledRef.current) return;
+        fireAIShot();
+      }, 800));
+    }, 500));
+  }, [
+    onPlayerFire,
+    fireAIShot,
+    onEndPlayerTurn,
+    onWin,
+    playExplosion,
+    playSplash,
+    playShipSunk,
+  ]);
+
+  const handlePlayerShot = useCallback(
+    (row: number, col: number) => {
+      if (!isPlayerTurn || processingRef.current) return;
+      const cell = aiBoard[row][col];
+      if (cell.state === 'hit' || cell.state === 'miss') return;
+
+      processingRef.current = true;
+      setProcessing(true);
+
+      pendingShotRef.current = { row, col };
+      // Small delay for feel, then process
+      const id = setTimeout(() => processPlayerShot(), 150);
+      timeoutIdsRef.current.push(id);
+    },
+    [
+      isPlayerTurn,
+      processing,
+      aiBoard,
+      processPlayerShot,
+    ]
+  );
+
   // Auto-unlock processing if stuck
   useEffect(() => {
     if (processing) {
@@ -735,36 +539,10 @@ export default function Gameplay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Turn indicator */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={isPlayerTurn ? 'player' : 'opponent'}
-            className="text-center"
-            style={{ marginBottom: '4px' }}
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5 }}
-            transition={{ duration: 0.3 }}
-          >
-            <span
-              style={{
-                fontFamily: '"Press Start 2P", cursive',
-                color: isPlayerTurn ? '#FFD700' : '#ff4444',
-                fontSize: '13px',
-                textShadow: isPlayerTurn
-                  ? '0 0 10px rgba(255, 215, 0, 0.5)'
-                  : '0 0 10px rgba(255, 68, 68, 0.5)',
-              }}
-            >
-              {isPlayerTurn && !processing ? 'YOUR TURN' : processing ? 'FIRING...' : "OPPONENT'S TURN"}
-            </span>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Grids with player cards above and ship trackers below */}
-        <div className="flex-1 flex items-start justify-center" style={{ gap: '32px', paddingTop: '4px' }}>
+        {/* Grids with center column for turn indicator + ship trackers */}
+        <div className="flex-1 flex items-start justify-center" style={{ gap: '16px', paddingTop: '4px' }}>
           {/* Player side (left) */}
-          <div className="flex flex-col items-center relative">
+          <div className="flex flex-col items-center">
             {/* Player card ABOVE grid */}
             <div ref={playerCardContainerRef}>
               <PlayerCard
@@ -779,33 +557,72 @@ export default function Gameplay({
               board={playerBoard}
               borderColor="#3969CA"
               isEnemy={false}
-              isBeingAttacked={!isPlayerTurn || (!!missileAnim && missileAnim.targetBoard === 'player')}
+              isBeingAttacked={!isPlayerTurn}
               gridRef={playerGridRef}
               placedShips={playerShips}
             />
-            <AnimatePresence>
-              {missileAnim && missileAnim.targetBoard === 'player' && (
-                <MissileEffect
-                  targetRow={missileAnim.row}
-                  targetCol={missileAnim.col}
-                  fromSide={missileAnim.fromSide}
-                  result={missileAnim.result}
-                  onComplete={() => {
-                    const id = setTimeout(handleAIMissileComplete, 400);
-                    timeoutIdsRef.current.push(id);
+          </div>
+
+          {/* CENTER COLUMN — turn indicator + ship statuses */}
+          <div className="flex flex-col items-center justify-start" style={{ width: '200px', paddingTop: '70px', gap: '12px' }}>
+            {/* Turn indicator */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={isPlayerTurn ? 'player' : 'opponent'}
+                className="text-center"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                transition={{ duration: 0.3 }}
+              >
+                <span
+                  style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    color: isPlayerTurn ? '#FFD700' : '#ff4444',
+                    fontSize: '11px',
+                    textShadow: isPlayerTurn
+                      ? '0 0 10px rgba(255, 215, 0, 0.5)'
+                      : '0 0 10px rgba(255, 68, 68, 0.5)',
                   }}
-                  attackerCardRef={aiCardContainerRef}
-                  targetGridRef={playerGridRef}
-                />
-              )}
+                >
+                  {isPlayerTurn && !processing ? 'YOUR TURN' : processing ? 'FIRING...' : "OPPONENT'S TURN"}
+                </span>
+              </motion.div>
             </AnimatePresence>
-            {/* Ship tracker BENEATH grid */}
-            <div style={{ marginTop: '6px' }}>
-              <ShipTracker placedShips={playerShips} borderColor="#3969CA" boardWidth={boardWidth} />
+
+            {/* Divider */}
+            <div style={{ width: '80%', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
+
+            {/* Player ship tracker */}
+            <div style={{ width: '100%' }}>
+              <div style={{
+                fontFamily: '"Press Start 2P", cursive',
+                fontSize: '6px',
+                color: '#3969CA',
+                marginBottom: '4px',
+                textAlign: 'center',
+              }}>YOUR FLEET</div>
+              <ShipTracker placedShips={playerShips} borderColor="#3969CA" boardWidth={200} />
+            </div>
+
+            {/* Divider */}
+            <div style={{ width: '80%', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
+
+            {/* AI ship tracker */}
+            <div style={{ width: '100%' }}>
+              <div style={{
+                fontFamily: '"Press Start 2P", cursive',
+                fontSize: '6px',
+                color: '#21C19A',
+                marginBottom: '4px',
+                textAlign: 'center',
+              }}>ENEMY FLEET</div>
+              <ShipTracker placedShips={aiShips} borderColor="#21C19A" boardWidth={200} />
             </div>
           </div>
+
           {/* AI side (right) */}
-          <div className="flex flex-col items-center relative">
+          <div className="flex flex-col items-center">
             {/* AI card ABOVE grid */}
             <div ref={aiCardContainerRef}>
               <PlayerCard
@@ -820,32 +637,12 @@ export default function Gameplay({
               board={aiBoard}
               borderColor="#21C19A"
               isEnemy
-              isBeingAttacked={isPlayerTurn || (!!missileAnim && missileAnim.targetBoard === 'ai')}
+              isBeingAttacked={isPlayerTurn}
               onCellClick={handlePlayerShot}
               disabled={!isPlayerTurn || processing}
               gridRef={aiGridRef}
               placedShips={aiShips}
             />
-            <AnimatePresence>
-              {missileAnim && missileAnim.targetBoard === 'ai' && (
-                <MissileEffect
-                  targetRow={missileAnim.row}
-                  targetCol={missileAnim.col}
-                  fromSide={missileAnim.fromSide}
-                  result={missileAnim.result}
-                  onComplete={() => {
-                    const id = setTimeout(handleMissileComplete, 400);
-                    timeoutIdsRef.current.push(id);
-                  }}
-                  attackerCardRef={playerCardContainerRef}
-                  targetGridRef={aiGridRef}
-                />
-              )}
-            </AnimatePresence>
-            {/* Ship tracker BENEATH grid */}
-            <div style={{ marginTop: '6px' }}>
-              <ShipTracker placedShips={aiShips} borderColor="#21C19A" boardWidth={boardWidth} />
-            </div>
           </div>
         </div>
 

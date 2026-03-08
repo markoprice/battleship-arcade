@@ -233,10 +233,10 @@ export default function PlaceFleet({ onReady }: Props) {
                         style={{
                           width: `${CELL}px`,
                           height: `${CELL}px`,
-                          borderTop: borders?.top ? `2px solid ${shipBorderColor}` : defaultBorder,
-                          borderRight: borders?.right ? `2px solid ${shipBorderColor}` : defaultBorder,
-                          borderBottom: borders?.bottom ? `2px solid ${shipBorderColor}` : defaultBorder,
-                          borderLeft: borders?.left ? `2px solid ${shipBorderColor}` : defaultBorder,
+                          borderTop: borders?.top ? `2px solid ${shipBorderColor}` : (borders && !borders.top) ? `1px solid rgba(0, 255, 100, 0.13)` : defaultBorder,
+                          borderRight: borders?.right ? `2px solid ${shipBorderColor}` : (borders && !borders.right) ? `1px solid rgba(0, 255, 100, 0.13)` : defaultBorder,
+                          borderBottom: borders?.bottom ? `2px solid ${shipBorderColor}` : (borders && !borders.bottom) ? `1px solid rgba(0, 255, 100, 0.13)` : defaultBorder,
+                          borderLeft: borders?.left ? `2px solid ${shipBorderColor}` : (borders && !borders.left) ? `1px solid rgba(0, 255, 100, 0.13)` : defaultBorder,
                           boxSizing: 'border-box',
                           background: isShip
                             ? 'rgba(0, 255, 100, 0.15)'
