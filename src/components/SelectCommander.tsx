@@ -15,6 +15,7 @@ export default function SelectCommander({ onSelect }: Props) {
   const [rouletteActive, setRouletteActive] = useState(false);
   const [forceGridView, setForceGridView] = useState(false);
   const [rouletteIndex, setRouletteIndex] = useState(0);
+  const [bothSelected, setBothSelected] = useState(false);
   const rouletteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rouletteCountRef = useRef(0);
   const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -51,13 +52,7 @@ export default function SelectCommander({ onSelect }: Props) {
         setRouletteActive(false);
         setForceGridView(false);
         rouletteStartedRef.current = false;
-        // Auto-advance to matchup preview after a brief pause
-        autoAdvanceRef.current = setTimeout(() => {
-          const sc = salesCharacters.find((c) => c.id === selectedSalesRef.current);
-          if (sc) {
-            onSelect(sc, finalChar);
-          }
-        }, 1200);
+        setBothSelected(true);
       }
     };
 
@@ -91,6 +86,7 @@ export default function SelectCommander({ onSelect }: Props) {
     setSelectedSales(null);
     selectedSalesRef.current = null;
     setSelectedProduct(null);
+    setBothSelected(false);
     rouletteStartedRef.current = false;
     if (rouletteTimerRef.current) clearTimeout(rouletteTimerRef.current);
     if (startDelayRef.current) clearTimeout(startDelayRef.current);
@@ -100,6 +96,7 @@ export default function SelectCommander({ onSelect }: Props) {
   const handleDeselectProduct = () => {
     if (rouletteActive) return;
     setSelectedProduct(null);
+    setBothSelected(false);
     if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
     // Re-run roulette
     rouletteStartedRef.current = true;
@@ -333,6 +330,36 @@ export default function SelectCommander({ onSelect }: Props) {
           {/* PRODUCT stacked label */}
           <StackedLabel text="PRODUCT" color="#21C19A" />
         </div>
+
+        {/* PLACE YOUR FLEET button — shows after both players are selected */}
+        <AnimatePresence>
+          {bothSelected && salesChar && productChar && (
+            <motion.div
+              className="flex justify-center pb-6 pt-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.4, type: 'spring' }}
+            >
+              <button
+                onClick={() => onSelect(salesChar, productChar)}
+                className="px-10 py-5 cursor-pointer transition-all hover:scale-105"
+                style={{
+                  fontFamily: '"Press Start 2P", cursive',
+                  color: '#FFD700',
+                  fontSize: 'clamp(12px, 1.5vw, 18px)',
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                  border: '3px solid #FFD700',
+                  borderRadius: '2px',
+                  textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
+                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.2)',
+                }}
+              >
+                PLACE YOUR FLEET →
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );

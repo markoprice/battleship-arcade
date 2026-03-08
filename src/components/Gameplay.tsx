@@ -41,7 +41,7 @@ function PlayerCard({
 }) {
   return (
     <motion.div
-      className="flex items-center gap-2 mb-2"
+      className="flex items-center gap-2 mt-2"
       animate={{ scale: isActive ? 1.1 : 0.9, opacity: isActive ? 1 : 0.6 }}
       transition={{ duration: 0.3 }}
     >
@@ -100,6 +100,89 @@ function PlayerCard({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+// Missile projectile + impact effect overlay
+function MissileEffect({
+  targetRow,
+  targetCol,
+  cellSize,
+  labelWidth,
+  result,
+  onComplete,
+}: {
+  targetRow: number;
+  targetCol: number;
+  cellSize: string;
+  labelWidth: string;
+  result: 'hit' | 'miss' | 'sunk' | 'win';
+  onComplete: () => void;
+}) {
+  const isHit = result === 'hit' || result === 'sunk' || result === 'win';
+  return (
+    <>
+      {/* Missile projectile */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          zIndex: 30,
+          pointerEvents: 'none',
+          fontSize: '20px',
+          filter: 'drop-shadow(0 0 8px rgba(255, 150, 0, 0.8))',
+        }}
+        initial={{ top: '100%', left: '50%', opacity: 1, scale: 1 }}
+        animate={{
+          top: `calc(${targetRow} * ${cellSize} + ${cellSize} / 2 + 18px)`,
+          left: `calc(${labelWidth} + ${targetCol} * ${cellSize} + ${cellSize} / 2)`,
+          opacity: 1,
+          scale: 0.8,
+        }}
+        transition={{ duration: 0.45, ease: 'easeIn' }}
+        onAnimationComplete={() => {
+          // After missile arrives, show impact
+          setTimeout(onComplete, 400);
+        }}
+      >
+        🚀
+      </motion.div>
+      {/* Impact effect — delayed to appear after missile lands */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          zIndex: 25,
+          pointerEvents: 'none',
+          top: `calc(${targetRow} * ${cellSize} + 18px)`,
+          left: `calc(${labelWidth} + ${targetCol} * ${cellSize})`,
+          width: cellSize,
+          height: cellSize,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: [0, 0, 1, 1, 0], scale: [0, 0, 1.5, 1.2, 0] }}
+        transition={{ duration: 1, times: [0, 0.45, 0.55, 0.75, 1] }}
+      >
+        {isHit ? (
+          <div style={{
+            width: '200%',
+            height: '200%',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,100,0,0.9) 0%, rgba(255,50,0,0.6) 40%, transparent 70%)',
+            boxShadow: '0 0 30px rgba(255,100,0,0.8), 0 0 60px rgba(255,50,0,0.4)',
+          }} />
+        ) : (
+          <div style={{
+            width: '200%',
+            height: '200%',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(100,180,255,0.8) 0%, rgba(50,120,255,0.4) 40%, transparent 70%)',
+            boxShadow: '0 0 20px rgba(100,180,255,0.6)',
+          }} />
+        )}
+      </motion.div>
+    </>
   );
 }
 
@@ -284,6 +367,12 @@ export default function Gameplay({
   const [processing, setProcessing] = useState(false);
   const processingRef = useRef(false);
   const timeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [missileAnim, setMissileAnim] = useState<{
+    row: number;
+    col: number;
+    result: 'hit' | 'miss' | 'sunk' | 'win';
+  } | null>(null);
+  const aiGridRef = useRef<HTMLDivElement>(null);
 
   // Clear all pending timeouts on unmount (e.g. abandon game)
   useEffect(() => {
@@ -302,66 +391,78 @@ export default function Gameplay({
       processingRef.current = true;
       setProcessing(true);
 
-      if (result === 'hit') {
-        playExplosion();
-      } else if (result === 'miss') {
-        playSplash();
-      } else if (result === 'sunk') {
-        playShipSunk();
-      } else if (result === 'win') {
-        playShipSunk();
-        timeoutIdsRef.current.push(setTimeout(() => {
-          processingRef.current = false;
-          setProcessing(false);
-          onWin();
-        }, 1000));
-        return;
-      }
-
-      // End player turn, start AI turn
-      timeoutIdsRef.current.push(setTimeout(() => {
-        onEndPlayerTurn();
-        // AI fires after a delay
-        timeoutIdsRef.current.push(setTimeout(() => {
-          const aiResult = onAIFire();
-          if (aiResult.result === 'hit') {
-            playExplosion();
-          } else if (aiResult.result === 'miss') {
-            playSplash();
-          } else if (aiResult.result === 'sunk') {
-            playShipSunk();
-          } else if (aiResult.result === 'lose') {
-            playShipSunk();
-            timeoutIdsRef.current.push(setTimeout(() => {
-              processingRef.current = false;
-              setProcessing(false);
-              onLose();
-            }, 1000));
-            return;
-          }
-
-          timeoutIdsRef.current.push(setTimeout(() => {
-            onStartPlayerTurn();
-            processingRef.current = false;
-            setProcessing(false);
-          }, 500));
-        }, 800));
-      }, 500));
+      // Launch missile animation
+      setMissileAnim({ row, col, result: result as 'hit' | 'miss' | 'sunk' | 'win' });
     },
     [
       isPlayerTurn,
       processing,
       onPlayerFire,
-      onAIFire,
-      onEndPlayerTurn,
-      onStartPlayerTurn,
-      onWin,
-      onLose,
-      playExplosion,
-      playSplash,
-      playShipSunk,
     ]
   );
+
+  // Handle missile animation completion
+  const handleMissileComplete = useCallback(() => {
+    if (!missileAnim) return;
+    const { result } = missileAnim;
+    setMissileAnim(null);
+
+    if (result === 'hit') {
+      playExplosion();
+    } else if (result === 'miss') {
+      playSplash();
+    } else if (result === 'sunk') {
+      playShipSunk();
+    } else if (result === 'win') {
+      playShipSunk();
+      timeoutIdsRef.current.push(setTimeout(() => {
+        processingRef.current = false;
+        setProcessing(false);
+        onWin();
+      }, 1000));
+      return;
+    }
+
+    // End player turn, start AI turn
+    timeoutIdsRef.current.push(setTimeout(() => {
+      onEndPlayerTurn();
+      // AI fires after a delay
+      timeoutIdsRef.current.push(setTimeout(() => {
+        const aiResult = onAIFire();
+        if (aiResult.result === 'hit') {
+          playExplosion();
+        } else if (aiResult.result === 'miss') {
+          playSplash();
+        } else if (aiResult.result === 'sunk') {
+          playShipSunk();
+        } else if (aiResult.result === 'lose') {
+          playShipSunk();
+          timeoutIdsRef.current.push(setTimeout(() => {
+            processingRef.current = false;
+            setProcessing(false);
+            onLose();
+          }, 1000));
+          return;
+        }
+
+        timeoutIdsRef.current.push(setTimeout(() => {
+          onStartPlayerTurn();
+          processingRef.current = false;
+          setProcessing(false);
+        }, 500));
+      }, 800));
+    }, 500));
+  }, [
+    missileAnim,
+    onAIFire,
+    onEndPlayerTurn,
+    onStartPlayerTurn,
+    onWin,
+    onLose,
+    playExplosion,
+    playSplash,
+    playShipSunk,
+  ]);
 
   // Auto-unlock processing if stuck
   useEffect(() => {
@@ -407,10 +508,16 @@ export default function Gameplay({
           </div>
         </div>
 
-        {/* Grids with player cards */}
+        {/* Grids with player cards BELOW */}
         <div className="flex-1 flex items-center justify-center gap-4 md:gap-8 overflow-auto">
           {/* Player side */}
           <div className="flex flex-col items-center">
+            <GameGrid
+              board={playerBoard}
+              borderColor="#3969CA"
+              isEnemy={false}
+              isActive={!isPlayerTurn && !processing}
+            />
             <PlayerCard
               character={playerCharacter}
               borderColor="#3969CA"
@@ -418,22 +525,9 @@ export default function Gameplay({
               isActive={!isPlayerTurn && !processing}
               isSales
             />
-            <GameGrid
-              board={playerBoard}
-              borderColor="#3969CA"
-              isEnemy={false}
-              isActive={!isPlayerTurn && !processing}
-            />
           </div>
           {/* AI side */}
-          <div className="flex flex-col items-center">
-            <PlayerCard
-              character={aiCharacter}
-              borderColor="#21C19A"
-              teamLabel="PRODUCT"
-              isActive={isPlayerTurn && !processing}
-              isSales={false}
-            />
+          <div className="flex flex-col items-center relative" ref={aiGridRef}>
             <GameGrid
               board={aiBoard}
               borderColor="#21C19A"
@@ -441,6 +535,26 @@ export default function Gameplay({
               isActive={isPlayerTurn && !processing}
               onCellClick={handlePlayerShot}
               disabled={!isPlayerTurn || processing}
+            />
+            {/* Missile animation overlay */}
+            <AnimatePresence>
+              {missileAnim && (
+                <MissileEffect
+                  targetRow={missileAnim.row}
+                  targetCol={missileAnim.col}
+                  cellSize={'clamp(26px, 3.8vw, 48px)'}
+                  labelWidth={'clamp(20px, 2.8vw, 36px)'}
+                  result={missileAnim.result}
+                  onComplete={handleMissileComplete}
+                />
+              )}
+            </AnimatePresence>
+            <PlayerCard
+              character={aiCharacter}
+              borderColor="#21C19A"
+              teamLabel="PRODUCT"
+              isActive={isPlayerTurn && !processing}
+              isSales={false}
             />
           </div>
         </div>
