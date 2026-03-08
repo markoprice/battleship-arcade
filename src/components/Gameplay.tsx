@@ -46,7 +46,7 @@ function PlayerCard({
       transition={{ duration: 0.3 }}
     >
       <div
-        className="flex items-center justify-center rounded"
+        className="flex items-center justify-center rounded overflow-hidden"
         style={{
           width: isActive ? '48px' : '36px',
           height: isActive ? '48px' : '36px',
@@ -59,7 +59,11 @@ function PlayerCard({
           boxShadow: isActive ? `0 0 12px ${borderColor}66` : 'none',
         }}
       >
-        {isSales ? '🎯' : '💻'}
+        {character.portrait ? (
+          <img src={character.portrait} alt={character.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+        ) : (
+          isSales ? '🎯' : '💻'
+        )}
       </div>
       <div>
         <div

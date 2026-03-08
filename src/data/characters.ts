@@ -1,4 +1,8 @@
 import type { Character } from '../types';
+import arcadeAustin from '../assets/arcade-austin.png';
+import arcadeSebastian from '../assets/arcade-sebastian.png';
+import arcadeBobby from '../assets/arcade-bobby.png';
+import arcadeSatwik from '../assets/arcade-satwik.png';
 
 export const salesCharacters: Character[] = [
   {
@@ -7,6 +11,7 @@ export const salesCharacters: Character[] = [
     title: 'VP Enterprise',
     nickname: 'The Closer',
     team: 'sales',
+    portrait: arcadeAustin,
     stats: [
       { label: 'PROSPECT', value: 85 },
       { label: 'DEMO', value: 90 },
@@ -19,6 +24,7 @@ export const salesCharacters: Character[] = [
     title: 'GTM Leader',
     nickname: 'The Connector',
     team: 'sales',
+    portrait: arcadeSebastian,
     stats: [
       { label: 'PROSPECT', value: 80 },
       { label: 'DEMO', value: 85 },
@@ -31,6 +37,7 @@ export const salesCharacters: Character[] = [
     title: 'GTM',
     nickname: 'The Hunter',
     team: 'sales',
+    portrait: arcadeBobby,
     stats: [
       { label: 'PROSPECT', value: 90 },
       { label: 'DEMO', value: 80 },
@@ -43,6 +50,7 @@ export const salesCharacters: Character[] = [
     title: 'Engineering Leader',
     nickname: 'The Leader',
     team: 'sales',
+    portrait: arcadeSatwik,
     stats: [
       { label: 'PROSPECT', value: 75 },
       { label: 'DEMO', value: 85 },
@@ -61,11 +69,11 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 90 },
       { label: 'BACK-END', value: 95 },
-        { label: 'FOUNDER MODE', value: 90 },
-      ],
-    },
-    {
-      id: 'walden',
+      { label: 'FOUNDER MODE', value: 90 },
+    ],
+  },
+  {
+    id: 'walden',
     name: 'Walden Yan',
     title: 'CPO',
     nickname: 'The Archivist',

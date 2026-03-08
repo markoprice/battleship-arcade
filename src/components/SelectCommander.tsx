@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Character } from '../types';
 import { salesCharacters, productCharacters } from '../data/characters';
@@ -12,10 +12,57 @@ interface Props {
 export default function SelectCommander({ onSelect }: Props) {
   const [selectedSales, setSelectedSales] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [rouletteActive, setRouletteActive] = useState(false);
+  const [rouletteIndex, setRouletteIndex] = useState(0);
+  const rouletteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rouletteCountRef = useRef(0);
 
   const salesChar = salesCharacters.find((c) => c.id === selectedSales) ?? null;
   const productChar = productCharacters.find((c) => c.id === selectedProduct) ?? null;
-  const canStart = salesChar !== null && productChar !== null;
+  const canStart = salesChar !== null && productChar !== null && !rouletteActive;
+
+  // Start roulette when Sales character is selected
+  const startRoulette = useCallback(() => {
+    setRouletteActive(true);
+    rouletteCountRef.current = 0;
+    const totalSpins = 12 + Math.floor(Math.random() * 6); // 12-17 spins
+    const finalIndex = Math.floor(Math.random() * productCharacters.length);
+
+    const spin = (count: number) => {
+      const idx = count % productCharacters.length;
+      setRouletteIndex(idx);
+      rouletteCountRef.current = count;
+
+      if (count < totalSpins) {
+        // Speed up then slow down
+        const progress = count / totalSpins;
+        const delay = progress < 0.5 ? 80 : 80 + (progress - 0.5) * 400;
+        rouletteTimerRef.current = setTimeout(() => spin(count + 1), delay);
+      } else {
+        // Land on final
+        setRouletteIndex(finalIndex);
+        setSelectedProduct(productCharacters[finalIndex].id);
+        setRouletteActive(false);
+      }
+    };
+
+    spin(0);
+  }, []);
+
+  // Cleanup roulette on unmount
+  useEffect(() => {
+    return () => {
+      if (rouletteTimerRef.current) clearTimeout(rouletteTimerRef.current);
+    };
+  }, []);
+
+  const handleSalesSelect = (charId: string) => {
+    if (rouletteActive) return;
+    setSelectedSales(charId);
+    setSelectedProduct(null);
+    // Start roulette after a brief moment
+    setTimeout(() => startRoulette(), 300);
+  };
 
   return (
     <div className="fixed inset-0 overflow-hidden">
@@ -27,9 +74,9 @@ export default function SelectCommander({ onSelect }: Props) {
         exit={{ opacity: 0 }}
       >
         {/* Title */}
-        <div className="text-center pt-8">
+        <div className="text-center pt-6 pb-2">
           <h1
-            className="text-2xl md:text-3xl tracking-wider"
+            className="text-xl md:text-2xl tracking-wider"
             style={{
               fontFamily: '"Press Start 2P", cursive',
               color: '#FFD700',
@@ -39,10 +86,10 @@ export default function SelectCommander({ onSelect }: Props) {
             SELECT COMMANDER
           </h1>
           <div
-            className="mt-3 h-0.5 mx-auto"
+            className="mt-3 h-0.5"
             style={{
-              width: '60%',
-              maxWidth: '600px',
+              width: 'min(60%, 500px)',
+              margin: '0 auto',
               background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
             }}
           />
@@ -50,13 +97,13 @@ export default function SelectCommander({ onSelect }: Props) {
 
         {/* Panels */}
         <div
-          className="flex-1 flex gap-6 min-h-0 overflow-hidden px-6"
-          style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', paddingTop: '24px' }}
+          className="flex-1 flex gap-4 min-h-0 overflow-hidden px-4"
+          style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', paddingTop: '12px' }}
         >
           {/* Sales Panel */}
           <div className="flex-1 flex flex-col min-h-0">
             <div
-              className="flex-1 flex flex-col p-4 rounded overflow-auto min-h-0"
+              className="flex flex-col p-3 rounded overflow-auto min-h-0"
               style={{
                 border: '2px solid #3969CA',
                 background: 'rgba(57, 105, 202, 0.1)',
@@ -64,7 +111,7 @@ export default function SelectCommander({ onSelect }: Props) {
               }}
             >
               <h2
-                className="text-center mb-4 text-sm md:text-base"
+                className="text-center mb-3 text-sm md:text-base"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   color: '#3969CA',
@@ -73,20 +120,20 @@ export default function SelectCommander({ onSelect }: Props) {
               >
                 SALES
               </h2>
-              <div className="grid grid-cols-2 gap-3 flex-1 overflow-auto" style={{ alignContent: 'start' }}>
+              <div className="grid grid-cols-2 gap-2" style={{ alignContent: 'start' }}>
                 {salesCharacters.map((char) => (
                   <CharacterCard
                     key={char.id}
                     character={char}
                     selected={selectedSales === char.id}
-                    onClick={() => setSelectedSales(char.id)}
+                    onClick={() => handleSalesSelect(char.id)}
                     compact
                   />
                 ))}
               </div>
             </div>
             <div
-              className="text-center mt-3"
+              className="text-center mt-2"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#3969CA',
@@ -100,7 +147,7 @@ export default function SelectCommander({ onSelect }: Props) {
           {/* Product Panel */}
           <div className="flex-1 flex flex-col min-h-0">
             <div
-              className="flex-1 flex flex-col p-4 rounded overflow-auto min-h-0"
+              className="flex flex-col p-3 rounded overflow-auto min-h-0"
               style={{
                 border: '2px solid #21C19A',
                 background: 'rgba(33, 193, 154, 0.1)',
@@ -108,7 +155,7 @@ export default function SelectCommander({ onSelect }: Props) {
               }}
             >
               <h2
-                className="text-center mb-4 text-sm md:text-base"
+                className="text-center mb-3 text-sm md:text-base"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   color: '#21C19A',
@@ -117,20 +164,34 @@ export default function SelectCommander({ onSelect }: Props) {
               >
                 PRODUCT
               </h2>
-              <div className="grid grid-cols-2 gap-3 flex-1 overflow-auto" style={{ alignContent: 'start' }}>
-                {productCharacters.map((char) => (
-                  <CharacterCard
-                    key={char.id}
-                    character={char}
-                    selected={selectedProduct === char.id}
-                    onClick={() => setSelectedProduct(char.id)}
-                    compact
-                  />
-                ))}
+              <div className="grid grid-cols-2 gap-2" style={{ alignContent: 'start' }}>
+                {productCharacters.map((char, idx) => {
+                  const isRouletteHighlighted = rouletteActive && rouletteIndex === idx;
+                  return (
+                    <div
+                      key={char.id}
+                      style={{
+                        transform: isRouletteHighlighted ? 'scale(1.05)' : 'scale(1)',
+                        transition: 'transform 0.08s ease',
+                        boxShadow: isRouletteHighlighted
+                          ? '0 0 20px rgba(255, 215, 0, 0.8)'
+                          : 'none',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      <CharacterCard
+                        character={char}
+                        selected={selectedProduct === char.id || isRouletteHighlighted}
+                        onClick={() => {}}
+                        compact
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <div
-              className="text-center mt-3"
+              className="text-center mt-2"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#21C19A',
@@ -142,8 +203,8 @@ export default function SelectCommander({ onSelect }: Props) {
           </div>
         </div>
 
-        {/* PRESS START - only visible when both selected */}
-        <div className="flex justify-center" style={{ padding: '16px 0' }}>
+        {/* PLACE YOUR FLEET - only visible when both selected */}
+        <div className="flex justify-center" style={{ padding: '12px 0' }}>
           <AnimatePresence>
             {canStart && (
               <motion.button

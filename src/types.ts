@@ -12,6 +12,7 @@ export interface Character {
   nickname: string;
   team: Team;
   stats: CharacterStats[];
+  portrait?: string;
 }
 
 export interface Ship {

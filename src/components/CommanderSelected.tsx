@@ -26,7 +26,7 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
     >
       {/* Portrait */}
       <motion.div
-        className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center text-6xl mb-4"
+        className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center text-6xl mb-4 overflow-hidden"
         style={{
           background: tintBg,
           border: `3px solid ${borderColor}`,
@@ -41,7 +41,11 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
         }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: delay + 0.8 }}
       >
-        {isSales ? '🎯' : '💻'}
+        {character.portrait ? (
+          <img src={character.portrait} alt={character.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+        ) : (
+          isSales ? '🎯' : '💻'
+        )}
       </motion.div>
 
       {/* Name */}

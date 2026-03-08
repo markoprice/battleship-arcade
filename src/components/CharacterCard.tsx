@@ -30,9 +30,9 @@ export default function CharacterCard({ character, selected, onClick, compact }:
         width: '100%',
       }}
     >
-      {/* Portrait placeholder */}
+      {/* Portrait */}
       <div
-        className="mb-2 flex items-center justify-center"
+        className="mb-2 flex items-center justify-center overflow-hidden"
         style={{
           background: tintBg,
           border: `2px solid ${borderColor}`,
@@ -42,9 +42,22 @@ export default function CharacterCard({ character, selected, onClick, compact }:
           fontSize: compact ? '28px' : '36px',
         }}
       >
-        <span style={{ filter: 'grayscale(20%)' }}>
-          {isSales ? '🎯' : '💻'}
-        </span>
+        {character.portrait ? (
+          <img
+            src={character.portrait}
+            alt={character.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'top center',
+            }}
+          />
+        ) : (
+          <span style={{ filter: 'grayscale(20%)' }}>
+            {isSales ? '🎯' : '💻'}
+          </span>
+        )}
       </div>
 
       {/* Name */}
