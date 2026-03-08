@@ -31,7 +31,7 @@ export default function HomeScreen({ onStart }: Props) {
       >
         <motion.button
           onClick={onStart}
-          className="px-16 py-7 text-2xl md:text-3xl tracking-wider cursor-pointer"
+          className="px-20 py-7 text-2xl md:text-3xl tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFD700',
@@ -62,8 +62,7 @@ export default function HomeScreen({ onStart }: Props) {
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
+
         >
           PRESS START
         </motion.button>
