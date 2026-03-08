@@ -27,24 +27,24 @@ function App() {
       sound.playSelect();
       game.setPlayerCharacter(player);
       game.setAICharacter(ai);
-      game.setScreen('commander');
+      game.setScreen('place');
     },
     [sound, game]
   );
 
   const handleCommanderStart = useCallback(() => {
     sound.playStart();
-    game.setScreen('place');
+    sound.stopSonarLoop();
+    game.initGame();
+    game.setScreen('gameplay');
   }, [sound, game]);
 
   const handleFleetReady = useCallback(
     (board: Board, placedShips: PlacedShip[]) => {
       sound.playStart();
-      sound.stopSonarLoop();
       game.setPlayerBoard(board);
       game.setPlayerShips(placedShips);
-      game.initGame();
-      game.setScreen('gameplay');
+      game.setScreen('commander');
     },
     [sound, game]
   );
@@ -81,6 +81,9 @@ function App() {
         {game.screen === 'select' && (
           <SelectCommander key="select" onSelect={handleSelectCommander} />
         )}
+        {game.screen === 'place' && (
+          <PlaceFleet key="place" onReady={handleFleetReady} />
+        )}
         {game.screen === 'commander' && game.playerCharacter && game.aiCharacter && (
           <CommanderSelected
             key="commander"
@@ -88,9 +91,6 @@ function App() {
             ai={game.aiCharacter}
             onStart={handleCommanderStart}
           />
-        )}
-        {game.screen === 'place' && (
-          <PlaceFleet key="place" onReady={handleFleetReady} />
         )}
         {game.screen === 'gameplay' && game.playerCharacter && game.aiCharacter && (
           <Gameplay

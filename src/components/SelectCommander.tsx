@@ -165,7 +165,7 @@ export default function SelectCommander({ onSelect }: Props) {
                   boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
                 }}
               >
-                PRESS START
+                PLACE YOUR FLEET
               </motion.button>
             )}
           </AnimatePresence>
