@@ -71,6 +71,47 @@ export default function SelectCommander({ onSelect }: Props) {
     startDelayRef.current = setTimeout(() => startRoulette(), 300);
   };
 
+  const handleDeselectSales = () => {
+    if (rouletteActive) return;
+    setSelectedSales(null);
+    setSelectedProduct(null);
+    rouletteStartedRef.current = false;
+    if (rouletteTimerRef.current) clearTimeout(rouletteTimerRef.current);
+    if (startDelayRef.current) clearTimeout(startDelayRef.current);
+  };
+
+  const handleDeselectProduct = () => {
+    if (rouletteActive) return;
+    setSelectedProduct(null);
+    // Re-run roulette
+    rouletteStartedRef.current = true;
+    if (startDelayRef.current) clearTimeout(startDelayRef.current);
+    startDelayRef.current = setTimeout(() => startRoulette(), 300);
+  };
+
+  // Stacked vertical label component
+  const StackedLabel = ({ text, color }: { text: string; color: string }) => (
+    <div
+      className="flex flex-col items-center justify-center shrink-0 gap-1"
+      style={{ padding: '0 10px', alignSelf: 'center' }}
+    >
+      {text.split('').map((letter, i) => (
+        <span
+          key={i}
+          style={{
+            fontFamily: '"Press Start 2P", cursive',
+            color,
+            fontSize: 'clamp(14px, 2vw, 24px)',
+            textShadow: `0 0 15px ${color}66`,
+            lineHeight: 1.2,
+          }}
+        >
+          {letter}
+        </span>
+      ))}
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 overflow-hidden">
       <StarfieldBackground />
@@ -107,36 +148,79 @@ export default function SelectCommander({ onSelect }: Props) {
           className="flex-1 flex items-start justify-center min-h-0 overflow-auto px-2"
           style={{ paddingTop: '16px' }}
         >
-          {/* SALES vertical label */}
-          <div
-            className="flex items-center justify-center shrink-0"
-            style={{
-              writingMode: 'vertical-lr',
-              textOrientation: 'mixed',
-              transform: 'rotate(180deg)',
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#3969CA',
-              fontSize: 'clamp(16px, 2.5vw, 28px)',
-              textShadow: '0 0 15px rgba(57, 105, 202, 0.6)',
-              letterSpacing: '8px',
-              padding: '0 8px',
-              alignSelf: 'center',
-            }}
-          >
-            SALES
-          </div>
+          {/* SALES stacked label */}
+          <StackedLabel text="SALES" color="#3969CA" />
 
-          {/* Sales cards */}
-          <div className="grid grid-cols-2 gap-2 shrink-0" style={{ maxWidth: '340px' }}>
-            {salesCharacters.map((char) => (
-              <CharacterCard
-                key={char.id}
-                character={char}
-                selected={selectedSales === char.id}
-                onClick={() => handleSalesSelect(char.id)}
-                compact
-              />
-            ))}
+          {/* Sales panel */}
+          <div className="flex flex-col items-center shrink-0" style={{ maxWidth: '340px' }}>
+            <AnimatePresence mode="wait">
+              {salesChar && !rouletteActive ? (
+                <motion.div
+                  key="sales-selected"
+                  className="relative"
+                  style={{ width: '340px' }}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ duration: 0.3, type: 'spring' }}
+                >
+                  {/* Deselect X button */}
+                  <button
+                    onClick={handleDeselectSales}
+                    className="absolute cursor-pointer z-10 flex items-center justify-center"
+                    style={{
+                      top: '4px',
+                      right: '4px',
+                      width: '24px',
+                      height: '24px',
+                      fontFamily: '"Press Start 2P", cursive',
+                      fontSize: '10px',
+                      color: '#9B8FB8',
+                      background: 'rgba(0,0,0,0.6)',
+                      border: '1px solid #9B8FB8',
+                      borderRadius: '2px',
+                    }}
+                  >
+                    X
+                  </button>
+                  <CharacterCard
+                    character={salesChar}
+                    selected
+                    onClick={() => {}}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="sales-grid"
+                  className="grid grid-cols-2 gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {salesCharacters.map((char) => (
+                    <CharacterCard
+                      key={char.id}
+                      character={char}
+                      selected={selectedSales === char.id}
+                      onClick={() => handleSalesSelect(char.id)}
+                      compact
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <div
+              className="text-center mt-3"
+              style={{
+                fontFamily: '"Press Start 2P", cursive',
+                color: '#3969CA',
+                fontSize: '9px',
+                textShadow: '0 0 8px rgba(57, 105, 202, 0.5)',
+              }}
+            >
+              HUMAN PLAYER
+            </div>
           </div>
 
           {/* Center divider / matchup area */}
@@ -144,38 +228,18 @@ export default function SelectCommander({ onSelect }: Props) {
             <AnimatePresence>
               {canStart && salesChar && productChar ? (
                 <motion.div
-                  className="flex flex-col items-center gap-4"
+                  className="flex flex-col items-center gap-6"
                   initial={{ opacity: 0, scale: 0.5 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.5 }}
                   transition={{ duration: 0.5, type: 'spring' }}
                 >
-                  {/* Player portrait */}
-                  <motion.div
-                    className="overflow-hidden flex items-center justify-center"
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      border: '2px solid #3969CA',
-                      borderRadius: '4px',
-                      background: 'linear-gradient(135deg, #1a2a5e, #2a3d7a)',
-                      boxShadow: '0 0 15px rgba(57, 105, 202, 0.5)',
-                    }}
-                    initial={{ x: -100, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.1, type: 'spring' }}
-                  >
-                    {salesChar.portrait && (
-                      <img src={salesChar.portrait} alt={salesChar.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
-                    )}
-                  </motion.div>
-
                   {/* VS */}
                   <motion.span
                     style={{
                       fontFamily: '"Press Start 2P", cursive',
                       color: '#FFD700',
-                      fontSize: '24px',
+                      fontSize: '32px',
                       textShadow: '0 0 20px rgba(255, 215, 0, 0.8)',
                     }}
                     animate={{
@@ -190,26 +254,6 @@ export default function SelectCommander({ onSelect }: Props) {
                     VS
                   </motion.span>
 
-                  {/* AI portrait */}
-                  <motion.div
-                    className="overflow-hidden flex items-center justify-center"
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      border: '2px solid #21C19A',
-                      borderRadius: '4px',
-                      background: 'linear-gradient(135deg, #0a3d2e, #1a5e4a)',
-                      boxShadow: '0 0 15px rgba(33, 193, 154, 0.5)',
-                    }}
-                    initial={{ x: 100, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.2, type: 'spring' }}
-                  >
-                    {productChar.portrait && (
-                      <img src={productChar.portrait} alt={productChar.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
-                    )}
-                  </motion.div>
-
                   {/* PLACE YOUR FLEET button */}
                   <motion.button
                     initial={{ opacity: 0, y: 20 }}
@@ -220,7 +264,7 @@ export default function SelectCommander({ onSelect }: Props) {
                         onSelect(salesChar, productChar);
                       }
                     }}
-                    className="px-6 py-3 text-xs tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95 mt-2"
+                    className="px-6 py-3 text-xs tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
                     style={{
                       fontFamily: '"Press Start 2P", cursive',
                       color: '#FFD700',
@@ -255,74 +299,94 @@ export default function SelectCommander({ onSelect }: Props) {
             </AnimatePresence>
           </div>
 
-          {/* Product cards */}
-          <div className="grid grid-cols-2 gap-2 shrink-0" style={{ maxWidth: '340px' }}>
-            {productCharacters.map((char, idx) => {
-              const isRouletteHighlighted = rouletteActive && rouletteIndex === idx;
-              return (
-                <div
-                  key={char.id}
-                  style={{
-                    transform: isRouletteHighlighted ? 'scale(1.05)' : 'scale(1)',
-                    transition: 'transform 0.08s ease',
-                    boxShadow: isRouletteHighlighted
-                      ? '0 0 20px rgba(255, 215, 0, 0.8)'
-                      : 'none',
-                    borderRadius: '4px',
-                  }}
+          {/* Product panel */}
+          <div className="flex flex-col items-center shrink-0" style={{ maxWidth: '340px' }}>
+            <AnimatePresence mode="wait">
+              {productChar && !rouletteActive ? (
+                <motion.div
+                  key="product-selected"
+                  className="relative"
+                  style={{ width: '340px' }}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ duration: 0.3, type: 'spring' }}
                 >
+                  {/* Deselect X button */}
+                  <button
+                    onClick={handleDeselectProduct}
+                    className="absolute cursor-pointer z-10 flex items-center justify-center"
+                    style={{
+                      top: '4px',
+                      right: '4px',
+                      width: '24px',
+                      height: '24px',
+                      fontFamily: '"Press Start 2P", cursive',
+                      fontSize: '10px',
+                      color: '#9B8FB8',
+                      background: 'rgba(0,0,0,0.6)',
+                      border: '1px solid #9B8FB8',
+                      borderRadius: '2px',
+                    }}
+                  >
+                    X
+                  </button>
                   <CharacterCard
-                    character={char}
-                    selected={selectedProduct === char.id || isRouletteHighlighted}
+                    character={productChar}
+                    selected
                     onClick={() => {}}
-                    compact
                   />
-                </div>
-              );
-            })}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="product-grid"
+                  className="grid grid-cols-2 gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {productCharacters.map((char, idx) => {
+                    const isRouletteHighlighted = rouletteActive && rouletteIndex === idx;
+                    return (
+                      <div
+                        key={char.id}
+                        style={{
+                          transform: isRouletteHighlighted ? 'scale(1.05)' : 'scale(1)',
+                          transition: 'transform 0.08s ease',
+                          boxShadow: isRouletteHighlighted
+                            ? '0 0 20px rgba(255, 215, 0, 0.8)'
+                            : 'none',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        <CharacterCard
+                          character={char}
+                          selected={selectedProduct === char.id || isRouletteHighlighted}
+                          onClick={() => {}}
+                          compact
+                        />
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <div
+              className="text-center mt-3"
+              style={{
+                fontFamily: '"Press Start 2P", cursive',
+                color: '#21C19A',
+                fontSize: '9px',
+                textShadow: '0 0 8px rgba(33, 193, 154, 0.5)',
+              }}
+            >
+              AI OPPONENT
+            </div>
           </div>
 
-          {/* PRODUCT vertical label */}
-          <div
-            className="flex items-center justify-center shrink-0"
-            style={{
-              writingMode: 'vertical-lr',
-              textOrientation: 'mixed',
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#21C19A',
-              fontSize: 'clamp(16px, 2.5vw, 28px)',
-              textShadow: '0 0 15px rgba(33, 193, 154, 0.6)',
-              letterSpacing: '8px',
-              padding: '0 8px',
-              alignSelf: 'center',
-            }}
-          >
-            PRODUCT
-          </div>
-        </div>
-
-        {/* Bottom labels */}
-        <div className="flex justify-between px-8 pb-4" style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-          <div
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#3969CA',
-              fontSize: '9px',
-              textShadow: '0 0 8px rgba(57, 105, 202, 0.5)',
-            }}
-          >
-            HUMAN PLAYER
-          </div>
-          <div
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#21C19A',
-              fontSize: '9px',
-              textShadow: '0 0 8px rgba(33, 193, 154, 0.5)',
-            }}
-          >
-            COMPUTER OPPONENT
-          </div>
+          {/* PRODUCT stacked label */}
+          <StackedLabel text="PRODUCT" color="#21C19A" />
         </div>
       </motion.div>
     </div>
