@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Ship, PlacedShip, Board, BoardCell, Orientation } from '../types';
 import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
+import ArcadeCanvas from './ArcadeCanvas';
 
 interface Props {
   onReady: (board: Board, placedShips: PlacedShip[]) => void;
@@ -105,7 +106,8 @@ export default function PlaceFleet({ onReady }: Props) {
     hoverCells.some(([r, c]) => r === row && c === col);
 
   return (
-    <div className="fixed inset-0 overflow-hidden" onKeyDown={handleKeyDown} tabIndex={0}>
+    <ArcadeCanvas>
+      <div className="absolute inset-0 overflow-hidden" onKeyDown={handleKeyDown} tabIndex={0}>
       <StarfieldBackground />
       <motion.div
         className="relative z-10 flex flex-col h-full p-4 items-center"
@@ -163,27 +165,41 @@ export default function PlaceFleet({ onReady }: Props) {
           })}
         </div>
 
+        {/* Instructions */}
+        <div
+          className="mb-2 text-center"
+          style={{
+            fontFamily: '"Press Start 2P", cursive',
+            color: 'rgba(255, 255, 255, 0.5)',
+            fontSize: '9px',
+            lineHeight: '1.8',
+          }}
+        >
+          Click a ship to select it. Click the grid to place it. Press R to rotate.
+        </div>
+
         {/* Orientation toggle */}
         <div className="mb-4 flex items-center gap-3">
           <span
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: '#00e5ff',
-              fontSize: '7px',
+              color: '#FFD700',
+              fontSize: '14px',
             }}
           >
             DIRECTION: {orientation.toUpperCase()}
           </span>
           <button
             onClick={() => setOrientation((o) => (o === 'horizontal' ? 'vertical' : 'horizontal'))}
-            className="px-3 py-1 cursor-pointer"
+            className="px-4 py-2 cursor-pointer hover:scale-105 transition-transform"
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              fontSize: '6px',
+              fontSize: '12px',
               color: '#FFD700',
-              background: 'rgba(255, 215, 0, 0.1)',
-              border: '1px solid #FFD700',
-              borderRadius: '2px',
+              background: 'rgba(255, 215, 0, 0.15)',
+              border: '2px solid #FFD700',
+              borderRadius: '4px',
+              textShadow: '0 0 8px rgba(255, 215, 0, 0.4)',
             }}
           >
             ROTATE (R)
@@ -340,7 +356,7 @@ export default function PlaceFleet({ onReady }: Props) {
                 <div className="flex gap-6">
                   <button
                     onClick={() => onReady(board, placedShips)}
-                    className="px-10 py-4 text-sm tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
+                    className="text-sm tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
                     style={{
                       fontFamily: '"Press Start 2P", cursive',
                       color: '#FFD700',
@@ -348,18 +364,20 @@ export default function PlaceFleet({ onReady }: Props) {
                       border: '3px solid #FFD700',
                       textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
                       boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
+                      padding: '12px 24px',
                     }}
                   >
                     YES
                   </button>
                   <button
                     onClick={() => setShowReadyPopup(false)}
-                    className="px-10 py-4 text-sm tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
+                    className="text-sm tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
                     style={{
                       fontFamily: '"Press Start 2P", cursive',
                       color: '#9B8FB8',
                       backgroundColor: 'rgba(0, 0, 0, 0.8)',
                       border: '3px solid #9B8FB8',
+                      padding: '12px 24px',
                     }}
                   >
                     NO
@@ -370,6 +388,7 @@ export default function PlaceFleet({ onReady }: Props) {
           )}
         </AnimatePresence>
       </motion.div>
-    </div>
+      </div>
+    </ArcadeCanvas>
   );
 }

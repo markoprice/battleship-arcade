@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { Character, Board, PlacedShip } from '../types';
 import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
+import ArcadeCanvas from './ArcadeCanvas';
 
 interface Props {
   playerCharacter: Character;
@@ -26,37 +27,33 @@ interface Props {
 
 const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
+// Fixed cell sizes — both boards always identical
+const CELL_SIZE = 'clamp(24px, 3.2vw, 40px)';
+const LABEL_WIDTH = 'clamp(18px, 2.4vw, 30px)';
+const HEADER_FONT = 'clamp(5px, 0.7vw, 8px)';
+
 function PlayerCard({
   character,
   borderColor,
   teamLabel,
-  isActive,
   isSales,
 }: {
   character: Character;
   borderColor: string;
   teamLabel: string;
-  isActive: boolean;
   isSales: boolean;
 }) {
   return (
-    <motion.div
-      className="flex items-center gap-2 mt-2"
-      animate={{ scale: isActive ? 1.1 : 0.9, opacity: isActive ? 1 : 0.6 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="flex items-center gap-2 mt-2">
       <div
         className="flex items-center justify-center rounded overflow-hidden"
         style={{
-          width: isActive ? '48px' : '36px',
-          height: isActive ? '48px' : '36px',
+          width: '40px',
+          height: '40px',
           border: `2px solid ${borderColor}`,
           background: isSales
             ? 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))'
             : 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))',
-          fontSize: isActive ? '20px' : '16px',
-          transition: 'all 0.3s ease',
-          boxShadow: isActive ? `0 0 12px ${borderColor}66` : 'none',
         }}
       >
         {character.portrait ? (
@@ -70,8 +67,7 @@ function PlayerCard({
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFD700',
-            fontSize: isActive ? '10px' : '8px',
-            transition: 'all 0.3s ease',
+            fontSize: '9px',
           }}
         >
           {character.name.toUpperCase()}
@@ -99,30 +95,32 @@ function PlayerCard({
           {teamLabel}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
-// Missile projectile + impact effect overlay
+// Missile that travels horizontally from attacker side to target cell
 function MissileEffect({
   targetRow,
   targetCol,
-  cellSize,
-  labelWidth,
+  fromSide,
   result,
   onComplete,
 }: {
   targetRow: number;
   targetCol: number;
-  cellSize: string;
-  labelWidth: string;
+  fromSide: 'left' | 'right';
   result: 'hit' | 'miss' | 'sunk' | 'win';
   onComplete: () => void;
 }) {
   const isHit = result === 'hit' || result === 'sunk' || result === 'win';
+  const startX = fromSide === 'left' ? '-80px' : 'calc(100% + 80px)';
+  const endX = `calc(${LABEL_WIDTH} + ${targetCol} * ${CELL_SIZE} + ${CELL_SIZE} / 2)`;
+  const endY = `calc(${targetRow} * ${CELL_SIZE} + ${CELL_SIZE} / 2 + 18px)`;
+
   return (
     <>
-      {/* Missile projectile */}
+      {/* Missile projectile — travels horizontally */}
       <motion.div
         style={{
           position: 'absolute',
@@ -130,32 +128,32 @@ function MissileEffect({
           pointerEvents: 'none',
           fontSize: '20px',
           filter: 'drop-shadow(0 0 8px rgba(255, 150, 0, 0.8))',
+          transform: fromSide === 'left' ? 'scaleX(1)' : 'scaleX(-1)',
         }}
-        initial={{ top: '100%', left: '50%', opacity: 1, scale: 1 }}
+        initial={{ top: endY, left: startX, opacity: 1, scale: 1 }}
         animate={{
-          top: `calc(${targetRow} * ${cellSize} + ${cellSize} / 2 + 18px)`,
-          left: `calc(${labelWidth} + ${targetCol} * ${cellSize} + ${cellSize} / 2)`,
+          top: endY,
+          left: endX,
           opacity: 1,
           scale: 0.8,
         }}
         transition={{ duration: 0.45, ease: 'easeIn' }}
         onAnimationComplete={() => {
-          // After missile arrives, show impact
           setTimeout(onComplete, 400);
         }}
       >
         🚀
       </motion.div>
-      {/* Impact effect — delayed to appear after missile lands */}
+      {/* Impact effect */}
       <motion.div
         style={{
           position: 'absolute',
           zIndex: 25,
           pointerEvents: 'none',
-          top: `calc(${targetRow} * ${cellSize} + 18px)`,
-          left: `calc(${labelWidth} + ${targetCol} * ${cellSize})`,
-          width: cellSize,
-          height: cellSize,
+          top: `calc(${targetRow} * ${CELL_SIZE} + 18px)`,
+          left: `calc(${LABEL_WIDTH} + ${targetCol} * ${CELL_SIZE})`,
+          width: CELL_SIZE,
+          height: CELL_SIZE,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -190,42 +188,44 @@ function GameGrid({
   board,
   borderColor,
   isEnemy,
-  isActive,
+  isBeingAttacked,
   onCellClick,
   disabled,
 }: {
   board: Board;
   borderColor: string;
   isEnemy: boolean;
-  isActive: boolean;
+  isBeingAttacked: boolean;
   onCellClick?: (row: number, col: number) => void;
   disabled?: boolean;
 }) {
-  // Active grid is bigger, inactive is smaller
-  const cellSize = isActive ? 'clamp(26px, 3.8vw, 48px)' : 'clamp(20px, 2.8vw, 36px)';
-  const labelWidth = isActive ? 'clamp(20px, 2.8vw, 36px)' : 'clamp(16px, 2vw, 28px)';
-  const headerFont = isActive ? 'clamp(6px, 0.8vw, 9px)' : 'clamp(4px, 0.6vw, 7px)';
-
   return (
     <motion.div
       className="flex flex-col items-center"
-      animate={{ opacity: isActive ? 1 : 0.7 }}
+      animate={{ opacity: isBeingAttacked ? 1 : 0.6 }}
       transition={{ duration: 0.3 }}
+      style={{
+        border: isBeingAttacked ? `2px solid ${borderColor}` : '2px solid transparent',
+        boxShadow: isBeingAttacked ? `0 0 20px ${borderColor}66, 0 0 40px ${borderColor}33` : 'none',
+        borderRadius: '4px',
+        padding: '4px',
+        transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
+      }}
     >
       {/* Grid */}
       <div>
         {/* Column headers */}
         <div className="flex">
-          <div style={{ width: labelWidth }} />
+          <div style={{ width: LABEL_WIDTH }} />
           {COLS.map((col) => (
             <div
               key={col}
               className="text-center"
               style={{
-                width: cellSize,
+                width: CELL_SIZE,
                 fontFamily: '"Press Start 2P", cursive',
                 color: borderColor,
-                fontSize: headerFont,
+                fontSize: HEADER_FONT,
                 paddingBottom: '2px',
               }}
             >
@@ -239,10 +239,10 @@ function GameGrid({
             <div
               className="flex items-center justify-center"
               style={{
-                width: labelWidth,
+                width: LABEL_WIDTH,
                 fontFamily: '"Press Start 2P", cursive',
                 color: borderColor,
-                fontSize: headerFont,
+                fontSize: HEADER_FONT,
               }}
             >
               {row + 1}
@@ -259,8 +259,8 @@ function GameGrid({
                   key={col}
                   className="transition-all"
                   style={{
-                    width: cellSize,
-                    height: cellSize,
+                    width: CELL_SIZE,
+                    height: CELL_SIZE,
                     border: `1px solid ${borderColor}33`,
                     background: isHit
                       ? 'rgba(255, 100, 0, 0.4)'
@@ -273,7 +273,7 @@ function GameGrid({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: isActive ? '14px' : '10px',
+                    fontSize: '12px',
                     boxShadow: isHit ? '0 0 8px rgba(255, 100, 0, 0.5)' : 'none',
                   }}
                   onClick={() => {
@@ -371,8 +371,9 @@ export default function Gameplay({
     row: number;
     col: number;
     result: 'hit' | 'miss' | 'sunk' | 'win';
+    fromSide: 'left' | 'right';
+    targetBoard: 'player' | 'ai';
   } | null>(null);
-  const aiGridRef = useRef<HTMLDivElement>(null);
 
   const cancelledRef = useRef(false);
 
@@ -403,7 +404,8 @@ export default function Gameplay({
       pendingShotRef.current = { row, col };
       // We don't know the result yet, but we know if it's a ship or water
       const pendingResult = cell.state === 'ship' ? 'hit' : 'miss';
-      setMissileAnim({ row, col, result: pendingResult as 'hit' | 'miss' | 'sunk' | 'win' });
+      // Player fires from left side toward AI board (right)
+      setMissileAnim({ row, col, result: pendingResult as 'hit' | 'miss' | 'sunk' | 'win', fromSide: 'left', targetBoard: 'ai' });
     },
     [
       isPlayerTurn,
@@ -444,33 +446,46 @@ export default function Gameplay({
       return;
     }
 
-    // End player turn, start AI turn
+    // End player turn, start AI turn with missile animation
     timeoutIdsRef.current.push(setTimeout(() => {
       onEndPlayerTurn();
-      // AI fires after a delay
       timeoutIdsRef.current.push(setTimeout(() => {
+        if (cancelledRef.current) return;
         const aiResult = onAIFire();
-        if (aiResult.result === 'hit') {
-          playExplosion();
-        } else if (aiResult.result === 'miss') {
-          playSplash();
-        } else if (aiResult.result === 'sunk') {
-          playShipSunk();
-        } else if (aiResult.result === 'lose') {
-          playShipSunk();
+
+        // Show AI missile animation from right side toward player board
+        setMissileAnim({
+          row: aiResult.row,
+          col: aiResult.col,
+          result: aiResult.result === 'lose' ? 'win' : aiResult.result as 'hit' | 'miss' | 'sunk' | 'win',
+          fromSide: 'right',
+          targetBoard: 'player',
+        });
+
+        // After AI missile animation, show results
+        timeoutIdsRef.current.push(setTimeout(() => {
+          if (cancelledRef.current) return;
+          setMissileAnim(null);
+
+          if (aiResult.result === 'hit') playExplosion();
+          else if (aiResult.result === 'miss') playSplash();
+          else if (aiResult.result === 'sunk') playShipSunk();
+          else if (aiResult.result === 'lose') {
+            playShipSunk();
+            timeoutIdsRef.current.push(setTimeout(() => {
+              processingRef.current = false;
+              setProcessing(false);
+              onLose();
+            }, 1000));
+            return;
+          }
+
           timeoutIdsRef.current.push(setTimeout(() => {
+            onStartPlayerTurn();
             processingRef.current = false;
             setProcessing(false);
-            onLose();
-          }, 1000));
-          return;
-        }
-
-        timeoutIdsRef.current.push(setTimeout(() => {
-          onStartPlayerTurn();
-          processingRef.current = false;
-          setProcessing(false);
-        }, 500));
+          }, 500));
+        }, 850));
       }, 800));
     }, 500));
   }, [
@@ -492,32 +507,44 @@ export default function Gameplay({
         processingRef.current = false;
         setProcessing(false);
         onStartPlayerTurn();
-      }, 5000);
+      }, 8000);
       return () => clearTimeout(timeout);
     }
   }, [processing, onStartPlayerTurn]);
 
   return (
-    <div className="fixed inset-0 overflow-hidden">
+    <ArcadeCanvas>
+      <div className="absolute inset-0 overflow-hidden">
       <StarfieldBackground />
       <motion.div
         className="relative z-10 flex flex-col h-full p-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Turn indicator */}
-        <div className="text-center mb-1">
-          <span
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: isPlayerTurn ? '#FFD700' : '#ff4444',
-              fontSize: '10px',
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
-            }}
+        {/* Turn indicator banner with fade animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={isPlayerTurn ? 'player' : 'opponent'}
+            className="text-center mb-1"
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            transition={{ duration: 0.3 }}
           >
-            {isPlayerTurn && !processing ? 'YOUR TURN - FIRE!' : processing ? 'FIRING...' : "OPPONENT'S TURN"}
-          </span>
-        </div>
+            <span
+              style={{
+                fontFamily: '"Press Start 2P", cursive',
+                color: isPlayerTurn ? '#FFD700' : '#ff4444',
+                fontSize: 'clamp(10px, 1.2vw, 14px)',
+                textShadow: isPlayerTurn
+                  ? '0 0 10px rgba(255, 215, 0, 0.5)'
+                  : '0 0 10px rgba(255, 68, 68, 0.5)',
+              }}
+            >
+              {isPlayerTurn && !processing ? 'YOUR TURN' : processing ? 'FIRING...' : "OPPONENT'S TURN"}
+            </span>
+          </motion.div>
+        </AnimatePresence>
 
         {/* Ship trackers */}
         <div className="flex justify-between px-4 mb-1">
@@ -529,42 +556,52 @@ export default function Gameplay({
           </div>
         </div>
 
-        {/* Grids with player cards BELOW */}
+        {/* Grids with player cards BELOW — both boards identical size */}
         <div className="flex-1 flex items-center justify-center gap-4 md:gap-8 overflow-auto">
-          {/* Player side */}
-          <div className="flex flex-col items-center">
+          {/* Player side (left) */}
+          <div className="flex flex-col items-center relative">
             <GameGrid
               board={playerBoard}
               borderColor="#3969CA"
               isEnemy={false}
-              isActive={!isPlayerTurn && !processing}
+              isBeingAttacked={!isPlayerTurn && !processing}
             />
+            {/* AI missile animation on player board */}
+            <AnimatePresence>
+              {missileAnim && missileAnim.targetBoard === 'player' && (
+                <MissileEffect
+                  targetRow={missileAnim.row}
+                  targetCol={missileAnim.col}
+                  fromSide={missileAnim.fromSide}
+                  result={missileAnim.result}
+                  onComplete={() => {}}
+                />
+              )}
+            </AnimatePresence>
             <PlayerCard
               character={playerCharacter}
               borderColor="#3969CA"
               teamLabel="SALES"
-              isActive={!isPlayerTurn && !processing}
               isSales
             />
           </div>
-          {/* AI side */}
-          <div className="flex flex-col items-center relative" ref={aiGridRef}>
+          {/* AI side (right) */}
+          <div className="flex flex-col items-center relative">
             <GameGrid
               board={aiBoard}
               borderColor="#21C19A"
               isEnemy
-              isActive={isPlayerTurn && !processing || !!missileAnim}
+              isBeingAttacked={isPlayerTurn || (!!missileAnim && missileAnim.targetBoard === 'ai')}
               onCellClick={handlePlayerShot}
               disabled={!isPlayerTurn || processing}
             />
-            {/* Missile animation overlay */}
+            {/* Player missile animation on AI board */}
             <AnimatePresence>
-              {missileAnim && (
+              {missileAnim && missileAnim.targetBoard === 'ai' && (
                 <MissileEffect
                   targetRow={missileAnim.row}
                   targetCol={missileAnim.col}
-                  cellSize={'clamp(26px, 3.8vw, 48px)'}
-                  labelWidth={'clamp(20px, 2.8vw, 36px)'}
+                  fromSide={missileAnim.fromSide}
                   result={missileAnim.result}
                   onComplete={handleMissileComplete}
                 />
@@ -574,7 +611,6 @@ export default function Gameplay({
               character={aiCharacter}
               borderColor="#21C19A"
               teamLabel="PRODUCT"
-              isActive={isPlayerTurn && !processing}
               isSales={false}
             />
           </div>
@@ -607,6 +643,7 @@ export default function Gameplay({
           )}
         </AnimatePresence>
       </motion.div>
-    </div>
+      </div>
+    </ArcadeCanvas>
   );
 }

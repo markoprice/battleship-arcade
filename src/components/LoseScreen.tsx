@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import bgImage from '../assets/background.jpg';
+import ArcadeCanvas from './ArcadeCanvas';
 
 interface Props {
   onPlayAgain: () => void;
@@ -7,8 +8,9 @@ interface Props {
 
 export default function LoseScreen({ onPlayAgain }: Props) {
   return (
+    <ArcadeCanvas>
     <motion.div
-      className="fixed inset-0 flex flex-col items-center justify-center"
+      className="absolute inset-0 flex flex-col items-center justify-center"
       style={{ background: '#0a0a0a' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -67,5 +69,6 @@ export default function LoseScreen({ onPlayAgain }: Props) {
         PLAY AGAIN
       </motion.button>
     </motion.div>
+    </ArcadeCanvas>
   );
 }

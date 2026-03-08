@@ -4,6 +4,7 @@ import type { Character } from '../types';
 import { salesCharacters, productCharacters } from '../data/characters';
 import CharacterCard from './CharacterCard';
 import StarfieldBackground from './StarfieldBackground';
+import ArcadeCanvas from './ArcadeCanvas';
 
 interface Props {
   onSelect: (player: Character, ai: Character) => void;
@@ -85,7 +86,7 @@ export default function SelectCommander({ onSelect }: Props) {
     if (rouletteActive) return;
     setSelectedSales(null);
     selectedSalesRef.current = null;
-    setSelectedProduct(null);
+    // Do NOT clear Product selection — deselections are independent
     setBothSelected(false);
     rouletteStartedRef.current = false;
     if (rouletteTimerRef.current) clearTimeout(rouletteTimerRef.current);
@@ -133,7 +134,8 @@ export default function SelectCommander({ onSelect }: Props) {
   );
 
   return (
-    <div className="fixed inset-0 overflow-hidden">
+    <ArcadeCanvas>
+      <div className="absolute inset-0 overflow-hidden">
       <StarfieldBackground />
       <motion.div
         className="relative z-10 flex flex-col h-full"
@@ -367,6 +369,7 @@ export default function SelectCommander({ onSelect }: Props) {
           )}
         </AnimatePresence>
       </motion.div>
-    </div>
+      </div>
+    </ArcadeCanvas>
   );
 }

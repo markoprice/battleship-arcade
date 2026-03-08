@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { Character } from '../types';
 import StarfieldBackground from './StarfieldBackground';
+import ArcadeCanvas from './ArcadeCanvas';
 
 interface Props {
   player: Character;
@@ -145,7 +146,8 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
   }, [onStart]);
 
   return (
-    <div className="fixed inset-0 overflow-hidden">
+    <ArcadeCanvas>
+      <div className="absolute inset-0 overflow-hidden">
       <StarfieldBackground />
       <motion.div
         className="relative z-10 flex flex-col h-full items-center justify-center pb-16"
@@ -189,7 +191,7 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
 
         {/* PREPARE FOR BATTLE — close below the portraits */}
         <motion.div
-          className="flex flex-col items-center mt-6"
+          className="flex flex-col items-center mt-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
@@ -199,7 +201,7 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
             style={{
               fontFamily: '"Press Start 2P", cursive',
               color: '#FFD700',
-              fontSize: 'clamp(16px, 2.5vw, 28px)',
+              fontSize: 'clamp(11px, 1.75vw, 20px)',
               textShadow: '0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3)',
             }}
           >
@@ -219,6 +221,7 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
           </div>
         </motion.div>
       </motion.div>
-    </div>
+      </div>
+    </ArcadeCanvas>
   );
 }
