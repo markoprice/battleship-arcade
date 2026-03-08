@@ -205,7 +205,7 @@ function GameGrid({
                     />
                   )}
                   {isShip && !isHit && (
-                    <span style={{ fontSize: isActive ? 'clamp(10px, 1.5vw, 18px)' : 'clamp(8px, 1vw, 14px)', opacity: 0.7 }}>🚢</span>
+                    <div style={{ width: '60%', height: '60%', background: 'rgba(0, 255, 100, 0.5)', borderRadius: '2px', border: '1px solid rgba(0, 255, 100, 0.7)' }} />
                   )}
                 </div>
               );
@@ -240,7 +240,11 @@ function ShipTracker({
               opacity: sunk ? 0.5 : 1,
             }}
           >
-            <span style={{ fontSize: '10px' }}>🚢</span>
+            <div style={{ display: 'flex', gap: '1px' }}>
+              {Array.from({ length: ships.find(s => s.id === ship.id)?.size ?? 1 }, (_, i) => (
+                <div key={i} style={{ width: '6px', height: '6px', background: sunk ? '#ff4444' : borderColor, borderRadius: '1px', opacity: sunk ? 0.4 : 0.7 }} />
+              ))}
+            </div>
             <span
               style={{
                 fontFamily: '"Press Start 2P", cursive',

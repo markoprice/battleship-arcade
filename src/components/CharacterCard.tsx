@@ -82,18 +82,6 @@ export default function CharacterCard({ character, selected, onClick, compact }:
         {character.title}
       </div>
 
-      {/* Nickname */}
-      <div
-        className="text-center mb-1"
-        style={{
-          fontFamily: '"Press Start 2P", cursive',
-          color: isSales ? '#7B9FE8' : '#5DE8C5',
-          fontSize: compact ? '5px' : '7px',
-        }}
-      >
-        &quot;{character.nickname}&quot;
-      </div>
-
       {/* Stats */}
       <div className="w-full space-y-1">
         {character.stats.map((stat) => (

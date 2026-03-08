@@ -79,21 +79,6 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
         {character.title}
       </motion.div>
 
-      {/* Nickname */}
-      <motion.div
-        className="text-center mb-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: delay + 0.7, duration: 0.5 }}
-        style={{
-          fontFamily: '"Press Start 2P", cursive',
-          color: isSales ? '#7B9FE8' : '#5DE8C5',
-          fontSize: '8px',
-        }}
-      >
-        &quot;{character.nickname}&quot;
-      </motion.div>
-
       {/* Team badge */}
       <motion.div
         initial={{ opacity: 0, scale: 0 }}

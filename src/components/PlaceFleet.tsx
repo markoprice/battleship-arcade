@@ -105,7 +105,7 @@ export default function PlaceFleet({ onReady }: Props) {
       >
         {/* Title */}
         <h1
-          className="text-xl md:text-2xl tracking-wider mb-4 pt-2"
+          className="text-xl md:text-2xl tracking-wider mb-6 pt-4"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFD700',
@@ -116,7 +116,7 @@ export default function PlaceFleet({ onReady }: Props) {
         </h1>
 
         {/* Ship Dock */}
-        <div className="flex gap-2 mb-4 flex-wrap justify-center">
+        <div className="flex gap-2 mb-6 flex-wrap justify-center">
           {ships.map((ship) => {
             const isPlaced = placedShipIds.includes(ship.id);
             const isSelected = selectedShip?.id === ship.id;
@@ -139,7 +139,11 @@ export default function PlaceFleet({ onReady }: Props) {
                   minWidth: '100px',
                 }}
               >
-                <div className="text-lg mb-1">🚢</div>
+                <div className="text-lg mb-1" style={{ display: 'flex', gap: '2px', justifyContent: 'center' }}>
+                  {Array.from({ length: ship.size }, (_, i) => (
+                    <div key={i} style={{ width: '8px', height: '8px', background: isPlaced ? '#555' : isSelected ? '#FFD700' : '#00e5ff', borderRadius: '1px', opacity: isPlaced ? 0.4 : 0.8 }} />
+                  ))}
+                </div>
                 <div>{ship.name}</div>
                 <div className="mt-1" style={{ color: '#888' }}>
                   ({ship.size} cells)
@@ -150,7 +154,7 @@ export default function PlaceFleet({ onReady }: Props) {
         </div>
 
         {/* Orientation toggle */}
-        <div className="mb-2 flex items-center gap-3">
+        <div className="mb-4 flex items-center gap-3">
           <span
             style={{
               fontFamily: '"Press Start 2P", cursive',
@@ -242,7 +246,7 @@ export default function PlaceFleet({ onReady }: Props) {
                       onClick={() => handleCellClick(row, col)}
                     >
                       {isShip && (
-                        <span style={{ fontSize: 'clamp(12px, 2vw, 22px)', opacity: 0.7 }}>🚢</span>
+                        <div style={{ width: '60%', height: '60%', background: 'rgba(0, 255, 100, 0.6)', borderRadius: '2px', border: '1px solid rgba(0, 255, 100, 0.8)' }} />
                       )}
                     </div>
                   );
@@ -253,7 +257,7 @@ export default function PlaceFleet({ onReady }: Props) {
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-6 mt-3 pb-4">
+        <div className="flex gap-8 mt-8 pb-6">
           <button
             onClick={handleReset}
             className="px-8 py-4 text-sm tracking-wider cursor-pointer hover:scale-105 transition-all"
