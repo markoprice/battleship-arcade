@@ -139,7 +139,7 @@ function MissileEffect({
         }}
         transition={{ duration: 0.45, ease: 'easeIn' }}
         onAnimationComplete={() => {
-          setTimeout(onComplete, 400);
+          onComplete();
         }}
       >
         🚀
@@ -603,7 +603,10 @@ export default function Gameplay({
                   targetCol={missileAnim.col}
                   fromSide={missileAnim.fromSide}
                   result={missileAnim.result}
-                  onComplete={handleMissileComplete}
+                  onComplete={() => {
+                    const id = setTimeout(handleMissileComplete, 400);
+                    timeoutIdsRef.current.push(id);
+                  }}
                 />
               )}
             </AnimatePresence>
