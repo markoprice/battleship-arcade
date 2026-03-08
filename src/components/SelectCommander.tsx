@@ -13,6 +13,7 @@ export default function SelectCommander({ onSelect }: Props) {
   const [selectedSales, setSelectedSales] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [rouletteActive, setRouletteActive] = useState(false);
+  const [forceGridView, setForceGridView] = useState(false);
   const [rouletteIndex, setRouletteIndex] = useState(0);
   const rouletteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rouletteCountRef = useRef(0);
@@ -27,6 +28,7 @@ export default function SelectCommander({ onSelect }: Props) {
   // Start roulette when Sales character is selected
   const startRoulette = useCallback(() => {
     setRouletteActive(true);
+    setForceGridView(true);
     rouletteCountRef.current = 0;
     const totalSpins = 12 + Math.floor(Math.random() * 6); // 12-17 spins
     const finalIndex = Math.floor(Math.random() * productCharacters.length);
@@ -47,6 +49,7 @@ export default function SelectCommander({ onSelect }: Props) {
         const finalChar = productCharacters[finalIndex];
         setSelectedProduct(finalChar.id);
         setRouletteActive(false);
+        setForceGridView(false);
         rouletteStartedRef.current = false;
         // Auto-advance to matchup preview after a brief pause
         autoAdvanceRef.current = setTimeout(() => {
@@ -73,6 +76,7 @@ export default function SelectCommander({ onSelect }: Props) {
   const handleSalesSelect = (charId: string) => {
     if (rouletteActive || rouletteStartedRef.current) return;
     rouletteStartedRef.current = true;
+    setForceGridView(true);
     setSelectedSales(charId);
     selectedSalesRef.current = charId;
     setSelectedProduct(null);
@@ -168,7 +172,7 @@ export default function SelectCommander({ onSelect }: Props) {
           {/* Sales panel */}
           <div className="flex flex-col items-center shrink-0" style={{ maxWidth: '340px' }}>
             <AnimatePresence mode="wait">
-              {salesChar && !rouletteActive ? (
+              {salesChar && !rouletteActive && !forceGridView ? (
                 <motion.div
                   key="sales-selected"
                   className="relative"

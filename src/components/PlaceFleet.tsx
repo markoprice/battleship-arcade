@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Ship, PlacedShip, Board, BoardCell, Orientation } from '../types';
 import { ships } from '../data/ships';
@@ -26,6 +26,7 @@ export default function PlaceFleet({ onReady }: Props) {
   const [showReadyPopup, setShowReadyPopup] = useState(false);
   const placedShipIds = placedShips.map((s) => s.shipId);
   const allPlaced = placedShipIds.length === ships.length;
+  const prevAllPlacedRef = useRef(false);
 
   const getCells = useCallback(
     (row: number, col: number, ship: Ship, dir: Orientation): [number, number][] | null => {
@@ -75,6 +76,14 @@ export default function PlaceFleet({ onReady }: Props) {
     },
     [selectedShip, orientation, board, placedShips, getCells]
   );
+
+  // Auto-show READY FOR BATTLE? popup when last ship is placed
+  useEffect(() => {
+    if (allPlaced && !prevAllPlacedRef.current) {
+      setShowReadyPopup(true);
+    }
+    prevAllPlacedRef.current = allPlaced;
+  }, [allPlaced]);
 
   const handleReset = () => {
     setBoard(createEmptyBoard());
@@ -288,7 +297,7 @@ export default function PlaceFleet({ onReady }: Props) {
               textShadow: allPlaced ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none',
             }}
           >
-            START
+            BATTLE
           </button>
         </div>
 
