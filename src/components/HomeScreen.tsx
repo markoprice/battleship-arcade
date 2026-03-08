@@ -31,35 +31,35 @@ export default function HomeScreen({ onStart }: Props) {
       >
         <motion.button
           onClick={onStart}
-          className="text-2xl md:text-3xl tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
+          className="text-3xl md:text-4xl tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFD700',
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             border: '3px solid #FFD700',
-            padding: '36px 112px',
+            padding: '24px 64px',
             textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
             boxShadow: '0 0 15px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1)',
           }}
           animate={{
             textShadow: [
-              '0 0 10px rgba(255, 215, 0, 0.3)',
-              '0 0 25px rgba(255, 215, 0, 0.9), 0 0 50px rgba(255, 215, 0, 0.4)',
-              '0 0 10px rgba(255, 215, 0, 0.3)',
+              '0 0 8px rgba(255, 215, 0, 0.2)',
+              '0 0 20px rgba(255, 215, 0, 0.7), 0 0 40px rgba(255, 215, 0, 0.3)',
+              '0 0 8px rgba(255, 215, 0, 0.2)',
             ],
             boxShadow: [
-              '0 0 10px rgba(255, 215, 0, 0.2), inset 0 0 10px rgba(255, 215, 0, 0.05)',
-              '0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.15)',
-              '0 0 10px rgba(255, 215, 0, 0.2), inset 0 0 10px rgba(255, 215, 0, 0.05)',
+              '0 0 8px rgba(255, 215, 0, 0.15), inset 0 0 8px rgba(255, 215, 0, 0.03)',
+              '0 0 25px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(255, 215, 0, 0.1)',
+              '0 0 8px rgba(255, 215, 0, 0.15), inset 0 0 8px rgba(255, 215, 0, 0.03)',
             ],
             borderColor: [
-              'rgba(255, 215, 0, 0.6)',
-              'rgba(255, 215, 0, 1)',
-              'rgba(255, 215, 0, 0.6)',
+              'rgba(255, 215, 0, 0.4)',
+              'rgba(255, 215, 0, 0.9)',
+              'rgba(255, 215, 0, 0.4)',
             ],
           }}
           transition={{
-            duration: 1.6,
+            duration: 4.5,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
