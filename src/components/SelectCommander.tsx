@@ -122,7 +122,7 @@ export default function SelectCommander({ onSelect }: Props) {
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color,
-            fontSize: 'clamp(18px, 2.5vw, 32px)',
+            fontSize: '24px',
             textShadow: `0 0 15px ${color}66`,
             lineHeight: 1.2,
           }}
@@ -237,7 +237,7 @@ export default function SelectCommander({ onSelect }: Props) {
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#3969CA',
-                fontSize: 'clamp(10px, 1.2vw, 14px)',
+                fontSize: '13px',
                 textShadow: '0 0 8px rgba(57, 105, 202, 0.5)',
               }}
             >
@@ -326,7 +326,7 @@ export default function SelectCommander({ onSelect }: Props) {
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#21C19A',
-                fontSize: 'clamp(10px, 1.2vw, 14px)',
+                fontSize: '13px',
                 textShadow: '0 0 8px rgba(33, 193, 154, 0.5)',
               }}
             >
@@ -354,7 +354,7 @@ export default function SelectCommander({ onSelect }: Props) {
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   color: '#FFD700',
-                  fontSize: 'clamp(12px, 1.5vw, 18px)',
+                  fontSize: '16px',
                   padding: '20px 48px',
                   backgroundColor: 'rgba(0, 0, 0, 0.6)',
                   border: '3px solid #FFD700',

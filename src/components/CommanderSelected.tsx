@@ -170,7 +170,7 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#FFD700',
-                fontSize: 'clamp(36px, 6vw, 72px)',
+                fontSize: '56px',
                 textShadow: '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4)',
               }}
               animate={{
@@ -201,7 +201,7 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
             style={{
               fontFamily: '"Press Start 2P", cursive',
               color: '#FFD700',
-              fontSize: 'clamp(11px, 1.75vw, 20px)',
+              fontSize: '16px',
               textShadow: '0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3)',
             }}
           >
@@ -209,7 +209,7 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
           </div>
           <div
             className="h-1.5 rounded-full overflow-hidden"
-            style={{ background: 'rgba(255, 255, 255, 0.1)', width: 'clamp(200px, 30vw, 400px)' }}
+            style={{ background: 'rgba(255, 255, 255, 0.1)', width: '320px' }}
           >
             <motion.div
               className="h-full rounded-full"
