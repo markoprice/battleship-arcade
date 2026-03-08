@@ -548,7 +548,7 @@ export default function Gameplay({
               board={aiBoard}
               borderColor="#21C19A"
               isEnemy
-              isActive={isPlayerTurn && !processing}
+              isActive={isPlayerTurn && !processing || !!missileAnim}
               onCellClick={handlePlayerShot}
               disabled={!isPlayerTurn || processing}
             />
