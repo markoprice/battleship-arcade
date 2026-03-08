@@ -374,9 +374,13 @@ export default function Gameplay({
   } | null>(null);
   const aiGridRef = useRef<HTMLDivElement>(null);
 
+  const cancelledRef = useRef(false);
+
   // Clear all pending timeouts on unmount (e.g. abandon game)
   useEffect(() => {
+    cancelledRef.current = false;
     return () => {
+      cancelledRef.current = true;
       timeoutIdsRef.current.forEach(clearTimeout);
       timeoutIdsRef.current = [];
     };
@@ -410,6 +414,7 @@ export default function Gameplay({
 
   // Handle missile animation completion — NOW fire and update board
   const handleMissileComplete = useCallback(() => {
+    if (cancelledRef.current) return;
     const shot = pendingShotRef.current;
     if (!shot) return;
     pendingShotRef.current = null;
