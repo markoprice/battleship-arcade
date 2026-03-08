@@ -211,18 +211,18 @@ export default function PlaceFleet({ onReady }: Props) {
           <div>
             {/* Column headers */}
             <div className="flex">
-              <div style={{ width: 'clamp(24px, 3.5vw, 40px)' }} />
+              <div style={{ width: '30px' }} />
               {COLS.map((col) => (
-                <div
-                  key={col}
-                  className="text-center"
-                  style={{
-                    width: 'clamp(32px, 5vw, 56px)',
-                    fontFamily: '"Press Start 2P", cursive',
-                    color: '#00e5ff',
-                    fontSize: 'clamp(7px, 1vw, 11px)',
-                    paddingBottom: '4px',
-                  }}
+                  <div
+                    key={col}
+                    className="text-center"
+                    style={{
+                      width: '48px',
+                      fontFamily: '"Press Start 2P", cursive',
+                      color: '#00e5ff',
+                      fontSize: '9px',
+                      paddingBottom: '4px',
+                    }}
                 >
                   {col}
                 </div>
@@ -235,10 +235,10 @@ export default function PlaceFleet({ onReady }: Props) {
                 <div
                   className="flex items-center justify-center"
                   style={{
-                    width: 'clamp(24px, 3.5vw, 40px)',
+                    width: '30px',
                     fontFamily: '"Press Start 2P", cursive',
                     color: '#00e5ff',
-                    fontSize: 'clamp(7px, 1vw, 11px)',
+                    fontSize: '9px',
                   }}
                 >
                   {row + 1}
@@ -253,8 +253,8 @@ export default function PlaceFleet({ onReady }: Props) {
                       key={col}
                       className="cursor-pointer transition-all"
                       style={{
-                        width: 'clamp(32px, 5vw, 56px)',
-                        height: 'clamp(32px, 5vw, 56px)',
+                        width: '48px',
+                        height: '48px',
                         border: '1px solid rgba(0, 229, 255, 0.3)',
                         background: isShip
                           ? 'rgba(0, 255, 100, 0.4)'

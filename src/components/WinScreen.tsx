@@ -62,22 +62,23 @@ export default function WinScreen({ onPlayAgain }: Props) {
         className="relative z-10 text-center"
       >
         <div
-          className="text-4xl md:text-6xl mb-4"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFD700',
+            fontSize: '48px',
             textShadow: '0 0 40px rgba(255, 215, 0, 0.8), 3px 3px 0 #8B6914',
+            marginBottom: '24px',
           }}
         >
           DEAL CLOSED.
         </div>
-        <div className="text-6xl mb-6">🏆</div>
+        <div style={{ fontSize: '64px', marginBottom: '32px' }}>🏆</div>
         <div
-          className="mb-8"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#aaa',
-            fontSize: '11px',
+            fontSize: '12px',
+            marginBottom: '48px',
           }}
         >
           Sales wins. Product couldn't ship fast enough.
@@ -86,13 +87,15 @@ export default function WinScreen({ onPlayAgain }: Props) {
 
       <motion.button
         onClick={onPlayAgain}
-        className="relative z-10 px-8 py-4 text-sm tracking-wider cursor-pointer"
+        className="relative z-10 tracking-wider cursor-pointer"
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: '#FFD700',
           backgroundColor: '#000',
           border: '3px solid #FFD700',
           textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
+          padding: '16px 40px',
+          fontSize: '14px',
         }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}

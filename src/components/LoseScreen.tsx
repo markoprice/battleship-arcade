@@ -30,21 +30,22 @@ export default function LoseScreen({ onPlayAgain }: Props) {
         transition={{ duration: 0.8 }}
       >
         <div
-          className="text-3xl md:text-5xl mb-6"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#ff4444',
+            fontSize: '40px',
             textShadow: '0 0 30px rgba(255, 0, 0, 0.5), 2px 2px 0 #5a0000',
+            marginBottom: '32px',
           }}
         >
           BACK TO THE PIPELINE.
         </div>
         <div
-          className="mb-8"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#777',
-            fontSize: '11px',
+            fontSize: '12px',
+            marginBottom: '48px',
           }}
         >
           Product shipped faster. Better luck next quarter.
@@ -53,12 +54,14 @@ export default function LoseScreen({ onPlayAgain }: Props) {
 
       <motion.button
         onClick={onPlayAgain}
-        className="relative z-10 px-8 py-4 text-sm tracking-wider cursor-pointer"
+        className="relative z-10 tracking-wider cursor-pointer"
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: '#ff4444',
           backgroundColor: '#000',
           border: '3px solid #ff4444',
+          padding: '16px 40px',
+          fontSize: '14px',
         }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
