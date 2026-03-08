@@ -16,6 +16,8 @@ export default function SelectCommander({ onSelect }: Props) {
   const [rouletteIndex, setRouletteIndex] = useState(0);
   const rouletteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rouletteCountRef = useRef(0);
+  const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rouletteStartedRef = useRef(false);
 
   const salesChar = salesCharacters.find((c) => c.id === selectedSales) ?? null;
   const productChar = productCharacters.find((c) => c.id === selectedProduct) ?? null;
@@ -43,6 +45,7 @@ export default function SelectCommander({ onSelect }: Props) {
         setRouletteIndex(finalIndex);
         setSelectedProduct(productCharacters[finalIndex].id);
         setRouletteActive(false);
+        rouletteStartedRef.current = false;
       }
     };
 
@@ -53,15 +56,19 @@ export default function SelectCommander({ onSelect }: Props) {
   useEffect(() => {
     return () => {
       if (rouletteTimerRef.current) clearTimeout(rouletteTimerRef.current);
+      if (startDelayRef.current) clearTimeout(startDelayRef.current);
     };
   }, []);
 
   const handleSalesSelect = (charId: string) => {
-    if (rouletteActive) return;
+    if (rouletteActive || rouletteStartedRef.current) return;
+    rouletteStartedRef.current = true;
     setSelectedSales(charId);
     setSelectedProduct(null);
+    // Clear any pending start delay
+    if (startDelayRef.current) clearTimeout(startDelayRef.current);
     // Start roulette after a brief moment
-    setTimeout(() => startRoulette(), 300);
+    startDelayRef.current = setTimeout(() => startRoulette(), 300);
   };
 
   return (
