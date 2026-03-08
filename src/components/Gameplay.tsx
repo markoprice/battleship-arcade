@@ -26,75 +26,119 @@ interface Props {
 
 const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
+function PlayerCard({
+  character,
+  borderColor,
+  teamLabel,
+  isActive,
+  isSales,
+}: {
+  character: Character;
+  borderColor: string;
+  teamLabel: string;
+  isActive: boolean;
+  isSales: boolean;
+}) {
+  return (
+    <motion.div
+      className="flex items-center gap-2 mb-2"
+      animate={{ scale: isActive ? 1.1 : 0.9, opacity: isActive ? 1 : 0.6 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div
+        className="flex items-center justify-center rounded"
+        style={{
+          width: isActive ? '48px' : '36px',
+          height: isActive ? '48px' : '36px',
+          border: `2px solid ${borderColor}`,
+          background: isSales
+            ? 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))'
+            : 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))',
+          fontSize: isActive ? '20px' : '16px',
+          transition: 'all 0.3s ease',
+          boxShadow: isActive ? `0 0 12px ${borderColor}66` : 'none',
+        }}
+      >
+        {isSales ? '🎯' : '💻'}
+      </div>
+      <div>
+        <div
+          style={{
+            fontFamily: '"Press Start 2P", cursive',
+            color: '#FFD700',
+            fontSize: isActive ? '10px' : '8px',
+            transition: 'all 0.3s ease',
+          }}
+        >
+          {character.name.toUpperCase()}
+        </div>
+        <div
+          style={{
+            fontFamily: '"Press Start 2P", cursive',
+            color: '#aaa',
+            fontSize: '6px',
+            marginTop: '2px',
+          }}
+        >
+          {character.title}
+        </div>
+        <div
+          className="px-2 py-0.5 text-center mt-1 inline-block"
+          style={{
+            fontFamily: '"Press Start 2P", cursive',
+            color: borderColor,
+            fontSize: '5px',
+            border: `1px solid ${borderColor}`,
+            background: 'rgba(0,0,0,0.5)',
+          }}
+        >
+          {teamLabel}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function GameGrid({
   board,
-  label,
-  teamLabel,
   borderColor,
   isEnemy,
+  isActive,
   onCellClick,
   disabled,
 }: {
   board: Board;
-  label: string;
-  teamLabel: string;
   borderColor: string;
   isEnemy: boolean;
+  isActive: boolean;
   onCellClick?: (row: number, col: number) => void;
   disabled?: boolean;
 }) {
-  return (
-    <div className="flex flex-col items-center">
-      {/* Label */}
-      <div className="flex items-center gap-2 mb-2">
-        <div
-          className="w-10 h-10 flex items-center justify-center text-xl rounded"
-          style={{
-            border: `2px solid ${borderColor}`,
-            background: 'rgba(0,0,0,0.5)',
-          }}
-        >
-          {isEnemy ? '💻' : '🎯'}
-        </div>
-        <div>
-          <div
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#FFD700',
-              fontSize: '10px',
-            }}
-          >
-            {label}
-          </div>
-          <div
-            className="px-2 py-0.5 text-center mt-1"
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: borderColor,
-              fontSize: '6px',
-              border: `1px solid ${borderColor}`,
-              background: 'rgba(0,0,0,0.5)',
-            }}
-          >
-            {teamLabel}
-          </div>
-        </div>
-      </div>
+  // Active grid is bigger, inactive is smaller
+  const cellSize = isActive ? 'clamp(26px, 3.8vw, 48px)' : 'clamp(20px, 2.8vw, 36px)';
+  const labelWidth = isActive ? 'clamp(20px, 2.8vw, 36px)' : 'clamp(16px, 2vw, 28px)';
+  const headerFont = isActive ? 'clamp(6px, 0.8vw, 9px)' : 'clamp(4px, 0.6vw, 7px)';
 
+  return (
+    <motion.div
+      className="flex flex-col items-center"
+      animate={{ opacity: isActive ? 1 : 0.7 }}
+      transition={{ duration: 0.3 }}
+    >
       {/* Grid */}
       <div>
         {/* Column headers */}
         <div className="flex">
-          <div style={{ width: 'clamp(18px, 2.5vw, 32px)' }} />
+          <div style={{ width: labelWidth }} />
           {COLS.map((col) => (
             <div
               key={col}
               className="text-center"
               style={{
-                width: 'clamp(24px, 3.5vw, 44px)',
+                width: cellSize,
                 fontFamily: '"Press Start 2P", cursive',
                 color: borderColor,
-                fontSize: 'clamp(5px, 0.7vw, 8px)',
+                fontSize: headerFont,
                 paddingBottom: '2px',
               }}
             >
@@ -108,10 +152,10 @@ function GameGrid({
             <div
               className="flex items-center justify-center"
               style={{
-                width: 'clamp(18px, 2.5vw, 32px)',
+                width: labelWidth,
                 fontFamily: '"Press Start 2P", cursive',
                 color: borderColor,
-                fontSize: 'clamp(5px, 0.7vw, 8px)',
+                fontSize: headerFont,
               }}
             >
               {row + 1}
@@ -128,8 +172,8 @@ function GameGrid({
                   key={col}
                   className="transition-all"
                   style={{
-                    width: 'clamp(24px, 3.5vw, 44px)',
-                    height: 'clamp(24px, 3.5vw, 44px)',
+                    width: cellSize,
+                    height: cellSize,
                     border: `1px solid ${borderColor}33`,
                     background: isHit
                       ? 'rgba(255, 100, 0, 0.4)'
@@ -142,7 +186,7 @@ function GameGrid({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '14px',
+                    fontSize: isActive ? '14px' : '10px',
                     boxShadow: isHit ? '0 0 8px rgba(255, 100, 0, 0.5)' : 'none',
                   }}
                   onClick={() => {
@@ -157,7 +201,7 @@ function GameGrid({
                     />
                   )}
                   {isShip && !isHit && (
-                    <span style={{ fontSize: 'clamp(10px, 1.5vw, 18px)', opacity: 0.7 }}>🚢</span>
+                    <span style={{ fontSize: isActive ? 'clamp(10px, 1.5vw, 18px)' : 'clamp(8px, 1vw, 14px)', opacity: 0.7 }}>🚢</span>
                   )}
                 </div>
               );
@@ -165,7 +209,7 @@ function GameGrid({
           </div>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -338,24 +382,42 @@ export default function Gameplay({
           </div>
         </div>
 
-        {/* Grids */}
+        {/* Grids with player cards */}
         <div className="flex-1 flex items-center justify-center gap-4 md:gap-8 overflow-auto">
-          <GameGrid
-            board={playerBoard}
-            label={playerCharacter.name.toUpperCase()}
-            teamLabel="SALES"
-            borderColor="#3969CA"
-            isEnemy={false}
-          />
-          <GameGrid
-            board={aiBoard}
-            label={aiCharacter.name.toUpperCase()}
-            teamLabel="PRODUCT"
-            borderColor="#21C19A"
-            isEnemy
-            onCellClick={handlePlayerShot}
-            disabled={!isPlayerTurn || processing}
-          />
+          {/* Player side */}
+          <div className="flex flex-col items-center">
+            <PlayerCard
+              character={playerCharacter}
+              borderColor="#3969CA"
+              teamLabel="SALES"
+              isActive={!isPlayerTurn && !processing}
+              isSales
+            />
+            <GameGrid
+              board={playerBoard}
+              borderColor="#3969CA"
+              isEnemy={false}
+              isActive={!isPlayerTurn && !processing}
+            />
+          </div>
+          {/* AI side */}
+          <div className="flex flex-col items-center">
+            <PlayerCard
+              character={aiCharacter}
+              borderColor="#21C19A"
+              teamLabel="PRODUCT"
+              isActive={isPlayerTurn && !processing}
+              isSales={false}
+            />
+            <GameGrid
+              board={aiBoard}
+              borderColor="#21C19A"
+              isEnemy
+              isActive={isPlayerTurn && !processing}
+              onCellClick={handlePlayerShot}
+              disabled={!isPlayerTurn || processing}
+            />
+          </div>
         </div>
 
         {/* NBA Jam Callout */}
