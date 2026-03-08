@@ -74,7 +74,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 90 },
       { label: 'BACK-END', value: 95 },
-      { label: 'FOUNDER MODE', value: 90 },
+      { label: 'AI', value: 90 },
     ],
   },
   {
@@ -87,7 +87,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 85 },
       { label: 'BACK-END', value: 90 },
-      { label: 'FOUNDER MODE', value: 85 },
+      { label: 'AI', value: 85 },
     ],
   },
   {
@@ -100,7 +100,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 80 },
       { label: 'BACK-END', value: 95 },
-      { label: 'FOUNDER MODE', value: 75 },
+      { label: 'AI', value: 75 },
     ],
   },
   {
@@ -113,7 +113,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 85 },
       { label: 'BACK-END', value: 80 },
-      { label: 'FOUNDER MODE', value: 90 },
+      { label: 'AI', value: 90 },
     ],
   },
 ];

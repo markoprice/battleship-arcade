@@ -148,7 +148,7 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
     <div className="fixed inset-0 overflow-hidden">
       <StarfieldBackground />
       <motion.div
-        className="relative z-10 flex flex-col h-full items-center justify-center"
+        className="relative z-10 flex flex-col h-full items-center justify-center pb-16"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -187,27 +187,27 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
           <LargePortrait character={ai} side="right" delay={0.4} />
         </div>
 
-        {/* Loading bar at bottom */}
+        {/* PREPARE FOR BATTLE — close below the portraits */}
         <motion.div
-          className="absolute bottom-8 left-1/2"
-          style={{ transform: 'translateX(-50%)', width: '200px' }}
+          className="flex flex-col items-center mt-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
         >
           <div
-            className="text-center mb-2"
+            className="text-center mb-3"
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: 'rgba(255, 215, 0, 0.5)',
-              fontSize: '8px',
+              color: '#FFD700',
+              fontSize: 'clamp(16px, 2.5vw, 28px)',
+              textShadow: '0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3)',
             }}
           >
             PREPARE FOR BATTLE
           </div>
           <div
-            className="h-1 rounded-full overflow-hidden"
-            style={{ background: 'rgba(255, 255, 255, 0.1)' }}
+            className="h-1.5 rounded-full overflow-hidden"
+            style={{ background: 'rgba(255, 255, 255, 0.1)', width: 'clamp(200px, 30vw, 400px)' }}
           >
             <motion.div
               className="h-full rounded-full"

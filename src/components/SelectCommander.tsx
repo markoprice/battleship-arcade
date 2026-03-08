@@ -97,11 +97,16 @@ export default function SelectCommander({ onSelect }: Props) {
     if (rouletteActive) return;
     setSelectedProduct(null);
     setBothSelected(false);
+    setForceGridView(false);
     if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
-    // Re-run roulette
-    rouletteStartedRef.current = true;
-    if (startDelayRef.current) clearTimeout(startDelayRef.current);
-    startDelayRef.current = setTimeout(() => startRoulette(), 300);
+    // Do NOT re-run roulette — just show the product grid for manual pick
+    rouletteStartedRef.current = false;
+  };
+
+  const handleManualProductSelect = (charId: string) => {
+    if (rouletteActive) return;
+    setSelectedProduct(charId);
+    setBothSelected(true);
   };
 
   // Stacked vertical label component
@@ -226,11 +231,11 @@ export default function SelectCommander({ onSelect }: Props) {
               )}
             </AnimatePresence>
             <div
-              className="text-center mt-3"
+              className="text-center mt-6"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#3969CA',
-                fontSize: '9px',
+                fontSize: 'clamp(10px, 1.2vw, 14px)',
                 textShadow: '0 0 8px rgba(57, 105, 202, 0.5)',
               }}
             >
@@ -305,7 +310,7 @@ export default function SelectCommander({ onSelect }: Props) {
                         <CharacterCard
                           character={char}
                           selected={selectedProduct === char.id || isRouletteHighlighted}
-                          onClick={() => {}}
+                          onClick={() => !rouletteActive && handleManualProductSelect(char.id)}
                           compact
                         />
                       </div>
@@ -315,11 +320,11 @@ export default function SelectCommander({ onSelect }: Props) {
               )}
             </AnimatePresence>
             <div
-              className="text-center mt-3"
+              className="text-center mt-6"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#21C19A',
-                fontSize: '9px',
+                fontSize: 'clamp(10px, 1.2vw, 14px)',
                 textShadow: '0 0 8px rgba(33, 193, 154, 0.5)',
               }}
             >
@@ -331,11 +336,11 @@ export default function SelectCommander({ onSelect }: Props) {
           <StackedLabel text="PRODUCT" color="#21C19A" />
         </div>
 
-        {/* PLACE YOUR FLEET button — shows after both players are selected */}
+        {/* PLACE YOUR FLEET button — shows after both players are selected, right below tiles */}
         <AnimatePresence>
           {bothSelected && salesChar && productChar && (
             <motion.div
-              className="flex justify-center pb-6 pt-2"
+              className="flex justify-center mt-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -343,16 +348,17 @@ export default function SelectCommander({ onSelect }: Props) {
             >
               <button
                 onClick={() => onSelect(salesChar, productChar)}
-                className="px-10 py-5 cursor-pointer transition-all hover:scale-105"
+                className="cursor-pointer transition-transform hover:scale-[1.05]"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   color: '#FFD700',
                   fontSize: 'clamp(12px, 1.5vw, 18px)',
-                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                  padding: '20px 48px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
                   border: '3px solid #FFD700',
                   borderRadius: '2px',
                   textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
-                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.2)',
+                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.05)',
                 }}
               >
                 PLACE YOUR FLEET →
