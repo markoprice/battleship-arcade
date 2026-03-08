@@ -23,6 +23,7 @@ export default function PlaceFleet({ onReady }: Props) {
   const [selectedShip, setSelectedShip] = useState<Ship | null>(ships[0]);
   const [orientation, setOrientation] = useState<Orientation>('horizontal');
   const [hoverCells, setHoverCells] = useState<[number, number][]>([]);
+  const [invalidHoverCells, setInvalidHoverCells] = useState<[number, number][]>([]);
 
   const [showReadyPopup, setShowReadyPopup] = useState(false);
   const placedShipIds = placedShips.map((s) => s.shipId);
@@ -44,16 +45,42 @@ export default function PlaceFleet({ onReady }: Props) {
     [board]
   );
 
+  // Get partial cells that fit on the grid (for red invalid highlight)
+  const getPartialCells = useCallback(
+    (row: number, col: number, ship: Ship, dir: Orientation): [number, number][] => {
+      const cells: [number, number][] = [];
+      for (let i = 0; i < ship.size; i++) {
+        const r = dir === 'horizontal' ? row : row + i;
+        const c = dir === 'horizontal' ? col + i : col;
+        if (r >= 10 || c >= 10) break;
+        cells.push([r, c]);
+      }
+      return cells;
+    },
+    []
+  );
+
   const handleCellHover = useCallback(
     (row: number, col: number) => {
       if (!selectedShip) {
         setHoverCells([]);
+        setInvalidHoverCells([]);
         return;
       }
       const cells = getCells(row, col, selectedShip, orientation);
-      setHoverCells(cells ?? []);
+      if (cells) {
+        // Valid placement — show green
+        setHoverCells(cells);
+        setInvalidHoverCells([]);
+      } else {
+        // Invalid placement — show red for partial cells that fit on grid
+        setHoverCells([]);
+        const partial = getPartialCells(row, col, selectedShip, orientation)
+          .filter(([r, c]) => board[r][c].state !== 'ship');
+        setInvalidHoverCells(partial);
+      }
     },
-    [selectedShip, orientation, getCells]
+    [selectedShip, orientation, getCells, getPartialCells, board]
   );
 
   const handleCellClick = useCallback(
@@ -70,6 +97,7 @@ export default function PlaceFleet({ onReady }: Props) {
       const newPlaced = [...placedShips, { shipId: selectedShip.id, cells, sunk: false }];
       setPlacedShips(newPlaced);
       setHoverCells([]);
+      setInvalidHoverCells([]);
       // Auto-advance to next unplaced ship
       const newPlacedIds = newPlaced.map((s) => s.shipId);
       const nextShip = ships.find((s) => !newPlacedIds.includes(s.id)) ?? null;
@@ -91,6 +119,7 @@ export default function PlaceFleet({ onReady }: Props) {
     setPlacedShips([]);
     setSelectedShip(ships[0]);
     setHoverCells([]);
+    setInvalidHoverCells([]);
   };
 
   const handleKeyDown = useCallback(
@@ -104,6 +133,8 @@ export default function PlaceFleet({ onReady }: Props) {
 
   const isHovered = (row: number, col: number) =>
     hoverCells.some(([r, c]) => r === row && c === col);
+  const isInvalidHover = (row: number, col: number) =>
+    invalidHoverCells.some(([r, c]) => r === row && c === col);
 
   const CELL = 48;
   const LABEL_W = 30;
@@ -133,10 +164,91 @@ export default function PlaceFleet({ onReady }: Props) {
           PLACE YOUR FLEET
         </h1>
 
-        {/* Side-by-side layout: left panel + grid */}
+        {/* Side-by-side layout: grid on left, panel on right */}
         <div className="flex-1 flex items-start justify-center" style={{ gap: '40px' }}>
 
-          {/* Left panel — ship dock, instructions, controls */}
+          {/* Left side — Grid (positioned like gameplay) */}
+          <div className="flex flex-col items-center">
+            <div>
+              {/* Column headers */}
+              <div className="flex">
+                <div style={{ width: `${LABEL_W}px` }} />
+                {COLS.map((col) => (
+                  <div
+                    key={col}
+                    className="text-center"
+                    style={{
+                      width: `${CELL}px`,
+                      fontFamily: '"Press Start 2P", cursive',
+                      color: '#00e5ff',
+                      fontSize: '9px',
+                      paddingBottom: '4px',
+                    }}
+                  >
+                    {col}
+                  </div>
+                ))}
+              </div>
+
+              {/* Rows */}
+              {Array.from({ length: 10 }, (_, row) => (
+                <div key={row} className="flex">
+                  <div
+                    className="flex items-center justify-center"
+                    style={{
+                      width: `${LABEL_W}px`,
+                      fontFamily: '"Press Start 2P", cursive',
+                      color: '#00e5ff',
+                      fontSize: '9px',
+                    }}
+                  >
+                    {row + 1}
+                  </div>
+                  {Array.from({ length: 10 }, (_, col) => {
+                    const cell = board[row][col];
+                    const hover = isHovered(row, col);
+                    const invalid = isInvalidHover(row, col);
+                    const isShip = cell.state === 'ship';
+
+                    return (
+                      <div
+                        key={col}
+                        className="cursor-pointer transition-all flex items-center justify-center"
+                        style={{
+                          width: `${CELL}px`,
+                          height: `${CELL}px`,
+                          border: '1px solid rgba(0, 229, 255, 0.3)',
+                          background: isShip
+                            ? 'rgba(0, 255, 100, 0.4)'
+                            : hover
+                              ? 'rgba(0, 255, 100, 0.25)'
+                              : invalid
+                                ? 'rgba(255, 60, 60, 0.3)'
+                                : 'rgba(0, 229, 255, 0.05)',
+                          boxShadow: isShip
+                            ? '0 0 8px rgba(0, 255, 100, 0.5)'
+                            : hover
+                              ? '0 0 5px rgba(0, 255, 100, 0.3)'
+                              : invalid
+                                ? '0 0 5px rgba(255, 60, 60, 0.3)'
+                                : 'none',
+                        }}
+                        onMouseEnter={() => handleCellHover(row, col)}
+                        onMouseLeave={() => { setHoverCells([]); setInvalidHoverCells([]); }}
+                        onClick={() => handleCellClick(row, col)}
+                      >
+                        {isShip && (
+                          <div style={{ width: '60%', height: '60%', background: 'rgba(0, 255, 100, 0.6)', borderRadius: '2px', border: '1px solid rgba(0, 255, 100, 0.8)' }} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right panel — ship dock, instructions, controls */}
           <div className="flex flex-col" style={{ width: '320px', paddingTop: '20px' }}>
             {/* Ship dock */}
             <div className="flex flex-col" style={{ gap: '6px', marginBottom: '20px' }}>
@@ -255,82 +367,6 @@ export default function PlaceFleet({ onReady }: Props) {
               >
                 BATTLE
               </button>
-            </div>
-          </div>
-
-          {/* Right side — Grid (positioned like gameplay) */}
-          <div className="flex flex-col items-center">
-            <div>
-              {/* Column headers */}
-              <div className="flex">
-                <div style={{ width: `${LABEL_W}px` }} />
-                {COLS.map((col) => (
-                  <div
-                    key={col}
-                    className="text-center"
-                    style={{
-                      width: `${CELL}px`,
-                      fontFamily: '"Press Start 2P", cursive',
-                      color: '#00e5ff',
-                      fontSize: '9px',
-                      paddingBottom: '4px',
-                    }}
-                  >
-                    {col}
-                  </div>
-                ))}
-              </div>
-
-              {/* Rows */}
-              {Array.from({ length: 10 }, (_, row) => (
-                <div key={row} className="flex">
-                  <div
-                    className="flex items-center justify-center"
-                    style={{
-                      width: `${LABEL_W}px`,
-                      fontFamily: '"Press Start 2P", cursive',
-                      color: '#00e5ff',
-                      fontSize: '9px',
-                    }}
-                  >
-                    {row + 1}
-                  </div>
-                  {Array.from({ length: 10 }, (_, col) => {
-                    const cell = board[row][col];
-                    const hover = isHovered(row, col);
-                    const isShip = cell.state === 'ship';
-
-                    return (
-                      <div
-                        key={col}
-                        className="cursor-pointer transition-all flex items-center justify-center"
-                        style={{
-                          width: `${CELL}px`,
-                          height: `${CELL}px`,
-                          border: '1px solid rgba(0, 229, 255, 0.3)',
-                          background: isShip
-                            ? 'rgba(0, 255, 100, 0.4)'
-                            : hover
-                              ? 'rgba(0, 255, 100, 0.25)'
-                              : 'rgba(0, 229, 255, 0.05)',
-                          boxShadow: isShip
-                            ? '0 0 8px rgba(0, 255, 100, 0.5)'
-                            : hover
-                              ? '0 0 5px rgba(0, 255, 100, 0.3)'
-                              : 'none',
-                        }}
-                        onMouseEnter={() => handleCellHover(row, col)}
-                        onMouseLeave={() => setHoverCells([])}
-                        onClick={() => handleCellClick(row, col)}
-                      >
-                        {isShip && (
-                          <div style={{ width: '60%', height: '60%', background: 'rgba(0, 255, 100, 0.6)', borderRadius: '2px', border: '1px solid rgba(0, 255, 100, 0.8)' }} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
             </div>
           </div>
         </div>
