@@ -4,19 +4,28 @@ interface Props {
   children: ReactNode;
 }
 
-const CANVAS_W = 1344;
-const CANVAS_H = 756;
+// Internal design resolution — all child components use fixed px relative to this.
+const DESIGN_W = 1344;
+const DESIGN_H = 756;
+const ASPECT = DESIGN_W / DESIGN_H; // 16:9
 
 /**
- * Fixed 1344x756 arcade cabinet canvas.
- * Scales the whole picture down (like shrinking a photo) when the viewport is
- * smaller than 1344x756, so you always see the full canvas — never zoomed/cropped.
+ * 16:9 arcade cabinet canvas.
+ * Fills as much of the viewport as possible while keeping 16:9 aspect ratio.
+ * Internally renders at 1344×756 and CSS-scales to fit — like shrinking a photo.
  */
 export default function ArcadeCanvas({ children }: Props) {
   const getScale = useCallback(() => {
-    const sx = window.innerWidth / CANVAS_W;
-    const sy = window.innerHeight / CANVAS_H;
-    return Math.min(sx, sy, 1); // never scale UP beyond 1
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    // Largest 16:9 box that fits in the viewport
+    let w = vw;
+    let h = vw / ASPECT;
+    if (h > vh) {
+      h = vh;
+      w = vh * ASPECT;
+    }
+    return w / DESIGN_W; // scale factor from design size to actual size
   }, []);
 
   const [scale, setScale] = useState(getScale);
@@ -34,8 +43,8 @@ export default function ArcadeCanvas({ children }: Props) {
     >
       <div
         style={{
-          width: `${CANVAS_W}px`,
-          height: `${CANVAS_H}px`,
+          width: `${DESIGN_W}px`,
+          height: `${DESIGN_H}px`,
           position: 'relative',
           overflow: 'hidden',
           boxShadow: '0 0 60px rgba(0, 0, 0, 0.8)',
