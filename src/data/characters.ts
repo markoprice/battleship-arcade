@@ -61,11 +61,11 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 90 },
       { label: 'BACK-END', value: 95 },
-      { label: 'SCALE', value: 90 },
-    ],
-  },
-  {
-    id: 'walden',
+        { label: 'FOUNDER MODE', value: 90 },
+      ],
+    },
+    {
+      id: 'walden',
     name: 'Walden Yan',
     title: 'CPO',
     nickname: 'The Archivist',
@@ -73,7 +73,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 85 },
       { label: 'BACK-END', value: 90 },
-      { label: 'SCALE', value: 85 },
+      { label: 'FOUNDER MODE', value: 85 },
     ],
   },
   {
@@ -85,7 +85,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 80 },
       { label: 'BACK-END', value: 95 },
-      { label: 'SCALE', value: 75 },
+      { label: 'FOUNDER MODE', value: 75 },
     ],
   },
   {
@@ -97,7 +97,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 85 },
       { label: 'BACK-END', value: 80 },
-      { label: 'SCALE', value: 90 },
+      { label: 'FOUNDER MODE', value: 90 },
     ],
   },
 ];
