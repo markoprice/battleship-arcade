@@ -412,6 +412,8 @@ export default function Gameplay({
   const fireAIShot = useCallback(() => {
     if (cancelledRef.current) return;
 
+    // Must peek first to set the pending target, then fire
+    onAIPeekTarget();
     const aiResult = onAIFire();
 
     if (aiResult.result === 'hit') playExplosion();
@@ -433,6 +435,7 @@ export default function Gameplay({
       setProcessing(false);
     }, 500));
   }, [
+    onAIPeekTarget,
     onAIFire,
     onStartPlayerTurn,
     onLose,
