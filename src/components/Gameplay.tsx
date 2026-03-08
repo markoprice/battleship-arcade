@@ -382,30 +382,46 @@ export default function Gameplay({
     };
   }, []);
 
+  // Store pending shot info so we can defer onPlayerFire until after missile lands
+  const pendingShotRef = useRef<{ row: number; col: number } | null>(null);
+
   const handlePlayerShot = useCallback(
     (row: number, col: number) => {
       if (!isPlayerTurn || processingRef.current) return;
-      const result = onPlayerFire(row, col);
-      if (result === 'already') return;
+      // Quick check if cell already hit/missed (without updating board yet)
+      const cell = aiBoard[row][col];
+      if (cell.state === 'hit' || cell.state === 'miss') return;
 
       processingRef.current = true;
       setProcessing(true);
 
-      // Launch missile animation
-      setMissileAnim({ row, col, result: result as 'hit' | 'miss' | 'sunk' | 'win' });
+      // Store the shot coordinates; defer onPlayerFire until missile lands
+      pendingShotRef.current = { row, col };
+      // We don't know the result yet, but we know if it's a ship or water
+      const pendingResult = cell.state === 'ship' ? 'hit' : 'miss';
+      setMissileAnim({ row, col, result: pendingResult as 'hit' | 'miss' | 'sunk' | 'win' });
     },
     [
       isPlayerTurn,
       processing,
-      onPlayerFire,
+      aiBoard,
     ]
   );
 
-  // Handle missile animation completion
+  // Handle missile animation completion — NOW fire and update board
   const handleMissileComplete = useCallback(() => {
-    if (!missileAnim) return;
-    const { result } = missileAnim;
+    const shot = pendingShotRef.current;
+    if (!shot) return;
+    pendingShotRef.current = null;
     setMissileAnim(null);
+
+    // Actually fire now and update the board
+    const result = onPlayerFire(shot.row, shot.col);
+    if (result === 'already') {
+      processingRef.current = false;
+      setProcessing(false);
+      return;
+    }
 
     if (result === 'hit') {
       playExplosion();
@@ -453,7 +469,7 @@ export default function Gameplay({
       }, 800));
     }, 500));
   }, [
-    missileAnim,
+    onPlayerFire,
     onAIFire,
     onEndPlayerTurn,
     onStartPlayerTurn,
