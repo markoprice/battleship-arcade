@@ -22,7 +22,7 @@ export default function CharacterCard({ character, selected, onClick, compact }:
       style={{
         border: `2px solid ${selected ? '#FFD700' : borderColor}`,
         background: 'rgba(0,0,0,0.6)',
-        padding: compact ? '6px' : '12px',
+        padding: compact ? '10px 8px' : '12px',
         boxShadow: selected
           ? `0 0 20px ${glowColor}, inset 0 0 20px rgba(255, 215, 0, 0.1)`
           : `0 0 10px ${glowColor}`,
@@ -32,13 +32,14 @@ export default function CharacterCard({ character, selected, onClick, compact }:
     >
       {/* Portrait placeholder */}
       <div
-        className="mb-1 flex items-center justify-center text-2xl"
+        className="mb-2 flex items-center justify-center"
         style={{
           background: tintBg,
           border: `2px solid ${borderColor}`,
           borderRadius: '2px',
-          width: compact ? '48px' : '120px',
-          height: compact ? '48px' : '120px',
+          width: compact ? '64px' : '120px',
+          height: compact ? '80px' : '140px',
+          fontSize: compact ? '28px' : '36px',
         }}
       >
         <span style={{ filter: 'grayscale(20%)' }}>
@@ -52,7 +53,7 @@ export default function CharacterCard({ character, selected, onClick, compact }:
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: '#FFD700',
-          fontSize: compact ? '7px' : '9px',
+          fontSize: compact ? '9px' : '11px',
         }}
       >
         {character.name}
@@ -64,7 +65,7 @@ export default function CharacterCard({ character, selected, onClick, compact }:
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: '#aaa',
-          fontSize: compact ? '5px' : '7px',
+          fontSize: compact ? '7px' : '8px',
         }}
       >
         {character.title}
@@ -72,34 +73,34 @@ export default function CharacterCard({ character, selected, onClick, compact }:
 
       {/* Nickname */}
       <div
-        className="text-center mb-1"
+        className="text-center mb-2"
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: isSales ? '#7B9FE8' : '#5DE8C5',
-          fontSize: compact ? '5px' : '6px',
+          fontSize: compact ? '6px' : '7px',
         }}
       >
-        "{character.nickname}"
+        &quot;{character.nickname}&quot;
       </div>
 
       {/* Stats */}
-      <div className="w-full space-y-1">
+      <div className="w-full space-y-1.5">
         {character.stats.map((stat) => (
-          <div key={stat.label} className="flex items-center gap-1">
+          <div key={stat.label} className="flex items-center gap-1.5">
             <span
               className="shrink-0 text-right"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#ccc',
-                fontSize: compact ? '4px' : '5px',
-                width: compact ? '50px' : '65px',
+                fontSize: compact ? '6px' : '7px',
+                width: compact ? '55px' : '70px',
               }}
             >
               {stat.label}
             </span>
             <div
-              className="flex-1 h-2 rounded-sm overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
+              className="flex-1 rounded-sm overflow-hidden"
+              style={{ background: 'rgba(255,255,255,0.1)', height: compact ? '6px' : '8px' }}
             >
               <div
                 className="h-full rounded-sm"
