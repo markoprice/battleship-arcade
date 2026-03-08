@@ -17,9 +17,9 @@ export default function ExitButton({ onExit }: Props) {
           zIndex: 90,
           fontFamily: '"Press Start 2P", cursive',
           fontSize: '14px',
-          color: '#FFD700',
-          background: 'rgba(0, 0, 0, 0.6)',
-          border: '2px solid rgba(255, 215, 0, 0.4)',
+          color: '#9B8FB8',
+          background: 'rgba(20, 15, 30, 0.6)',
+          border: '2px solid rgba(155, 143, 184, 0.3)',
           borderRadius: '4px',
         }}
         title="Return to Start"

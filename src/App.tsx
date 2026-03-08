@@ -69,7 +69,7 @@ function App() {
     game.resetGame();
   }, [sound, game]);
 
-  const showExitButton = game.screen !== 'home';
+  const showExitButton = game.screen !== 'home' && game.screen !== 'commander';
 
   return (
     <div className="w-full h-full">

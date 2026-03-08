@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { Character } from '../types';
 import StarfieldBackground from './StarfieldBackground';
@@ -8,7 +9,7 @@ interface Props {
   onStart: () => void;
 }
 
-function LargePortrait({ character, side }: { character: Character; side: 'left' | 'right' }) {
+function LargePortrait({ character, side, delay }: { character: Character; side: 'left' | 'right'; delay: number }) {
   const isSales = character.team === 'sales';
   const borderColor = isSales ? '#3969CA' : '#21C19A';
   const glowColor = isSales ? 'rgba(57, 105, 202, 0.6)' : 'rgba(33, 193, 154, 0.6)';
@@ -19,25 +20,36 @@ function LargePortrait({ character, side }: { character: Character; side: 'left'
   return (
     <motion.div
       className="flex flex-col items-center"
-      initial={{ x: side === 'left' ? -200 : 200, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.6, type: 'spring' }}
+      initial={{ x: side === 'left' ? -300 : 300, opacity: 0, scale: 0.5 }}
+      animate={{ x: 0, opacity: 1, scale: 1 }}
+      transition={{ duration: 0.8, delay, type: 'spring', bounce: 0.3 }}
     >
       {/* Portrait */}
-      <div
+      <motion.div
         className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center text-6xl mb-4"
         style={{
           background: tintBg,
           border: `3px solid ${borderColor}`,
           boxShadow: `0 0 30px ${glowColor}, inset 0 0 20px rgba(0,0,0,0.5)`,
         }}
+        animate={{
+          boxShadow: [
+            `0 0 30px ${glowColor}, inset 0 0 20px rgba(0,0,0,0.5)`,
+            `0 0 60px ${glowColor}, inset 0 0 30px rgba(0,0,0,0.3)`,
+            `0 0 30px ${glowColor}, inset 0 0 20px rgba(0,0,0,0.5)`,
+          ],
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: delay + 0.8 }}
       >
         {isSales ? '🎯' : '💻'}
-      </div>
+      </motion.div>
 
       {/* Name */}
-      <div
+      <motion.div
         className="text-center mb-1"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: delay + 0.4, duration: 0.5 }}
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: '#FFD700',
@@ -46,11 +58,14 @@ function LargePortrait({ character, side }: { character: Character; side: 'left'
         }}
       >
         {character.name}
-      </div>
+      </motion.div>
 
       {/* Title */}
-      <div
+      <motion.div
         className="text-center mb-1"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: delay + 0.6, duration: 0.5 }}
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: '#aaa',
@@ -58,23 +73,44 @@ function LargePortrait({ character, side }: { character: Character; side: 'left'
         }}
       >
         {character.title}
-      </div>
+      </motion.div>
 
       {/* Nickname */}
-      <div
+      <motion.div
         className="text-center mb-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: delay + 0.7, duration: 0.5 }}
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: isSales ? '#7B9FE8' : '#5DE8C5',
           fontSize: '8px',
         }}
       >
-        "{character.nickname}"
-      </div>
+        &quot;{character.nickname}&quot;
+      </motion.div>
 
-      {/* Stats */}
-      <div className="w-full max-w-xs space-y-2">
-        {character.stats.map((stat) => (
+      {/* Team badge */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: delay + 0.8, type: 'spring' }}
+        className="px-4 py-1.5"
+        style={{
+          fontFamily: '"Press Start 2P", cursive',
+          color: borderColor,
+          fontSize: '10px',
+          border: `2px solid ${borderColor}`,
+          background: 'rgba(0,0,0,0.6)',
+          textShadow: `0 0 8px ${glowColor}`,
+        }}
+      >
+        {isSales ? 'SALES' : 'PRODUCT'}
+      </motion.div>
+
+      {/* Stats with animated bars */}
+      <div className="w-full max-w-xs space-y-2 mt-4">
+        {character.stats.map((stat, i) => (
           <div key={stat.label} className="flex items-center gap-2">
             <span
               className="shrink-0 text-right"
@@ -95,7 +131,7 @@ function LargePortrait({ character, side }: { character: Character; side: 'left'
                 className="h-full rounded-sm"
                 initial={{ width: 0 }}
                 animate={{ width: `${stat.value}%` }}
-                transition={{ duration: 1, delay: 0.5 }}
+                transition={{ duration: 0.8, delay: delay + 0.9 + i * 0.15, ease: 'easeOut' }}
                 style={{
                   background: isSales
                     ? 'linear-gradient(90deg, #3969CA, #9B59B6)'
@@ -111,91 +147,88 @@ function LargePortrait({ character, side }: { character: Character; side: 'left'
 }
 
 export default function CommanderSelected({ player, ai, onStart }: Props) {
+  // Auto-advance after 4 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onStart();
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [onStart]);
+
   return (
     <div className="fixed inset-0 overflow-hidden">
       <StarfieldBackground />
       <motion.div
-        className="relative z-10 flex flex-col h-full p-4"
+        className="relative z-10 flex flex-col h-full items-center justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        {/* Title */}
-        <div className="text-center mb-6 pt-4">
-          <motion.h1
-            className="text-2xl md:text-3xl tracking-wider"
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#FFD700',
-              textShadow: '0 0 20px rgba(255, 215, 0, 0.5), 2px 2px 0 #8B6914',
-            }}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', duration: 0.5 }}
+        {/* Characters side by side with VS in center */}
+        <div className="flex items-center justify-center gap-8 md:gap-16">
+          <LargePortrait character={player} side="left" delay={0.2} />
+
+          {/* VS splash */}
+          <motion.div
+            className="flex flex-col items-center"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.8, duration: 0.6, type: 'spring', bounce: 0.5 }}
           >
-            COMMANDER SELECTED
-          </motion.h1>
-          <div
-            className="mt-2 h-0.5 mx-auto"
-            style={{
-              width: '80%',
-              background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
-            }}
-          />
+            <motion.span
+              style={{
+                fontFamily: '"Press Start 2P", cursive',
+                color: '#FFD700',
+                fontSize: 'clamp(36px, 6vw, 72px)',
+                textShadow: '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4)',
+              }}
+              animate={{
+                textShadow: [
+                  '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4)',
+                  '0 0 50px rgba(255, 215, 0, 1), 0 0 100px rgba(255, 215, 0, 0.6)',
+                  '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4)',
+                ],
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              VS
+            </motion.span>
+          </motion.div>
+
+          <LargePortrait character={ai} side="right" delay={0.4} />
         </div>
 
-        {/* Characters side by side */}
-        <div className="flex-1 flex items-center justify-center gap-8 md:gap-16">
-          <LargePortrait character={player} side="left" />
-
+        {/* Loading bar at bottom */}
+        <motion.div
+          className="absolute bottom-8 left-1/2"
+          style={{ transform: 'translateX(-50%)', width: '200px' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+        >
           <div
-            className="text-4xl font-bold"
+            className="text-center mb-2"
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: '#FFD700',
-              textShadow: '0 0 20px rgba(255, 215, 0, 0.5)',
+              color: 'rgba(255, 215, 0, 0.5)',
+              fontSize: '8px',
             }}
           >
-            VS
+            PREPARE FOR BATTLE
           </div>
-
-          <LargePortrait character={ai} side="right" />
-        </div>
-
-        {/* Bottom */}
-        <div className="flex items-center justify-between mt-4 pb-4">
-          <span
-            className="text-xs"
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#3969CA',
-            }}
+          <div
+            className="h-1 rounded-full overflow-hidden"
+            style={{ background: 'rgba(255, 255, 255, 0.1)' }}
           >
-            HUMAN PLAYER
-          </span>
-          <button
-            onClick={onStart}
-            className="px-6 py-3 text-sm tracking-wider cursor-pointer transition-all hover:scale-105"
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#FFD700',
-              backgroundColor: '#000',
-              border: '3px solid #FFD700',
-              textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
-            }}
-          >
-            PRESS START
-          </button>
-          <span
-            className="text-xs"
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#21C19A',
-            }}
-          >
-            COMPUTER PLAYER
-          </span>
-        </div>
+            <motion.div
+              className="h-full rounded-full"
+              initial={{ width: '0%' }}
+              animate={{ width: '100%' }}
+              transition={{ duration: 3.5, delay: 0.5, ease: 'linear' }}
+              style={{ background: 'linear-gradient(90deg, #FFD700, #FFA500)' }}
+            />
+          </div>
+        </motion.div>
       </motion.div>
     </div>
   );
