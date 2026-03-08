@@ -149,17 +149,17 @@ export function useGameState() {
     [aiBoard, aiShips, consecutiveHits, showCallout]
   );
 
-  const aiFireOnce = useCallback((): {
+  // Peek at AI's next target without updating board state (for missile animation)
+  const aiPeekTarget = useCallback((): {
     row: number;
     col: number;
-    result: 'hit' | 'miss' | 'sunk' | 'lose';
+    predictedResult: 'hit' | 'miss';
   } => {
     const board = playerBoard;
     let row: number, col: number;
     const currentAIState = { ...aiState, hitStack: [...aiState.hitStack], triedDirections: new Map(Array.from(aiState.triedDirections.entries(), ([k, v]) => [k, new Set(v)])) };
 
     if (currentAIState.mode === 'target' && currentAIState.hitStack.length > 0) {
-      // Target mode: try adjacent cells to hits
       let found = false;
       const directions: [number, number, string][] = [
         [-1, 0, 'up'],
@@ -204,7 +204,6 @@ export function useGameState() {
     }
 
     if (currentAIState.mode === 'hunt' || row! === undefined) {
-      // Hunt mode: random shot
       const available: [number, number][] = [];
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 10; c++) {
@@ -218,21 +217,47 @@ export function useGameState() {
       col = pick[1];
     }
 
-    const newBoard = board.map((r) => r.map((c) => ({ ...c })));
+    // Store the chosen coordinates for aiFireOnce to use
+    pendingAITarget.current = { row: row!, col: col! };
     const cell = board[row!][col!];
+    return { row: row!, col: col!, predictedResult: cell.state === 'ship' ? 'hit' : 'miss' };
+  }, [playerBoard, aiState]);
+
+  // Ref to store the AI's pre-determined target between peek and fire
+  const pendingAITarget = useRef<{ row: number; col: number } | null>(null);
+
+  // Actually execute the AI fire and update board state (call AFTER missile animation)
+  const aiFireOnce = useCallback((): {
+    row: number;
+    col: number;
+    result: 'hit' | 'miss' | 'sunk' | 'lose';
+  } => {
+    const target = pendingAITarget.current;
+    if (!target) {
+      // Fallback: shouldn't happen, but fire randomly
+      return { row: 0, col: 0, result: 'miss' };
+    }
+    pendingAITarget.current = null;
+    const { row, col } = target;
+
+    const board = playerBoard;
+    const currentAIState = { ...aiState, hitStack: [...aiState.hitStack], triedDirections: new Map(Array.from(aiState.triedDirections.entries(), ([k, v]) => [k, new Set(v)])) };
+
+    const newBoard = board.map((r) => r.map((c) => ({ ...c })));
+    const cell = board[row][col];
 
     if (cell.state === 'ship') {
-      newBoard[row!][col!] = { state: 'hit', shipId: cell.shipId };
+      newBoard[row][col] = { state: 'hit', shipId: cell.shipId };
       setPlayerBoard(newBoard);
 
       currentAIState.mode = 'target';
-      currentAIState.hitStack.push([row!, col!]);
+      currentAIState.hitStack.push([row, col]);
 
       // Check if ship sunk
       const shipId = cell.shipId!;
       const ship = playerShips.find((s) => s.shipId === shipId)!;
       const allHit = ship.cells.every(([r, c]) => {
-        if (r === row! && c === col!) return true;
+        if (r === row && c === col) return true;
         return newBoard[r][c].state === 'hit';
       });
 
@@ -253,19 +278,19 @@ export function useGameState() {
         setAIState(currentAIState);
 
         if (newPlayerShips.every((s) => s.sunk)) {
-          return { row: row!, col: col!, result: 'lose' };
+          return { row, col, result: 'lose' };
         }
 
-        return { row: row!, col: col!, result: 'sunk' };
+        return { row, col, result: 'sunk' };
       }
 
       setAIState(currentAIState);
-      return { row: row!, col: col!, result: 'hit' };
+      return { row, col, result: 'hit' };
     } else {
-      newBoard[row!][col!] = { state: 'miss' };
+      newBoard[row][col] = { state: 'miss' };
       setPlayerBoard(newBoard);
       setAIState(currentAIState);
-      return { row: row!, col: col!, result: 'miss' };
+      return { row, col, result: 'miss' };
     }
   }, [playerBoard, playerShips, aiState]);
 
@@ -301,6 +326,7 @@ export function useGameState() {
     calloutText,
     initGame,
     playerFire,
+    aiPeekTarget,
     aiFireOnce,
     resetGame,
   };

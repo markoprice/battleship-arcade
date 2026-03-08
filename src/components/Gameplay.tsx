@@ -15,6 +15,7 @@ interface Props {
   isPlayerTurn: boolean;
   calloutText: string;
   onPlayerFire: (row: number, col: number) => 'hit' | 'miss' | 'already' | 'sunk' | 'win';
+  onAIPeekTarget: () => { row: number; col: number; predictedResult: 'hit' | 'miss' };
   onAIFire: () => { row: number; col: number; result: 'hit' | 'miss' | 'sunk' | 'lose' };
   onEndPlayerTurn: () => void;
   onStartPlayerTurn: () => void;
@@ -355,6 +356,7 @@ export default function Gameplay({
   isPlayerTurn,
   calloutText,
   onPlayerFire,
+  onAIPeekTarget,
   onAIFire,
   onEndPlayerTurn,
   onStartPlayerTurn,
@@ -451,49 +453,62 @@ export default function Gameplay({
       onEndPlayerTurn();
       timeoutIdsRef.current.push(setTimeout(() => {
         if (cancelledRef.current) return;
-        const aiResult = onAIFire();
+        // Peek at target WITHOUT updating board — animation plays first
+        const peek = onAIPeekTarget();
 
         // Show AI missile animation from right side toward player board
         setMissileAnim({
-          row: aiResult.row,
-          col: aiResult.col,
-          result: aiResult.result === 'lose' ? 'win' : aiResult.result as 'hit' | 'miss' | 'sunk' | 'win',
+          row: peek.row,
+          col: peek.col,
+          result: peek.predictedResult,
           fromSide: 'right',
           targetBoard: 'player',
         });
 
-        // After AI missile animation, show results
-        timeoutIdsRef.current.push(setTimeout(() => {
-          if (cancelledRef.current) return;
-          setMissileAnim(null);
-
-          if (aiResult.result === 'hit') playExplosion();
-          else if (aiResult.result === 'miss') playSplash();
-          else if (aiResult.result === 'sunk') playShipSunk();
-          else if (aiResult.result === 'lose') {
-            playShipSunk();
-            timeoutIdsRef.current.push(setTimeout(() => {
-              processingRef.current = false;
-              setProcessing(false);
-              onLose();
-            }, 1000));
-            return;
-          }
-
-          timeoutIdsRef.current.push(setTimeout(() => {
-            onStartPlayerTurn();
-            processingRef.current = false;
-            setProcessing(false);
-          }, 500));
-        }, 850));
+        // AI missile onComplete will be handled by handleAIMissileComplete
       }, 800));
     }, 500));
   }, [
     onPlayerFire,
-    onAIFire,
+    onAIPeekTarget,
     onEndPlayerTurn,
     onStartPlayerTurn,
     onWin,
+    onLose,
+    playExplosion,
+    playSplash,
+    playShipSunk,
+  ]);
+
+  // Handle AI missile animation completion — NOW fire and update board
+  const handleAIMissileComplete = useCallback(() => {
+    if (cancelledRef.current) return;
+    setMissileAnim(null);
+
+    // Actually fire now and update the board
+    const aiResult = onAIFire();
+
+    if (aiResult.result === 'hit') playExplosion();
+    else if (aiResult.result === 'miss') playSplash();
+    else if (aiResult.result === 'sunk') playShipSunk();
+    else if (aiResult.result === 'lose') {
+      playShipSunk();
+      timeoutIdsRef.current.push(setTimeout(() => {
+        processingRef.current = false;
+        setProcessing(false);
+        onLose();
+      }, 1000));
+      return;
+    }
+
+    timeoutIdsRef.current.push(setTimeout(() => {
+      onStartPlayerTurn();
+      processingRef.current = false;
+      setProcessing(false);
+    }, 500));
+  }, [
+    onAIFire,
+    onStartPlayerTurn,
     onLose,
     playExplosion,
     playSplash,
@@ -574,7 +589,10 @@ export default function Gameplay({
                   targetCol={missileAnim.col}
                   fromSide={missileAnim.fromSide}
                   result={missileAnim.result}
-                  onComplete={() => {}}
+                  onComplete={() => {
+                    const id = setTimeout(handleAIMissileComplete, 400);
+                    timeoutIdsRef.current.push(id);
+                  }}
                 />
               )}
             </AnimatePresence>

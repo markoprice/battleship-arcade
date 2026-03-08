@@ -69,7 +69,7 @@ function App() {
     game.resetGame();
   }, [sound, game]);
 
-  const showExitButton = game.screen !== 'home' && game.screen !== 'commander';
+  const showExitButton = game.screen !== 'home' && game.screen !== 'commander' && game.screen !== 'win' && game.screen !== 'lose';
 
   return (
     <div className="w-full h-full">
@@ -104,6 +104,7 @@ function App() {
             isPlayerTurn={game.isPlayerTurn}
             calloutText={game.calloutText}
             onPlayerFire={game.playerFire}
+            onAIPeekTarget={game.aiPeekTarget}
             onAIFire={game.aiFireOnce}
             onEndPlayerTurn={() => game.setIsPlayerTurn(false)}
             onStartPlayerTurn={() => game.setIsPlayerTurn(true)}
