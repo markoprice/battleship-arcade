@@ -38,15 +38,10 @@ export default function HomeScreen({ onStart }: Props) {
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             border: '3px solid #FFD700',
             padding: '24px 64px',
-            textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
+            textShadow: '0 0 20px rgba(255, 215, 0, 0.7), 0 0 40px rgba(255, 215, 0, 0.3)',
             boxShadow: '0 0 15px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1)',
           }}
           animate={{
-            textShadow: [
-              '0 0 8px rgba(255, 215, 0, 0.2)',
-              '0 0 20px rgba(255, 215, 0, 0.7), 0 0 40px rgba(255, 215, 0, 0.3)',
-              '0 0 8px rgba(255, 215, 0, 0.2)',
-            ],
             boxShadow: [
               '0 0 8px rgba(255, 215, 0, 0.15), inset 0 0 8px rgba(255, 215, 0, 0.03)',
               '0 0 25px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(255, 215, 0, 0.1)',
