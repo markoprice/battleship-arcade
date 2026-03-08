@@ -31,7 +31,7 @@ export default function HomeScreen({ onStart }: Props) {
       >
         <motion.button
           onClick={onStart}
-          className="px-20 py-7 text-2xl md:text-3xl tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
+          className="px-28 py-9 text-2xl md:text-3xl tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color: '#FFD700',
