@@ -275,6 +275,15 @@ export default function Gameplay({
 }: Props) {
   const [processing, setProcessing] = useState(false);
   const processingRef = useRef(false);
+  const timeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // Clear all pending timeouts on unmount (e.g. abandon game)
+  useEffect(() => {
+    return () => {
+      timeoutIdsRef.current.forEach(clearTimeout);
+      timeoutIdsRef.current = [];
+    };
+  }, []);
 
   const handlePlayerShot = useCallback(
     (row: number, col: number) => {
@@ -293,15 +302,15 @@ export default function Gameplay({
         playShipSunk();
       } else if (result === 'win') {
         playShipSunk();
-        setTimeout(() => onWin(), 1000);
+        timeoutIdsRef.current.push(setTimeout(() => onWin(), 1000));
         return;
       }
 
       // End player turn, start AI turn
-      setTimeout(() => {
+      timeoutIdsRef.current.push(setTimeout(() => {
         onEndPlayerTurn();
         // AI fires after a delay
-        setTimeout(() => {
+        timeoutIdsRef.current.push(setTimeout(() => {
           const aiResult = onAIFire();
           if (aiResult.result === 'hit') {
             playExplosion();
@@ -311,17 +320,17 @@ export default function Gameplay({
             playShipSunk();
           } else if (aiResult.result === 'lose') {
             playShipSunk();
-            setTimeout(() => onLose(), 1000);
+            timeoutIdsRef.current.push(setTimeout(() => onLose(), 1000));
             return;
           }
 
-          setTimeout(() => {
+          timeoutIdsRef.current.push(setTimeout(() => {
             onStartPlayerTurn();
             processingRef.current = false;
             setProcessing(false);
-          }, 500);
-        }, 800);
-      }, 500);
+          }, 500));
+        }, 800));
+      }, 500));
     },
     [
       isPlayerTurn,
