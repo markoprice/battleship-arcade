@@ -104,7 +104,7 @@ function PlayerCard({
   boardWidth: number;
 }) {
   return (
-    <div className="flex items-center gap-3 mt-3" style={{ width: `${boardWidth}px`, padding: '0 4px' }}>
+    <div className="flex items-center gap-3 mb-2" style={{ width: `${boardWidth}px`, padding: '0 4px' }}>
       <div
         className="flex items-center justify-center rounded overflow-hidden flex-shrink-0"
         style={{
@@ -289,6 +289,37 @@ function MissileEffect({
   );
 }
 
+// Compute per-cell border edges for ship group outlines
+function getShipBorders(
+  row: number,
+  col: number,
+  board: Board,
+  placedShips: PlacedShip[],
+): { top: boolean; right: boolean; bottom: boolean; left: boolean } {
+  const cell = board[row][col];
+  const shipId = cell.shipId;
+  if (!shipId) return { top: false, right: false, bottom: false, left: false };
+
+  // Check if adjacent cell belongs to the same ship
+  const sameShip = (r: number, c: number) => {
+    if (r < 0 || r >= 10 || c < 0 || c >= 10) return false;
+    return board[r][c].shipId === shipId;
+  };
+
+  return {
+    top: !sameShip(row - 1, col),
+    right: !sameShip(row, col + 1),
+    bottom: !sameShip(row + 1, col),
+    left: !sameShip(row, col - 1),
+  };
+}
+
+function isShipSunk(shipId: string | undefined, placedShips: PlacedShip[]): boolean {
+  if (!shipId) return false;
+  const placed = placedShips.find((s) => s.shipId === shipId);
+  return placed?.sunk ?? false;
+}
+
 function GameGrid({
   board,
   borderColor,
@@ -297,6 +328,7 @@ function GameGrid({
   onCellClick,
   disabled,
   gridRef,
+  placedShips,
 }: {
   board: Board;
   borderColor: string;
@@ -305,6 +337,7 @@ function GameGrid({
   onCellClick?: (row: number, col: number) => void;
   disabled?: boolean;
   gridRef?: React.RefObject<HTMLDivElement | null>;
+  placedShips: PlacedShip[];
 }) {
   return (
     <motion.div
@@ -359,8 +392,16 @@ function GameGrid({
               const cell = board[row][col];
               const isHit = cell.state === 'hit';
               const isMiss = cell.state === 'miss';
-              const isShip = cell.state === 'ship' && !isEnemy;
+              const hasShip = (cell.state === 'ship' || cell.state === 'hit') && !!cell.shipId;
+              const showShipCell = cell.state === 'ship' && !isEnemy;
               const canClick = isEnemy && !isHit && !isMiss && !disabled;
+              const sunk = hasShip && isShipSunk(cell.shipId, placedShips);
+
+              // Compute ship group border edges (only for own ships or sunk enemy ships)
+              const showBorders = hasShip && (!isEnemy || sunk);
+              const borders = showBorders ? getShipBorders(row, col, board, placedShips) : null;
+              const shipBorderColor = sunk ? '#ff4444' : 'rgba(0, 255, 100, 0.8)';
+              const shipBorderWidth = '2px';
 
               return (
                 <div
@@ -368,13 +409,16 @@ function GameGrid({
                   style={{
                     width: `${CELL_SIZE}px`,
                     height: `${CELL_SIZE}px`,
-                    border: `1px solid ${borderColor}33`,
+                    borderTop: borders?.top ? `${shipBorderWidth} solid ${shipBorderColor}` : `1px solid ${borderColor}33`,
+                    borderRight: borders?.right ? `${shipBorderWidth} solid ${shipBorderColor}` : `1px solid ${borderColor}33`,
+                    borderBottom: borders?.bottom ? `${shipBorderWidth} solid ${shipBorderColor}` : `1px solid ${borderColor}33`,
+                    borderLeft: borders?.left ? `${shipBorderWidth} solid ${shipBorderColor}` : `1px solid ${borderColor}33`,
                     background: isHit
-                      ? 'rgba(255, 80, 0, 0.3)'
+                      ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(255, 80, 0, 0.3)')
                       : isMiss
                         ? 'rgba(255, 255, 255, 0.05)'
-                        : isShip
-                          ? 'rgba(0, 255, 100, 0.25)'
+                        : showShipCell
+                          ? 'rgba(0, 255, 100, 0.15)'
                           : 'rgba(0, 0, 0, 0.3)',
                     cursor: canClick ? 'crosshair' : 'default',
                     display: 'flex',
@@ -382,6 +426,7 @@ function GameGrid({
                     justifyContent: 'center',
                     position: 'relative',
                     overflow: 'hidden',
+                    boxSizing: 'border-box',
                   }}
                   onClick={() => {
                     if (canClick && onCellClick) onCellClick(row, col);
@@ -393,8 +438,23 @@ function GameGrid({
                       style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.4)' }}
                     />
                   )}
-                  {isShip && !isHit && (
-                    <div style={{ width: '60%', height: '60%', background: 'rgba(0, 255, 100, 0.5)', borderRadius: '2px', border: '1px solid rgba(0, 255, 100, 0.7)' }} />
+                  {/* Sunk indicator: red X overlay */}
+                  {sunk && isHit && (
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontFamily: '"Press Start 2P", cursive',
+                      fontSize: '10px',
+                      color: '#ff4444',
+                      textShadow: '0 0 6px rgba(255,0,0,0.6)',
+                      zIndex: 5,
+                      pointerEvents: 'none',
+                    }}>
+                      ✕
+                    </div>
                   )}
                 </div>
               );
@@ -409,41 +469,61 @@ function GameGrid({
 function ShipTracker({
   placedShips,
   borderColor,
+  boardWidth,
 }: {
   placedShips: PlacedShip[];
   borderColor: string;
+  boardWidth: number;
 }) {
   return (
-    <div className="flex gap-2 flex-wrap justify-center mb-2">
+    <div className="flex flex-col" style={{ gap: '4px', width: `${boardWidth}px` }}>
       {ships.map((ship) => {
         const placed = placedShips.find((s) => s.shipId === ship.id);
         const sunk = placed?.sunk ?? false;
         return (
           <div
             key={ship.id}
-            className="flex items-center gap-1 px-2 py-1"
+            className="flex items-center"
             style={{
-              border: `1px solid ${sunk ? '#ff4444' : borderColor}`,
-              background: sunk ? 'rgba(255,0,0,0.15)' : 'rgba(0,0,0,0.3)',
-              borderRadius: '2px',
+              padding: '4px 8px',
+              gap: '8px',
+              border: `1px solid ${sunk ? '#ff4444' : borderColor}44`,
+              background: sunk ? 'rgba(255,0,0,0.1)' : 'rgba(0,0,0,0.3)',
+              borderRadius: '3px',
               opacity: sunk ? 0.5 : 1,
             }}
           >
-            <div style={{ display: 'flex', gap: '1px' }}>
-              {Array.from({ length: ships.find(s => s.id === ship.id)?.size ?? 1 }, (_, i) => (
-                <div key={i} style={{ width: '6px', height: '6px', background: sunk ? '#ff4444' : borderColor, borderRadius: '1px', opacity: sunk ? 0.4 : 0.7 }} />
+            <div style={{ display: 'flex', gap: '2px' }}>
+              {Array.from({ length: ship.size }, (_, i) => (
+                <div key={i} style={{
+                  width: '10px',
+                  height: '10px',
+                  background: sunk ? '#ff4444' : borderColor,
+                  borderRadius: '2px',
+                  opacity: sunk ? 0.4 : 0.7,
+                }} />
               ))}
             </div>
             <span
               style={{
                 fontFamily: '"Press Start 2P", cursive',
-                fontSize: '5px',
+                fontSize: '7px',
                 color: sunk ? '#ff4444' : '#ccc',
                 textDecoration: sunk ? 'line-through' : 'none',
               }}
             >
               {ship.name}
             </span>
+            {sunk && (
+              <span style={{
+                fontFamily: '"Press Start 2P", cursive',
+                fontSize: '6px',
+                color: '#ff4444',
+                marginLeft: 'auto',
+              }}>
+                SUNK
+              </span>
+            )}
           </div>
         );
       })}
@@ -681,26 +761,27 @@ export default function Gameplay({
           </motion.div>
         </AnimatePresence>
 
-        {/* Ship trackers */}
-        <div className="flex justify-between" style={{ padding: '0 16px', marginBottom: '2px' }}>
-          <div className="flex-1">
-            <ShipTracker placedShips={playerShips} borderColor="#3969CA" />
-          </div>
-          <div className="flex-1">
-            <ShipTracker placedShips={aiShips} borderColor="#21C19A" />
-          </div>
-        </div>
-
-        {/* Grids + player cards */}
+        {/* Grids with player cards above and ship trackers below */}
         <div className="flex-1 flex items-start justify-center" style={{ gap: '32px', paddingTop: '4px' }}>
           {/* Player side (left) */}
           <div className="flex flex-col items-center relative">
+            {/* Player card ABOVE grid */}
+            <div ref={playerCardContainerRef}>
+              <PlayerCard
+                character={playerCharacter}
+                borderColor="#3969CA"
+                teamLabel="SALES"
+                isSales
+                boardWidth={boardWidth}
+              />
+            </div>
             <GameGrid
               board={playerBoard}
               borderColor="#3969CA"
               isEnemy={false}
               isBeingAttacked={!isPlayerTurn || (!!missileAnim && missileAnim.targetBoard === 'player')}
               gridRef={playerGridRef}
+              placedShips={playerShips}
             />
             <AnimatePresence>
               {missileAnim && missileAnim.targetBoard === 'player' && (
@@ -718,18 +799,23 @@ export default function Gameplay({
                 />
               )}
             </AnimatePresence>
-            <div ref={playerCardContainerRef}>
-              <PlayerCard
-                character={playerCharacter}
-                borderColor="#3969CA"
-                teamLabel="SALES"
-                isSales
-                boardWidth={boardWidth}
-              />
+            {/* Ship tracker BENEATH grid */}
+            <div style={{ marginTop: '6px' }}>
+              <ShipTracker placedShips={playerShips} borderColor="#3969CA" boardWidth={boardWidth} />
             </div>
           </div>
           {/* AI side (right) */}
           <div className="flex flex-col items-center relative">
+            {/* AI card ABOVE grid */}
+            <div ref={aiCardContainerRef}>
+              <PlayerCard
+                character={aiCharacter}
+                borderColor="#21C19A"
+                teamLabel="PRODUCT"
+                isSales={false}
+                boardWidth={boardWidth}
+              />
+            </div>
             <GameGrid
               board={aiBoard}
               borderColor="#21C19A"
@@ -738,6 +824,7 @@ export default function Gameplay({
               onCellClick={handlePlayerShot}
               disabled={!isPlayerTurn || processing}
               gridRef={aiGridRef}
+              placedShips={aiShips}
             />
             <AnimatePresence>
               {missileAnim && missileAnim.targetBoard === 'ai' && (
@@ -755,14 +842,9 @@ export default function Gameplay({
                 />
               )}
             </AnimatePresence>
-            <div ref={aiCardContainerRef}>
-              <PlayerCard
-                character={aiCharacter}
-                borderColor="#21C19A"
-                teamLabel="PRODUCT"
-                isSales={false}
-                boardWidth={boardWidth}
-              />
+            {/* Ship tracker BENEATH grid */}
+            <div style={{ marginTop: '6px' }}>
+              <ShipTracker placedShips={aiShips} borderColor="#21C19A" boardWidth={boardWidth} />
             </div>
           </div>
         </div>

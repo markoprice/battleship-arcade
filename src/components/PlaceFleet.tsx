@@ -210,6 +210,22 @@ export default function PlaceFleet({ onReady }: Props) {
                     const invalid = isInvalidHover(row, col);
                     const isShip = cell.state === 'ship';
 
+                    // Compute ship group border edges
+                    const shipId = cell.shipId;
+                    const hasShipBorder = isShip && !!shipId;
+                    const sameShip = (r: number, c: number) => {
+                      if (r < 0 || r >= 10 || c < 0 || c >= 10) return false;
+                      return board[r][c].shipId === shipId;
+                    };
+                    const borders = hasShipBorder ? {
+                      top: !sameShip(row - 1, col),
+                      right: !sameShip(row, col + 1),
+                      bottom: !sameShip(row + 1, col),
+                      left: !sameShip(row, col - 1),
+                    } : null;
+                    const shipBorderColor = 'rgba(0, 255, 100, 0.8)';
+                    const defaultBorder = '1px solid rgba(0, 229, 255, 0.3)';
+
                     return (
                       <div
                         key={col}
@@ -217,17 +233,19 @@ export default function PlaceFleet({ onReady }: Props) {
                         style={{
                           width: `${CELL}px`,
                           height: `${CELL}px`,
-                          border: '1px solid rgba(0, 229, 255, 0.3)',
+                          borderTop: borders?.top ? `2px solid ${shipBorderColor}` : defaultBorder,
+                          borderRight: borders?.right ? `2px solid ${shipBorderColor}` : defaultBorder,
+                          borderBottom: borders?.bottom ? `2px solid ${shipBorderColor}` : defaultBorder,
+                          borderLeft: borders?.left ? `2px solid ${shipBorderColor}` : defaultBorder,
+                          boxSizing: 'border-box',
                           background: isShip
-                            ? 'rgba(0, 255, 100, 0.4)'
+                            ? 'rgba(0, 255, 100, 0.15)'
                             : hover
                               ? 'rgba(0, 255, 100, 0.25)'
                               : invalid
                                 ? 'rgba(255, 60, 60, 0.3)'
                                 : 'rgba(0, 229, 255, 0.05)',
-                          boxShadow: isShip
-                            ? '0 0 8px rgba(0, 255, 100, 0.5)'
-                            : hover
+                          boxShadow: hover
                               ? '0 0 5px rgba(0, 255, 100, 0.3)'
                               : invalid
                                 ? '0 0 5px rgba(255, 60, 60, 0.3)'
@@ -236,11 +254,7 @@ export default function PlaceFleet({ onReady }: Props) {
                         onMouseEnter={() => handleCellHover(row, col)}
                         onMouseLeave={() => { setHoverCells([]); setInvalidHoverCells([]); }}
                         onClick={() => handleCellClick(row, col)}
-                      >
-                        {isShip && (
-                          <div style={{ width: '60%', height: '60%', background: 'rgba(0, 255, 100, 0.6)', borderRadius: '2px', border: '1px solid rgba(0, 255, 100, 0.8)' }} />
-                        )}
-                      </div>
+                      />
                     );
                   })}
                 </div>
