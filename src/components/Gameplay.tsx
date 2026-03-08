@@ -579,7 +579,7 @@ export default function Gameplay({
               board={playerBoard}
               borderColor="#3969CA"
               isEnemy={false}
-              isBeingAttacked={!isPlayerTurn && !processing}
+              isBeingAttacked={!isPlayerTurn || (!!missileAnim && missileAnim.targetBoard === 'player')}
             />
             {/* AI missile animation on player board */}
             <AnimatePresence>
