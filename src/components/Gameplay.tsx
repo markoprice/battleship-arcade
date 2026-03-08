@@ -310,9 +310,11 @@ export default function Gameplay({
         playShipSunk();
       } else if (result === 'win') {
         playShipSunk();
-        processingRef.current = false;
-        setProcessing(false);
-        timeoutIdsRef.current.push(setTimeout(() => onWin(), 1000));
+        timeoutIdsRef.current.push(setTimeout(() => {
+          processingRef.current = false;
+          setProcessing(false);
+          onWin();
+        }, 1000));
         return;
       }
 
@@ -330,9 +332,11 @@ export default function Gameplay({
             playShipSunk();
           } else if (aiResult.result === 'lose') {
             playShipSunk();
-            processingRef.current = false;
-            setProcessing(false);
-            timeoutIdsRef.current.push(setTimeout(() => onLose(), 1000));
+            timeoutIdsRef.current.push(setTimeout(() => {
+              processingRef.current = false;
+              setProcessing(false);
+              onLose();
+            }, 1000));
             return;
           }
 

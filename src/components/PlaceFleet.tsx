@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Ship, PlacedShip, Board, BoardCell, Orientation } from '../types';
 import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
@@ -23,6 +23,7 @@ export default function PlaceFleet({ onReady }: Props) {
   const [orientation, setOrientation] = useState<Orientation>('horizontal');
   const [hoverCells, setHoverCells] = useState<[number, number][]>([]);
 
+  const [showReadyPopup, setShowReadyPopup] = useState(false);
   const placedShipIds = placedShips.map((s) => s.shipId);
   const allPlaced = placedShipIds.length === ships.length;
 
@@ -273,7 +274,7 @@ export default function PlaceFleet({ onReady }: Props) {
           </button>
           <button
             onClick={() => {
-              if (allPlaced) onReady(board, placedShips);
+              if (allPlaced) setShowReadyPopup(true);
             }}
             disabled={!allPlaced}
             className="px-8 py-4 text-sm tracking-wider cursor-pointer transition-all hover:scale-105"
@@ -290,6 +291,75 @@ export default function PlaceFleet({ onReady }: Props) {
             START
           </button>
         </div>
+
+        {/* READY FOR BATTLE? popup */}
+        <AnimatePresence>
+          {showReadyPopup && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ background: 'rgba(0, 0, 0, 0.75)' }}
+            >
+              <motion.div
+                className="flex flex-col items-center gap-8"
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                transition={{ type: 'spring', bounce: 0.4 }}
+              >
+                <motion.h2
+                  style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    color: '#FFD700',
+                    fontSize: 'clamp(20px, 4vw, 40px)',
+                    textShadow: '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4)',
+                    textAlign: 'center',
+                  }}
+                  animate={{
+                    textShadow: [
+                      '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4)',
+                      '0 0 50px rgba(255, 215, 0, 1), 0 0 100px rgba(255, 215, 0, 0.6)',
+                      '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4)',
+                    ],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  READY FOR BATTLE?
+                </motion.h2>
+                <div className="flex gap-6">
+                  <button
+                    onClick={() => onReady(board, placedShips)}
+                    className="px-10 py-4 text-sm tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
+                    style={{
+                      fontFamily: '"Press Start 2P", cursive',
+                      color: '#FFD700',
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      border: '3px solid #FFD700',
+                      textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
+                      boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
+                    }}
+                  >
+                    YES
+                  </button>
+                  <button
+                    onClick={() => setShowReadyPopup(false)}
+                    className="px-10 py-4 text-sm tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
+                    style={{
+                      fontFamily: '"Press Start 2P", cursive',
+                      color: '#9B8FB8',
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      border: '3px solid #9B8FB8',
+                    }}
+                  >
+                    NO
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );

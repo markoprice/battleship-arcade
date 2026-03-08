@@ -18,10 +18,11 @@ export default function SelectCommander({ onSelect }: Props) {
   const rouletteCountRef = useRef(0);
   const startDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rouletteStartedRef = useRef(false);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selectedSalesRef = useRef<string | null>(null);
 
   const salesChar = salesCharacters.find((c) => c.id === selectedSales) ?? null;
   const productChar = productCharacters.find((c) => c.id === selectedProduct) ?? null;
-  const canStart = salesChar !== null && productChar !== null && !rouletteActive;
 
   // Start roulette when Sales character is selected
   const startRoulette = useCallback(() => {
@@ -43,9 +44,17 @@ export default function SelectCommander({ onSelect }: Props) {
       } else {
         // Land on final
         setRouletteIndex(finalIndex);
-        setSelectedProduct(productCharacters[finalIndex].id);
+        const finalChar = productCharacters[finalIndex];
+        setSelectedProduct(finalChar.id);
         setRouletteActive(false);
         rouletteStartedRef.current = false;
+        // Auto-advance to matchup preview after a brief pause
+        autoAdvanceRef.current = setTimeout(() => {
+          const sc = salesCharacters.find((c) => c.id === selectedSalesRef.current);
+          if (sc) {
+            onSelect(sc, finalChar);
+          }
+        }, 1200);
       }
     };
 
@@ -57,6 +66,7 @@ export default function SelectCommander({ onSelect }: Props) {
     return () => {
       if (rouletteTimerRef.current) clearTimeout(rouletteTimerRef.current);
       if (startDelayRef.current) clearTimeout(startDelayRef.current);
+      if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
     };
   }, []);
 
@@ -64,6 +74,7 @@ export default function SelectCommander({ onSelect }: Props) {
     if (rouletteActive || rouletteStartedRef.current) return;
     rouletteStartedRef.current = true;
     setSelectedSales(charId);
+    selectedSalesRef.current = charId;
     setSelectedProduct(null);
     // Clear any pending start delay
     if (startDelayRef.current) clearTimeout(startDelayRef.current);
@@ -74,15 +85,18 @@ export default function SelectCommander({ onSelect }: Props) {
   const handleDeselectSales = () => {
     if (rouletteActive) return;
     setSelectedSales(null);
+    selectedSalesRef.current = null;
     setSelectedProduct(null);
     rouletteStartedRef.current = false;
     if (rouletteTimerRef.current) clearTimeout(rouletteTimerRef.current);
     if (startDelayRef.current) clearTimeout(startDelayRef.current);
+    if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
   };
 
   const handleDeselectProduct = () => {
     if (rouletteActive) return;
     setSelectedProduct(null);
+    if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
     // Re-run roulette
     rouletteStartedRef.current = true;
     if (startDelayRef.current) clearTimeout(startDelayRef.current);
@@ -92,8 +106,8 @@ export default function SelectCommander({ onSelect }: Props) {
   // Stacked vertical label component
   const StackedLabel = ({ text, color }: { text: string; color: string }) => (
     <div
-      className="flex flex-col items-center justify-center shrink-0 gap-1"
-      style={{ padding: '0 10px', alignSelf: 'center' }}
+      className="flex flex-col items-center justify-center shrink-0 gap-1.5"
+      style={{ padding: '0 16px', alignSelf: 'flex-start', paddingTop: '0px' }}
     >
       {text.split('').map((letter, i) => (
         <span
@@ -101,7 +115,7 @@ export default function SelectCommander({ onSelect }: Props) {
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color,
-            fontSize: 'clamp(14px, 2vw, 24px)',
+            fontSize: 'clamp(18px, 2.5vw, 32px)',
             textShadow: `0 0 15px ${color}66`,
             lineHeight: 1.2,
           }}
@@ -223,81 +237,8 @@ export default function SelectCommander({ onSelect }: Props) {
             </div>
           </div>
 
-          {/* Center divider / matchup area */}
-          <div className="flex flex-col items-center justify-center px-4 self-center" style={{ minWidth: '80px' }}>
-            <AnimatePresence>
-              {canStart && salesChar && productChar ? (
-                <motion.div
-                  className="flex flex-col items-center gap-6"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  transition={{ duration: 0.5, type: 'spring' }}
-                >
-                  {/* VS */}
-                  <motion.span
-                    style={{
-                      fontFamily: '"Press Start 2P", cursive',
-                      color: '#FFD700',
-                      fontSize: '32px',
-                      textShadow: '0 0 20px rgba(255, 215, 0, 0.8)',
-                    }}
-                    animate={{
-                      textShadow: [
-                        '0 0 20px rgba(255, 215, 0, 0.8)',
-                        '0 0 40px rgba(255, 215, 0, 1)',
-                        '0 0 20px rgba(255, 215, 0, 0.8)',
-                      ],
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    VS
-                  </motion.span>
-
-                  {/* PLACE YOUR FLEET button */}
-                  <motion.button
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    onClick={() => {
-                      if (salesChar && productChar) {
-                        onSelect(salesChar, productChar);
-                      }
-                    }}
-                    className="px-6 py-3 text-xs tracking-wider cursor-pointer transition-transform duration-200 hover:scale-[1.08] active:scale-95"
-                    style={{
-                      fontFamily: '"Press Start 2P", cursive',
-                      color: '#FFD700',
-                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      border: '3px solid #FFD700',
-                      textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
-                      boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    PLACE YOUR FLEET
-                  </motion.button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  className="flex flex-col items-center gap-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.4 }}
-                >
-                  <div
-                    style={{
-                      fontFamily: '"Press Start 2P", cursive',
-                      color: '#FFD700',
-                      fontSize: '20px',
-                      textShadow: '0 0 10px rgba(255, 215, 0, 0.3)',
-                    }}
-                  >
-                    VS
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {/* Center spacer */}
+          <div style={{ minWidth: '40px' }} />
 
           {/* Product panel */}
           <div className="flex flex-col items-center shrink-0" style={{ maxWidth: '340px' }}>
