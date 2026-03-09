@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { Character } from '../types';
 import StarfieldBackground from './StarfieldBackground';
@@ -137,13 +137,17 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
 }
 
 export default function CommanderSelected({ player, ai, onStart }: Props) {
+  // Use ref to avoid resetting the timer when onStart callback reference changes
+  const onStartRef = useRef(onStart);
+  onStartRef.current = onStart;
+
   // Auto-advance after animations settle (~3.5s)
   useEffect(() => {
     const timer = setTimeout(() => {
-      onStart();
+      onStartRef.current();
     }, 3500);
     return () => clearTimeout(timer);
-  }, [onStart]);
+  }, []);
 
   return (
     <ArcadeCanvas>

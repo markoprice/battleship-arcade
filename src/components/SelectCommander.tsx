@@ -117,6 +117,7 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
     // Cancel any pending roulette start
     if (startDelayRef.current) clearTimeout(startDelayRef.current);
     rouletteStartedRef.current = false;
+    setForceGridView(false);
     setSelectedProduct(charId);
     setBothSelected(true);
   };

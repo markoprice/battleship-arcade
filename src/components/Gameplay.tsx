@@ -568,7 +568,7 @@ export default function Gameplay({
       setStatusSide('player');
       // Shake player photo on hit
       setShakePlayer(true);
-      setTimeout(() => setShakePlayer(false), 500);
+      timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
     } else if (aiResult.result === 'miss') {
       playSplash();
       aiStreakRef.current = 0;
@@ -581,7 +581,7 @@ export default function Gameplay({
       setStatusColor('#ff4444');
       setStatusSide('player');
       setShakePlayer(true);
-      setTimeout(() => setShakePlayer(false), 500);
+      timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
       timeoutIdsRef.current.push(setTimeout(() => {
         processingRef.current = false;
         setProcessing(false);
@@ -638,7 +638,7 @@ export default function Gameplay({
         setStatusColor('#ff6600');
         setStatusSide('ai');
         setShakeAI(true);
-        setTimeout(() => setShakeAI(false), 500);
+        timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
       } else if (result === 'miss') {
         playSplash();
         playerStreakRef.current = 0;
@@ -652,7 +652,7 @@ export default function Gameplay({
         setStatusColor('#ff6600');
         setStatusSide('ai');
         setShakeAI(true);
-        setTimeout(() => setShakeAI(false), 500);
+        timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
         timeoutIdsRef.current.push(setTimeout(() => {
           processingRef.current = false;
           setProcessing(false);
