@@ -184,16 +184,15 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
             color: '#FFD700',
             fontSize: '22px',
             textShadow: '0 0 20px rgba(255, 215, 0, 0.5), 2px 2px 0 #8B6914',
-            marginBottom: '20px',
           }}
         >
           PLACE YOUR FLEET
         </h1>
         <div
+          className="mt-3 h-0.5"
           style={{
-            width: 'min(60%, 600px)',
-            height: '2px',
-            margin: '6px auto 0',
+            width: 'min(60%, 500px)',
+            margin: '0 auto',
             background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
           }}
         />
