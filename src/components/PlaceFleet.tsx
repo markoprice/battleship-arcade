@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Ship, PlacedShip, Board, BoardCell, Orientation } from '../types';
-import { buildShipOutlinePaths } from './Gameplay';
+import { buildShipOutlinePaths, isInternalShipEdge } from './Gameplay';
 import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
 import ArcadeCanvas from './ArcadeCanvas';
@@ -249,6 +249,14 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                     const invalid = isInvalidHover(row, col);
                     const isShip = cell.state === 'ship';
 
+                    // Suppress internal borders between cells of the same ship
+                    const gridLine = '1px solid rgba(0, 229, 255, 0.3)';
+                    const suppressedLine = '1px solid transparent';
+                    const bTop = isShip && isInternalShipEdge(board, row, col, 'top') ? suppressedLine : gridLine;
+                    const bRight = isShip && isInternalShipEdge(board, row, col, 'right') ? suppressedLine : gridLine;
+                    const bBottom = isShip && isInternalShipEdge(board, row, col, 'bottom') ? suppressedLine : gridLine;
+                    const bLeft = isShip && isInternalShipEdge(board, row, col, 'left') ? suppressedLine : gridLine;
+
                     return (
                       <div
                         key={col}
@@ -257,11 +265,12 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                           position: 'relative',
                           width: `${CELL}px`,
                           height: `${CELL}px`,
-                          border: '1px solid rgba(0, 229, 255, 0.3)',
+                          borderTop: bTop,
+                          borderRight: bRight,
+                          borderBottom: bBottom,
+                          borderLeft: bLeft,
                           boxSizing: 'border-box',
-                          background: isShip
-                            ? 'rgba(57, 105, 202, 0.2)'
-                            : hover
+                          background: hover
                               ? 'rgba(57, 105, 202, 0.3)'
                               : invalid
                                 ? 'rgba(255, 60, 60, 0.3)'
@@ -280,10 +289,10 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                   })}
                 </div>
               ))}
-              {/* SVG overlay for continuous ship outlines */}
+              {/* SVG overlay for arcade-style ship silhouettes */}
               {(() => {
-                const paths = buildShipOutlinePaths(board, CELL, [], '#3969CA');
-                if (paths.length === 0) return null;
+                const shipShapes = buildShipOutlinePaths(board, CELL, [], '#3969CA');
+                if (shipShapes.length === 0) return null;
                 return (
                   <svg
                     style={{
@@ -295,9 +304,15 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                       pointerEvents: 'none',
                       zIndex: 10,
                     }}
+                    shapeRendering="crispEdges"
                   >
-                    {paths.map((p, i) => (
-                      <path key={i} d={p.path} stroke={p.color} strokeWidth="2" fill="none" />
+                    {shipShapes.map((s, i) => (
+                      <g key={i}>
+                        {/* Filled silhouette — unified game piece */}
+                        <path d={s.fillPath} fill={s.fillColor} stroke="none" />
+                        {/* Chunky perimeter outline — retro sprite border */}
+                        <path d={s.outlinePath} stroke={s.color} strokeWidth="3" fill="none" strokeLinecap="butt" />
+                      </g>
                     ))}
                   </svg>
                 );

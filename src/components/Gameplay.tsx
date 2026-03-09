@@ -179,13 +179,14 @@ function SplashAnimation() {
 }
 
 
-/** Build SVG path strings for continuous ship outlines on a 10×10 board */
+/** Build SVG data for arcade-style ship silhouettes on a 10×10 board.
+ *  Returns both a filled silhouette path and a perimeter outline path per ship. */
 export function buildShipOutlinePaths(
   board: Board,
   cellSize: number,
   placedShips: PlacedShip[],
   defaultColor: string,
-): { path: string; color: string }[] {
+): { fillPath: string; outlinePath: string; color: string; fillColor: string }[] {
   // Group cells by shipId
   const shipCells = new Map<string, [number, number][]>();
   for (let r = 0; r < 10; r++) {
@@ -198,26 +199,51 @@ export function buildShipOutlinePaths(
     }
   }
 
-  const results: { path: string; color: string }[] = [];
+  const results: { fillPath: string; outlinePath: string; color: string; fillColor: string }[] = [];
   shipCells.forEach((cells, shipId) => {
     const cellSet = new Set(cells.map(([r, c]) => `${r},${c}`));
-    let d = '';
+    const sunk = placedShips.find((s) => s.shipId === shipId)?.sunk ?? false;
+
+    // Fill path: one rect per cell to create unified silhouette
+    let fill = '';
     for (const [r, c] of cells) {
       const x = c * cellSize;
       const y = r * cellSize;
-      // top edge
-      if (!cellSet.has(`${r - 1},${c}`)) d += `M${x},${y}L${x + cellSize},${y}`;
-      // right edge
-      if (!cellSet.has(`${r},${c + 1}`)) d += `M${x + cellSize},${y}L${x + cellSize},${y + cellSize}`;
-      // bottom edge
-      if (!cellSet.has(`${r + 1},${c}`)) d += `M${x},${y + cellSize}L${x + cellSize},${y + cellSize}`;
-      // left edge
-      if (!cellSet.has(`${r},${c - 1}`)) d += `M${x},${y}L${x},${y + cellSize}`;
+      fill += `M${x},${y}h${cellSize}v${cellSize}h${-cellSize}Z`;
     }
-    const sunk = placedShips.find((s) => s.shipId === shipId)?.sunk ?? false;
-    results.push({ path: d, color: sunk ? '#ff4444' : defaultColor });
+
+    // Outline path: only outer perimeter edges
+    let outline = '';
+    for (const [r, c] of cells) {
+      const x = c * cellSize;
+      const y = r * cellSize;
+      if (!cellSet.has(`${r - 1},${c}`)) outline += `M${x},${y}L${x + cellSize},${y}`;
+      if (!cellSet.has(`${r},${c + 1}`)) outline += `M${x + cellSize},${y}L${x + cellSize},${y + cellSize}`;
+      if (!cellSet.has(`${r + 1},${c}`)) outline += `M${x},${y + cellSize}L${x + cellSize},${y + cellSize}`;
+      if (!cellSet.has(`${r},${c - 1}`)) outline += `M${x},${y}L${x},${y + cellSize}`;
+    }
+
+    const strokeColor = sunk ? '#ff4444' : defaultColor;
+    const bgColor = sunk ? 'rgba(255,40,0,0.25)' : `${defaultColor}20`;
+    results.push({ fillPath: fill, outlinePath: outline, color: strokeColor, fillColor: bgColor });
   });
   return results;
+}
+
+/** Check if a cell shares an edge with the same ship (used to suppress internal borders) */
+export function isInternalShipEdge(
+  board: Board,
+  row: number,
+  col: number,
+  direction: 'top' | 'right' | 'bottom' | 'left',
+): boolean {
+  const cell = board[row][col];
+  if (!cell.shipId) return false;
+  const [dr, dc] = direction === 'top' ? [-1, 0] : direction === 'bottom' ? [1, 0] : direction === 'right' ? [0, 1] : [0, -1];
+  const nr = row + dr;
+  const nc = col + dc;
+  if (nr < 0 || nr >= 10 || nc < 0 || nc >= 10) return false;
+  return board[nr][nc].shipId === cell.shipId;
 }
 
 function isShipSunk(shipId: string | undefined, placedShips: PlacedShip[]): boolean {
@@ -301,9 +327,17 @@ function GameGrid({
               const isHit = cell.state === 'hit';
               const isMiss = cell.state === 'miss';
               const hasShip = (cell.state === 'ship' || cell.state === 'hit') && !!cell.shipId;
-              const showShipCell = cell.state === 'ship' && !isEnemy;
+              const showShip = hasShip && (!isEnemy || isShipSunk(cell.shipId, placedShips));
               const canClick = isEnemy && !isHit && !isMiss && !disabled;
               const sunk = hasShip && isShipSunk(cell.shipId, placedShips);
+
+              // Suppress internal borders between cells of the same ship
+              const gridLine = `1px solid ${borderColor}33`;
+              const suppressedLine = '1px solid transparent';
+              const bTop = showShip && isInternalShipEdge(board, row, col, 'top') ? suppressedLine : gridLine;
+              const bRight = showShip && isInternalShipEdge(board, row, col, 'right') ? suppressedLine : gridLine;
+              const bBottom = showShip && isInternalShipEdge(board, row, col, 'bottom') ? suppressedLine : gridLine;
+              const bLeft = showShip && isInternalShipEdge(board, row, col, 'left') ? suppressedLine : gridLine;
 
               return (
                 <div
@@ -311,14 +345,15 @@ function GameGrid({
                   style={{
                     width: `${CELL_SIZE}px`,
                     height: `${CELL_SIZE}px`,
-                    border: `1px solid ${borderColor}33`,
+                    borderTop: bTop,
+                    borderRight: bRight,
+                    borderBottom: bBottom,
+                    borderLeft: bLeft,
                     background: isHit
                       ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(0, 40, 80, 0.45)')
                       : isMiss
                         ? 'rgba(0, 40, 80, 0.45)'
-                        : showShipCell
-                          ? `${borderColor}26`
-                          : 'rgba(0, 0, 0, 0.3)',
+                        : 'rgba(0, 0, 0, 0.3)',
                     cursor: canClick ? 'crosshair' : 'default',
                     display: 'flex',
                     alignItems: 'center',
@@ -348,7 +383,7 @@ function GameGrid({
             })}
           </div>
         ))}
-        {/* SVG overlay for continuous ship outlines */}
+        {/* SVG overlay for arcade-style ship silhouettes */}
         {(() => {
           // Only show outlines for own ships, or sunk enemy ships
           const outlineBoard: Board = board.map((row) =>
@@ -358,8 +393,8 @@ function GameGrid({
               return show ? cell : { ...cell, shipId: undefined };
             })
           );
-          const paths = buildShipOutlinePaths(outlineBoard, CELL_SIZE, placedShips, borderColor);
-          if (paths.length === 0) return null;
+          const ships = buildShipOutlinePaths(outlineBoard, CELL_SIZE, placedShips, borderColor);
+          if (ships.length === 0) return null;
           return (
             <svg
               style={{
@@ -371,9 +406,15 @@ function GameGrid({
                 pointerEvents: 'none',
                 zIndex: 10,
               }}
+              shapeRendering="crispEdges"
             >
-              {paths.map((p, i) => (
-                <path key={i} d={p.path} stroke={p.color} strokeWidth="2" fill="none" />
+              {ships.map((s, i) => (
+                <g key={i}>
+                  {/* Filled silhouette — unified game piece */}
+                  <path d={s.fillPath} fill={s.fillColor} stroke="none" />
+                  {/* Chunky perimeter outline — retro sprite border */}
+                  <path d={s.outlinePath} stroke={s.color} strokeWidth="3" fill="none" strokeLinecap="butt" />
+                </g>
               ))}
             </svg>
           );
