@@ -177,8 +177,113 @@ export function useSound() {
   }, []);
 
   const playSplash = useCallback(() => {
-    playNoise(0.2, 0.15);
-    playTone(400, 0.2, 'sine', 0.1);
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+
+    // 1) Soft water entry — gentle filtered noise burst (0–60ms)
+    //    Simulates small object breaking the water surface
+    const entryLen = 0.06;
+    const entryBufSize = Math.ceil(ctx.sampleRate * entryLen);
+    const entryBuf = ctx.createBuffer(1, entryBufSize, ctx.sampleRate);
+    const entryData = entryBuf.getChannelData(0);
+    for (let i = 0; i < entryBufSize; i++) {
+      entryData[i] = (Math.random() * 2 - 1) * 0.6;
+    }
+    const entrySrc = ctx.createBufferSource();
+    entrySrc.buffer = entryBuf;
+    const entryBpf = ctx.createBiquadFilter();
+    entryBpf.type = 'bandpass';
+    entryBpf.frequency.setValueAtTime(2000, now);
+    entryBpf.frequency.exponentialRampToValueAtTime(600, now + entryLen);
+    entryBpf.Q.setValueAtTime(0.8, now);
+    const entryGain = ctx.createGain();
+    entryGain.gain.setValueAtTime(0.18, now);
+    entryGain.gain.exponentialRampToValueAtTime(0.001, now + entryLen);
+    entrySrc.connect(entryBpf);
+    entryBpf.connect(entryGain);
+    entryGain.connect(ctx.destination);
+    entrySrc.start(now);
+    entrySrc.stop(now + entryLen);
+
+    // 2) Splash body — bandpass-filtered noise with gentle upward sweep (20–220ms)
+    //    Simulates water droplets scattering upward
+    const splashStart = 0.02;
+    const splashLen = 0.2;
+    const splashBufSize = Math.ceil(ctx.sampleRate * splashLen);
+    const splashBuf = ctx.createBuffer(1, splashBufSize, ctx.sampleRate);
+    const splashData = splashBuf.getChannelData(0);
+    for (let i = 0; i < splashBufSize; i++) {
+      splashData[i] = (Math.random() * 2 - 1) * 0.5;
+    }
+    const splashSrc = ctx.createBufferSource();
+    splashSrc.buffer = splashBuf;
+    const splashBpf = ctx.createBiquadFilter();
+    splashBpf.type = 'bandpass';
+    splashBpf.frequency.setValueAtTime(800, now + splashStart);
+    splashBpf.frequency.linearRampToValueAtTime(2500, now + splashStart + 0.06);
+    splashBpf.frequency.exponentialRampToValueAtTime(400, now + splashStart + splashLen);
+    splashBpf.Q.setValueAtTime(0.5, now + splashStart);
+    const splashGain = ctx.createGain();
+    splashGain.gain.setValueAtTime(0.001, now + splashStart);
+    splashGain.gain.linearRampToValueAtTime(0.14, now + splashStart + 0.03);
+    splashGain.gain.exponentialRampToValueAtTime(0.001, now + splashStart + splashLen);
+    splashSrc.connect(splashBpf);
+    splashBpf.connect(splashGain);
+    splashGain.connect(ctx.destination);
+    splashSrc.start(now + splashStart);
+    splashSrc.stop(now + splashStart + splashLen);
+
+    // 3) Ripple fade — soft low-pass filtered noise decay (100–450ms)
+    //    Smooth watery tail like ripples settling
+    const rippleStart = 0.1;
+    const rippleLen = 0.35;
+    const rippleBufSize = Math.ceil(ctx.sampleRate * rippleLen);
+    const rippleBuf = ctx.createBuffer(1, rippleBufSize, ctx.sampleRate);
+    const rippleData = rippleBuf.getChannelData(0);
+    for (let i = 0; i < rippleBufSize; i++) {
+      rippleData[i] = (Math.random() * 2 - 1) * 0.4;
+    }
+    const rippleSrc = ctx.createBufferSource();
+    rippleSrc.buffer = rippleBuf;
+    const rippleLpf = ctx.createBiquadFilter();
+    rippleLpf.type = 'lowpass';
+    rippleLpf.frequency.setValueAtTime(1800, now + rippleStart);
+    rippleLpf.frequency.exponentialRampToValueAtTime(200, now + rippleStart + rippleLen);
+    rippleLpf.Q.setValueAtTime(0.3, now + rippleStart);
+    const rippleGain = ctx.createGain();
+    rippleGain.gain.setValueAtTime(0.001, now + rippleStart);
+    rippleGain.gain.linearRampToValueAtTime(0.08, now + rippleStart + 0.04);
+    rippleGain.gain.exponentialRampToValueAtTime(0.001, now + rippleStart + rippleLen);
+    rippleSrc.connect(rippleLpf);
+    rippleLpf.connect(rippleGain);
+    rippleGain.connect(ctx.destination);
+    rippleSrc.start(now + rippleStart);
+    rippleSrc.stop(now + rippleStart + rippleLen);
+
+    // 4) Subtle airy high-freq shimmer — tiny droplet sparkle (50–250ms)
+    const shimmerStart = 0.05;
+    const shimmerLen = 0.2;
+    const shimmerBufSize = Math.ceil(ctx.sampleRate * shimmerLen);
+    const shimmerBuf = ctx.createBuffer(1, shimmerBufSize, ctx.sampleRate);
+    const shimmerData = shimmerBuf.getChannelData(0);
+    for (let i = 0; i < shimmerBufSize; i++) {
+      shimmerData[i] = (Math.random() * 2 - 1) * 0.3;
+    }
+    const shimmerSrc = ctx.createBufferSource();
+    shimmerSrc.buffer = shimmerBuf;
+    const shimmerHpf = ctx.createBiquadFilter();
+    shimmerHpf.type = 'highpass';
+    shimmerHpf.frequency.setValueAtTime(3000, now + shimmerStart);
+    shimmerHpf.frequency.exponentialRampToValueAtTime(5000, now + shimmerStart + shimmerLen);
+    const shimmerGain = ctx.createGain();
+    shimmerGain.gain.setValueAtTime(0.001, now + shimmerStart);
+    shimmerGain.gain.linearRampToValueAtTime(0.04, now + shimmerStart + 0.03);
+    shimmerGain.gain.exponentialRampToValueAtTime(0.001, now + shimmerStart + shimmerLen);
+    shimmerSrc.connect(shimmerHpf);
+    shimmerHpf.connect(shimmerGain);
+    shimmerGain.connect(ctx.destination);
+    shimmerSrc.start(now + shimmerStart);
+    shimmerSrc.stop(now + shimmerStart + shimmerLen);
   }, []);
 
   const playShipSunk = useCallback(() => {
