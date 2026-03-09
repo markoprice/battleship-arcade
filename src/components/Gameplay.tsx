@@ -66,7 +66,7 @@ function FireAnimation() {
   );
 }
 
-// Sunk ship fire — more intense, flickering flames with multiple layers
+// Sunk ship fire — slow burn, intense but not distracting
 function SunkFireAnimation() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -78,10 +78,10 @@ function SunkFireAnimation() {
           background: 'radial-gradient(ellipse at center, rgba(255,80,0,0.9) 0%, rgba(200,40,0,0.5) 50%, rgba(150,20,0,0.2) 80%, transparent 100%)',
         }}
         animate={{
-          opacity: [0.8, 1, 0.75, 0.95, 0.8],
-          scale: [0.95, 1.08, 0.98, 1.05, 0.95],
+          opacity: [0.8, 0.95, 0.8],
+          scale: [0.97, 1.04, 0.97],
         }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         style={{
@@ -91,11 +91,11 @@ function SunkFireAnimation() {
           background: 'radial-gradient(ellipse at center, rgba(255,200,50,0.9) 0%, rgba(255,120,0,0.6) 50%, transparent 90%)',
         }}
         animate={{
-          opacity: [0.7, 1, 0.6, 0.9, 0.7],
-          scale: [1, 1.1, 0.9, 1.05, 1],
-          y: [0, -1, 1, -0.5, 0],
+          opacity: [0.7, 0.9, 0.7],
+          scale: [1, 1.05, 1],
+          y: [0, -0.5, 0],
         }}
-        transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
       />
       <motion.div
         style={{
@@ -108,18 +108,46 @@ function SunkFireAnimation() {
           background: 'radial-gradient(ellipse at bottom, rgba(255,160,30,0.8) 0%, rgba(255,80,0,0.3) 60%, transparent 100%)',
         }}
         animate={{
-          opacity: [0.5, 0.9, 0.4, 0.8, 0.5],
-          scaleY: [0.8, 1.15, 0.7, 1.1, 0.8],
-          x: [-1, 1, -0.5, 0.5, -1],
+          opacity: [0.5, 0.75, 0.5],
+          scaleY: [0.9, 1.05, 0.9],
+          x: [-0.5, 0.5, -0.5],
         }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
       />
     </div>
   );
 }
 
-// Arcade-style splash animation for misses
+// Arcade-style splash animation for misses — pulses a few times then settles to a static dot
 function SplashAnimation() {
+  const [settled, setSettled] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), 3000); // 3 seconds of pulsing
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (settled) {
+    // Static shaded square with a small dot
+    return (
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(40, 60, 90, 0.4)',
+      }}>
+        <div style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '50%',
+          background: 'rgba(150,200,255,0.5)',
+        }} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
       <motion.div
@@ -601,7 +629,7 @@ export default function Gameplay({
     }
   }, [processing, onStartPlayerTurn]);
 
-  const photoSize = 80;
+  const photoSize = 140;
 
   return (
     <ArcadeCanvas>
@@ -613,7 +641,30 @@ export default function Gameplay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Top area: grids + center ship trackers */}
+        {/* BATTLESHIP Header */}
+        <div className="text-center" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
+          <h1
+            style={{
+              fontFamily: '"Press Start 2P", cursive',
+              color: '#FFD700',
+              fontSize: '16px',
+              textShadow: '0 0 20px rgba(255, 215, 0, 0.5), 2px 2px 0 #8B6914',
+              letterSpacing: '4px',
+            }}
+          >
+            BATTLESHIP
+          </h1>
+          <div
+            style={{
+              width: 'min(60%, 500px)',
+              height: '2px',
+              margin: '4px auto 0',
+              background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
+            }}
+          />
+        </div>
+
+        {/* Grids + center ship trackers */}
         <div className="flex-1 flex items-start justify-center" style={{ gap: '16px', paddingTop: '4px' }}>
           {/* Player side (left) */}
           <div className="flex flex-col items-center" style={{ position: 'relative' }}>
@@ -707,26 +758,38 @@ export default function Gameplay({
           </div>
         </div>
 
-        {/* Bottom: player photos + turn indicator + missile stream */}
-        <div className="flex items-center justify-center" style={{ gap: '24px', paddingBottom: '8px', paddingTop: '8px' }}>
-          {/* Player photo + turn label */}
-          <div className="flex flex-col items-center" style={{ gap: '4px' }}>
-            <div style={{
-              width: `${photoSize}px`,
-              height: `${photoSize}px`,
-              borderRadius: '8px',
-              border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
-              overflow: 'hidden',
-              boxShadow: isPlayerTurn ? '0 0 15px rgba(57,105,202,0.5)' : 'none',
-              transition: 'border-color 0.3s, box-shadow 0.3s',
-            }}>
-              {playerCharacter.portrait ? (
-                <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
-              ) : (
-                <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '32px' }}>
-                  {String.fromCodePoint(0x1F3AF)}
-                </div>
-              )}
+        {/* Bottom: player photos centered under grids + missile stream */}
+        <div className="flex items-start justify-center" style={{ gap: '16px', paddingBottom: '4px', paddingTop: '4px' }}>
+          {/* Player photo centered under player grid */}
+          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, gap: '4px' }}>
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                width: `${photoSize}px`,
+                height: `${photoSize}px`,
+                borderRadius: '10px',
+                border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
+                overflow: 'hidden',
+                boxShadow: isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
+                transition: 'border-color 0.3s, box-shadow 0.3s',
+              }}>
+                {playerCharacter.portrait ? (
+                  <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+                ) : (
+                  <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '48px' }}>
+                    {String.fromCodePoint(0x1F3AF)}
+                  </div>
+                )}
+              </div>
+              {/* Missile stream overlay */}
+              <AnimatePresence>
+                {missileDirection && (
+                  <MissileStream
+                    key={missileDirection + '-' + Date.now()}
+                    direction={missileDirection}
+                    onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
+                  />
+                )}
+              </AnimatePresence>
             </div>
             <AnimatePresence mode="wait">
               {isPlayerTurn && (
@@ -739,35 +802,24 @@ export default function Gameplay({
             </AnimatePresence>
           </div>
 
-          {/* VS divider + missile stream area */}
-          <div style={{ position: 'relative', width: '200px', height: `${photoSize + 30}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '14px', color: 'rgba(255,255,255,0.2)' }}>VS</span>
-            <AnimatePresence>
-              {missileDirection && (
-                <MissileStream
-                  key={missileDirection + '-' + Date.now()}
-                  direction={missileDirection}
-                  onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
-                />
-              )}
-            </AnimatePresence>
-          </div>
+          {/* Center spacer (same width as center column above) */}
+          <div style={{ width: '200px' }} />
 
-          {/* AI photo + turn label */}
-          <div className="flex flex-col items-center" style={{ gap: '4px' }}>
+          {/* AI photo centered under AI grid */}
+          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, gap: '4px' }}>
             <div style={{
               width: `${photoSize}px`,
               height: `${photoSize}px`,
-              borderRadius: '8px',
+              borderRadius: '10px',
               border: `3px solid ${!isPlayerTurn ? '#21C19A' : 'rgba(33,193,154,0.3)'}`,
               overflow: 'hidden',
-              boxShadow: !isPlayerTurn ? '0 0 15px rgba(33,193,154,0.5)' : 'none',
+              boxShadow: !isPlayerTurn ? '0 0 20px rgba(33,193,154,0.6)' : 'none',
               transition: 'border-color 0.3s, box-shadow 0.3s',
             }}>
               {aiCharacter.portrait ? (
                 <img src={aiCharacter.portrait} alt={aiCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
               ) : (
-                <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))', fontSize: '32px' }}>
+                <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))', fontSize: '48px' }}>
                   {String.fromCodePoint(0x1F4BB)}
                 </div>
               )}

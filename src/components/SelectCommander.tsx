@@ -75,7 +75,13 @@ export default function SelectCommander({ onSelect }: Props) {
     setForceGridView(true);
     setSelectedSales(charId);
     selectedSalesRef.current = charId;
-    setSelectedProduct(null);
+    // If Product was already manually selected, skip roulette and go straight to bothSelected
+    if (selectedProduct) {
+      setBothSelected(true);
+      setForceGridView(false);
+      rouletteStartedRef.current = false;
+      return;
+    }
     // Clear any pending start delay
     if (startDelayRef.current) clearTimeout(startDelayRef.current);
     // Start roulette after a brief moment
@@ -343,7 +349,7 @@ export default function SelectCommander({ onSelect }: Props) {
           {bothSelected && salesChar && productChar && (
             <motion.div
               className="flex justify-center"
-              style={{ marginTop: '12px' }}
+              style={{ marginTop: '-8px' }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -364,7 +370,8 @@ export default function SelectCommander({ onSelect }: Props) {
                   boxShadow: '0 0 20px rgba(255, 215, 0, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.05)',
                 }}
               >
-                PLACE YOUR FLEET →
+                PLACE YOUR FLEET {'>>'}
+
               </button>
             </motion.div>
           )}
