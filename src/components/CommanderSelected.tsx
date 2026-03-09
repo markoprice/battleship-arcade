@@ -49,7 +49,7 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
         )}
       </motion.div>
 
-      {/* Big team label */}
+      {/* Player name */}
       <motion.div
         className="text-center mt-6"
         initial={{ opacity: 0, scale: 0 }}
@@ -58,12 +58,12 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: borderColor,
-          fontSize: '48px',
+          fontSize: '24px',
           textShadow: `0 0 20px ${glowColor}, 0 0 40px ${glowColor}`,
-          letterSpacing: '6px',
+          letterSpacing: '4px',
         }}
       >
-        {isSales ? 'GTM' : 'ENG'}
+        {character.name.split(' ')[0].toUpperCase()}
       </motion.div>
     </motion.div>
   );
