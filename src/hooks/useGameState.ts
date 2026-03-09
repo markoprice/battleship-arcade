@@ -289,7 +289,7 @@ export function useGameState() {
       setAIState(currentAIState);
       return { row, col, result: 'miss' };
     }
-  }, [playerBoard, playerShips, aiState]);
+  }, [playerBoard, playerShips, aiState, showCallout]);
 
   const resetGame = useCallback(() => {
     setScreen('home');

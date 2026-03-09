@@ -503,6 +503,7 @@ export default function Gameplay({
 
   // Missile stream animation state
   const [missileDirection, setMissileDirection] = useState<'left-to-right' | 'right-to-left' | null>(null);
+  const missileIdRef = useRef(0);
 
   // Track which grid was last hit for callout positioning
   const [calloutSide, setCalloutSide] = useState<'player' | 'ai'>('ai');
@@ -523,6 +524,7 @@ export default function Gameplay({
   // Handle AI shot — starts missile animation from right to left
   const fireAIShot = useCallback(() => {
     if (cancelledRef.current) return;
+    missileIdRef.current += 1;
     setMissileDirection('right-to-left');
   }, []);
 
@@ -612,6 +614,7 @@ export default function Gameplay({
       setProcessing(true);
       pendingShotRef.current = { row, col };
       // Show missile stream from left (player) to right (AI)
+      missileIdRef.current += 1;
       setMissileDirection('left-to-right');
     },
     [isPlayerTurn, aiBoard]
@@ -784,7 +787,7 @@ export default function Gameplay({
               <AnimatePresence>
                 {missileDirection && (
                   <MissileStream
-                    key={missileDirection + '-' + Date.now()}
+                    key={missileDirection + '-' + missileIdRef.current}
                     direction={missileDirection}
                     onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
                   />
