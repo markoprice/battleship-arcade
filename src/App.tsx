@@ -10,7 +10,6 @@ import PlaceFleet from './components/PlaceFleet';
 import Gameplay from './components/Gameplay';
 import WinScreen from './components/WinScreen';
 import LoseScreen from './components/LoseScreen';
-import ExitButton from './components/ExitButton';
 
 function App() {
   const game = useGameState();
@@ -69,20 +68,17 @@ function App() {
     game.resetGame();
   }, [sound, game]);
 
-  const showExitButton = game.screen !== 'home' && game.screen !== 'commander' && game.screen !== 'win' && game.screen !== 'lose';
-
   return (
     <div className="w-full h-full">
-      {showExitButton && <ExitButton onExit={handleAbandon} />}
       <AnimatePresence mode="wait">
         {game.screen === 'home' && (
           <HomeScreen key="home" onStart={handleHomeStart} />
         )}
         {game.screen === 'select' && (
-          <SelectCommander key="select" onSelect={handleSelectCommander} />
+          <SelectCommander key="select" onSelect={handleSelectCommander} onExit={handleAbandon} />
         )}
         {game.screen === 'place' && (
-          <PlaceFleet key="place" onReady={handleFleetReady} />
+          <PlaceFleet key="place" onReady={handleFleetReady} onExit={handleAbandon} />
         )}
         {game.screen === 'commander' && game.playerCharacter && game.aiCharacter && (
           <CommanderSelected
@@ -110,6 +106,7 @@ function App() {
             onStartPlayerTurn={() => game.setIsPlayerTurn(true)}
             onWin={handleWin}
             onLose={handleLose}
+            onExit={handleAbandon}
             playExplosion={sound.playExplosion}
             playSplash={sound.playSplash}
             playShipSunk={sound.playShipSunk}

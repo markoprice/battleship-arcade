@@ -12,8 +12,10 @@ export default function ExitButton({ onExit }: Props) {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="fixed top-3 right-3 w-10 h-10 flex items-center justify-center cursor-pointer transition-all hover:scale-110"
+        className="absolute w-10 h-10 flex items-center justify-center cursor-pointer transition-all hover:scale-110"
         style={{
+          top: '12px',
+          right: '12px',
           zIndex: 90,
           fontFamily: '"Press Start 2P", cursive',
           fontSize: '14px',

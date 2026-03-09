@@ -5,12 +5,14 @@ import { salesCharacters, productCharacters } from '../data/characters';
 import CharacterCard from './CharacterCard';
 import StarfieldBackground from './StarfieldBackground';
 import ArcadeCanvas from './ArcadeCanvas';
+import ExitButton from './ExitButton';
 
 interface Props {
   onSelect: (player: Character, ai: Character) => void;
+  onExit?: () => void;
 }
 
-export default function SelectCommander({ onSelect }: Props) {
+export default function SelectCommander({ onSelect, onExit }: Props) {
   const [selectedSales, setSelectedSales] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [rouletteActive, setRouletteActive] = useState(false);
@@ -141,6 +143,7 @@ export default function SelectCommander({ onSelect }: Props) {
 
   return (
     <ArcadeCanvas>
+      {onExit && <ExitButton onExit={onExit} />}
       <div className="absolute inset-0 overflow-hidden">
       <StarfieldBackground />
       <motion.div

@@ -4,6 +4,7 @@ import type { Character, Board, PlacedShip } from '../types';
 import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
 import ArcadeCanvas from './ArcadeCanvas';
+import ExitButton from './ExitButton';
 
 interface Props {
   playerCharacter: Character;
@@ -21,6 +22,7 @@ interface Props {
   onStartPlayerTurn: () => void;
   onWin: () => void;
   onLose: () => void;
+  onExit?: () => void;
   playExplosion: () => void;
   playSplash: () => void;
   playShipSunk: () => void;
@@ -491,6 +493,7 @@ export default function Gameplay({
   playExplosion,
   playSplash,
   playShipSunk,
+  onExit,
 }: Props) {
   const [processing, setProcessing] = useState(false);
   const processingRef = useRef(false);
@@ -508,6 +511,12 @@ export default function Gameplay({
   // Track which grid was last hit for callout positioning
   const [calloutSide, setCalloutSide] = useState<'player' | 'ai'>('ai');
 
+  // Status text displayed between grids and photos
+  const [statusText, setStatusText] = useState<string>('YOUR TURN');
+  const [statusColor, setStatusColor] = useState<string>('#FFD700');
+  const playerStreakRef = useRef(0);
+  const aiStreakRef = useRef(0);
+
   // Clear all pending timeouts on unmount (e.g. abandon game)
   useEffect(() => {
     cancelledRef.current = false;
@@ -524,6 +533,7 @@ export default function Gameplay({
   // Handle AI shot — starts missile animation from right to left
   const fireAIShot = useCallback(() => {
     if (cancelledRef.current) return;
+    setStatusText('');
     missileIdRef.current += 1;
     setMissileDirection('right-to-left');
   }, []);
@@ -537,24 +547,41 @@ export default function Gameplay({
     const aiResult = onAIFire();
     setCalloutSide('player');
 
-    if (aiResult.result === 'hit') playExplosion();
-    else if (aiResult.result === 'miss') playSplash();
-    else if (aiResult.result === 'sunk') playShipSunk();
-    else if (aiResult.result === 'lose') {
+    if (aiResult.result === 'hit' || aiResult.result === 'sunk') {
+      playExplosion();
+      if (aiResult.result === 'sunk') playShipSunk();
+      aiStreakRef.current += 1;
+      setStatusText(`[X${aiStreakRef.current}] HIT!`);
+      setStatusColor('#ff6600');
+    } else if (aiResult.result === 'miss') {
+      playSplash();
+      aiStreakRef.current = 0;
+      setStatusText('MISS!');
+      setStatusColor('#4488ff');
+    } else if (aiResult.result === 'lose') {
       playShipSunk();
+      setStatusText('GAME OVER');
+      setStatusColor('#ff4444');
       timeoutIdsRef.current.push(setTimeout(() => {
         processingRef.current = false;
         setProcessing(false);
         onLose();
-      }, 1000));
+      }, 1500));
       return;
     }
 
+    // Show result for 1.5s, then show YOUR TURN, then proceed
     timeoutIdsRef.current.push(setTimeout(() => {
-      onStartPlayerTurn();
-      processingRef.current = false;
-      setProcessing(false);
-    }, 500));
+      if (cancelledRef.current) return;
+      setStatusText('YOUR TURN');
+      setStatusColor('#FFD700');
+      timeoutIdsRef.current.push(setTimeout(() => {
+        if (cancelledRef.current) return;
+        onStartPlayerTurn();
+        processingRef.current = false;
+        setProcessing(false);
+      }, 800));
+    }, 1500));
   }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playExplosion, playSplash, playShipSunk]);
 
   // Called when player missile stream reaches the AI side
@@ -578,30 +605,44 @@ export default function Gameplay({
 
     setCalloutSide('ai');
 
-    if (result === 'hit') {
+    if (result === 'hit' || result === 'sunk') {
       playExplosion();
+      if (result === 'sunk') playShipSunk();
+      playerStreakRef.current += 1;
+      setStatusText(`[X${playerStreakRef.current}] HIT!`);
+      setStatusColor('#ff6600');
     } else if (result === 'miss') {
       playSplash();
-    } else if (result === 'sunk') {
-      playShipSunk();
+      playerStreakRef.current = 0;
+      setStatusText('MISS!');
+      setStatusColor('#4488ff');
     } else if (result === 'win') {
       playShipSunk();
+      playerStreakRef.current += 1;
+      setStatusText(`[X${playerStreakRef.current}] HIT!`);
+      setStatusColor('#ff6600');
       timeoutIdsRef.current.push(setTimeout(() => {
         processingRef.current = false;
         setProcessing(false);
         onWin();
-      }, 1000));
+      }, 1500));
       return;
     }
 
-    // End player turn, start AI turn
+    // Show result for 1.5s, then show AI TURN, then proceed
     timeoutIdsRef.current.push(setTimeout(() => {
-      onEndPlayerTurn();
+      if (cancelledRef.current) return;
+      setStatusText('AI TURN');
+      setStatusColor('#ff4444');
       timeoutIdsRef.current.push(setTimeout(() => {
         if (cancelledRef.current) return;
-        fireAIShot();
+        onEndPlayerTurn();
+        timeoutIdsRef.current.push(setTimeout(() => {
+          if (cancelledRef.current) return;
+          fireAIShot();
+        }, 300));
       }, 800));
-    }, 500));
+    }, 1500));
   }, [onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk]);
 
   const handlePlayerShot = useCallback(
@@ -614,6 +655,7 @@ export default function Gameplay({
       setProcessing(true);
       pendingShotRef.current = { row, col };
       // Show missile stream from left (player) to right (AI)
+      setStatusText('');
       missileIdRef.current += 1;
       setMissileDirection('left-to-right');
     },
@@ -627,15 +669,16 @@ export default function Gameplay({
         processingRef.current = false;
         setProcessing(false);
         onStartPlayerTurn();
-      }, 8000);
+      }, 12000);
       return () => clearTimeout(timeout);
     }
   }, [processing, onStartPlayerTurn]);
 
-  const photoSize = 140;
+  const photoSize = 180;
 
   return (
     <ArcadeCanvas>
+      {onExit && <ExitButton onExit={onExit} />}
       <div className="absolute inset-0 overflow-hidden gameplay-container">
       <StarfieldBackground />
       <motion.div
@@ -761,55 +804,71 @@ export default function Gameplay({
           </div>
         </div>
 
-        {/* Bottom: player photos centered under grids + missile stream */}
-        <div className="flex items-start justify-center" style={{ gap: '16px', paddingBottom: '4px', paddingTop: '4px' }}>
-          {/* Player photo centered under player grid */}
-          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, gap: '4px' }}>
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                width: `${photoSize}px`,
-                height: `${photoSize}px`,
-                borderRadius: '10px',
-                border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
-                overflow: 'hidden',
-                boxShadow: isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
-                transition: 'border-color 0.3s, box-shadow 0.3s',
-              }}>
-                {playerCharacter.portrait ? (
-                  <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
-                ) : (
-                  <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '48px' }}>
-                    {String.fromCodePoint(0x1F3AF)}
-                  </div>
-                )}
-              </div>
-              {/* Missile stream overlay */}
-              <AnimatePresence>
-                {missileDirection && (
-                  <MissileStream
-                    key={missileDirection + '-' + missileIdRef.current}
-                    direction={missileDirection}
-                    onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
-                  />
-                )}
-              </AnimatePresence>
-            </div>
+        {/* Status Row — missile stream + result/turn text */}
+        <div style={{ position: 'relative', height: '36px', marginTop: '4px' }}>
+          {/* Missile stream animation */}
+          <AnimatePresence>
+            {missileDirection && (
+              <MissileStream
+                key={missileDirection + '-' + missileIdRef.current}
+                direction={missileDirection}
+                onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
+              />
+            )}
+          </AnimatePresence>
+          {/* Status text (result + turn indicator) */}
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
             <AnimatePresence mode="wait">
-              {isPlayerTurn && (
-                <motion.div key="player-turn" initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 3 }} transition={{ duration: 0.3 }}>
-                  <span style={{ fontFamily: '"Press Start 2P", cursive', color: processing ? '#ff8800' : '#FFD700', fontSize: '8px', textShadow: '0 0 8px rgba(255, 215, 0, 0.5)' }}>
-                    {processing ? 'FIRING...' : 'YOUR TURN'}
+              {statusText && (
+                <motion.div
+                  key={statusText}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <span style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    fontSize: '14px',
+                    color: statusColor,
+                    textShadow: `0 0 15px ${statusColor}88`,
+                  }}>
+                    {statusText}
                   </span>
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Bottom: player photos centered under grids */}
+        <div className="flex items-start justify-center" style={{ gap: '16px', paddingBottom: '4px' }}>
+          {/* Player photo centered under player grid */}
+          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px` }}>
+            <div style={{
+              width: `${photoSize}px`,
+              height: `${photoSize}px`,
+              borderRadius: '10px',
+              border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
+              overflow: 'hidden',
+              boxShadow: isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
+              transition: 'border-color 0.3s, box-shadow 0.3s',
+            }}>
+              {playerCharacter.portrait ? (
+                <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+              ) : (
+                <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '48px' }}>
+                  {String.fromCodePoint(0x1F3AF)}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Center spacer (same width as center column above) */}
           <div style={{ width: '200px' }} />
 
           {/* AI photo centered under AI grid */}
-          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, gap: '4px' }}>
+          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px` }}>
             <div style={{
               width: `${photoSize}px`,
               height: `${photoSize}px`,
@@ -827,15 +886,6 @@ export default function Gameplay({
                 </div>
               )}
             </div>
-            <AnimatePresence mode="wait">
-              {!isPlayerTurn && (
-                <motion.div key="ai-turn" initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 3 }} transition={{ duration: 0.3 }}>
-                  <span style={{ fontFamily: '"Press Start 2P", cursive', color: '#ff4444', fontSize: '8px', textShadow: '0 0 8px rgba(255, 68, 68, 0.5)' }}>
-                    {"OPPONENT'S TURN"}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </motion.div>

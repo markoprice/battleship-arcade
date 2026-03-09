@@ -4,9 +4,11 @@ import type { Ship, PlacedShip, Board, BoardCell, Orientation } from '../types';
 import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
 import ArcadeCanvas from './ArcadeCanvas';
+import ExitButton from './ExitButton';
 
 interface Props {
   onReady: (board: Board, placedShips: PlacedShip[]) => void;
+  onExit?: () => void;
 }
 
 const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
@@ -17,7 +19,7 @@ function createEmptyBoard(): Board {
   );
 }
 
-export default function PlaceFleet({ onReady }: Props) {
+export default function PlaceFleet({ onReady, onExit }: Props) {
   const [board, setBoard] = useState<Board>(createEmptyBoard);
   const [placedShips, setPlacedShips] = useState<PlacedShip[]>([]);
   const [selectedShip, setSelectedShip] = useState<Ship | null>(ships[0]);
@@ -141,6 +143,7 @@ export default function PlaceFleet({ onReady }: Props) {
 
   return (
     <ArcadeCanvas>
+      {onExit && <ExitButton onExit={onExit} />}
       <div className="absolute inset-0 overflow-hidden" onKeyDown={handleKeyDown} tabIndex={0}>
       <StarfieldBackground />
       <motion.div
