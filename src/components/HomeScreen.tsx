@@ -6,99 +6,131 @@ import homeBg from '../assets/01-home_bg.jpg';
 function useHomeAmbient() {
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<AudioNode[]>([]);
+  const startedRef = useRef(false);
 
   useEffect(() => {
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new AudioCtx();
-    ctxRef.current = ctx;
+    let melodyInterval: ReturnType<typeof setInterval> | null = null;
+    let melodyTimeout: ReturnType<typeof setTimeout> | null = null;
+    let mounted = true;
 
-    // Master volume — keep it quiet and atmospheric
-    const master = ctx.createGain();
-    master.gain.setValueAtTime(0, ctx.currentTime);
-    master.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 2); // fade in
-    master.connect(ctx.destination);
+    const startAmbient = () => {
+      if (startedRef.current || !mounted) return;
+      startedRef.current = true;
 
-    // Deep bass drone
-    const bass = ctx.createOscillator();
-    bass.type = 'triangle';
-    bass.frequency.setValueAtTime(55, ctx.currentTime); // low A
-    const bassGain = ctx.createGain();
-    bassGain.gain.setValueAtTime(0.3, ctx.currentTime);
-    bass.connect(bassGain);
-    bassGain.connect(master);
-    bass.start();
-    nodesRef.current.push(bass);
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new AudioCtx();
+      ctxRef.current = ctx;
 
-    // Slow LFO on bass frequency for subtle movement
-    const lfo = ctx.createOscillator();
-    lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(0.08, ctx.currentTime);
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(3, ctx.currentTime);
-    lfo.connect(lfoGain);
-    lfoGain.connect(bass.frequency);
-    lfo.start();
-    nodesRef.current.push(lfo);
+      // Resume if suspended (autoplay policy)
+      if (ctx.state === 'suspended') ctx.resume();
 
-    // Pad layer — square wave chord (minor)
-    const padNotes = [110, 131, 165]; // A2, C3 (minor third), E3
-    padNotes.forEach((freq) => {
-      const osc = ctx.createOscillator();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0.04, ctx.currentTime);
-      osc.connect(g);
-      g.connect(master);
-      osc.start();
-      nodesRef.current.push(osc);
-    });
+      // Master volume — keep it quiet and atmospheric
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0, ctx.currentTime);
+      master.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 2); // fade in
+      master.connect(ctx.destination);
 
-    // Slow melodic arpeggio — single notes cycling every ~4s
-    const melody = [220, 262, 196, 247]; // A3, C4, G3, B3
-    let melodyIdx = 0;
-    const melodyOsc = ctx.createOscillator();
-    melodyOsc.type = 'square';
-    melodyOsc.frequency.setValueAtTime(melody[0], ctx.currentTime);
-    const melodyGain = ctx.createGain();
-    melodyGain.gain.setValueAtTime(0, ctx.currentTime);
-    melodyOsc.connect(melodyGain);
-    melodyGain.connect(master);
-    melodyOsc.start();
-    nodesRef.current.push(melodyOsc);
+      // Deep bass drone
+      const bass = ctx.createOscillator();
+      bass.type = 'triangle';
+      bass.frequency.setValueAtTime(55, ctx.currentTime); // low A
+      const bassGain = ctx.createGain();
+      bassGain.gain.setValueAtTime(0.3, ctx.currentTime);
+      bass.connect(bassGain);
+      bassGain.connect(master);
+      bass.start();
+      nodesRef.current.push(bass);
 
-    // Cycle melody notes with fade in/out
-    const melodyInterval = setInterval(() => {
-      if (ctx.state === 'closed') return;
-      melodyIdx = (melodyIdx + 1) % melody.length;
-      const now = ctx.currentTime;
-      melodyGain.gain.setValueAtTime(0, now);
-      melodyGain.gain.linearRampToValueAtTime(0.08, now + 0.3);
-      melodyGain.gain.linearRampToValueAtTime(0, now + 3.5);
-      melodyOsc.frequency.setValueAtTime(melody[melodyIdx], now);
-    }, 4000);
+      // Slow LFO on bass frequency for subtle movement
+      const lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(0.08, ctx.currentTime);
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(3, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(bass.frequency);
+      lfo.start();
+      nodesRef.current.push(lfo);
 
-    // Trigger first note after a beat
-    setTimeout(() => {
-      if (ctx.state === 'closed') return;
-      const now = ctx.currentTime;
-      melodyGain.gain.setValueAtTime(0, now);
-      melodyGain.gain.linearRampToValueAtTime(0.08, now + 0.3);
-      melodyGain.gain.linearRampToValueAtTime(0, now + 3.5);
-    }, 1500);
+      // Pad layer — square wave chord (minor)
+      const padNotes = [110, 131, 165]; // A2, C3 (minor third), E3
+      padNotes.forEach((freq) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.04, ctx.currentTime);
+        osc.connect(g);
+        g.connect(master);
+        osc.start();
+        nodesRef.current.push(osc);
+      });
+
+      // Slow melodic arpeggio — single notes cycling every ~4s
+      const melody = [220, 262, 196, 247]; // A3, C4, G3, B3
+      let melodyIdx = 0;
+      const melodyOsc = ctx.createOscillator();
+      melodyOsc.type = 'square';
+      melodyOsc.frequency.setValueAtTime(melody[0], ctx.currentTime);
+      const melodyGainNode = ctx.createGain();
+      melodyGainNode.gain.setValueAtTime(0, ctx.currentTime);
+      melodyOsc.connect(melodyGainNode);
+      melodyGainNode.connect(master);
+      melodyOsc.start();
+      nodesRef.current.push(melodyOsc);
+
+      // Cycle melody notes with fade in/out
+      melodyInterval = setInterval(() => {
+        if (ctx.state === 'closed') return;
+        melodyIdx = (melodyIdx + 1) % melody.length;
+        const now = ctx.currentTime;
+        melodyGainNode.gain.setValueAtTime(0, now);
+        melodyGainNode.gain.linearRampToValueAtTime(0.08, now + 0.3);
+        melodyGainNode.gain.linearRampToValueAtTime(0, now + 3.5);
+        melodyOsc.frequency.setValueAtTime(melody[melodyIdx], now);
+      }, 4000);
+
+      // Trigger first note after a beat
+      melodyTimeout = setTimeout(() => {
+        if (ctx.state === 'closed') return;
+        const now = ctx.currentTime;
+        melodyGainNode.gain.setValueAtTime(0, now);
+        melodyGainNode.gain.linearRampToValueAtTime(0.08, now + 0.3);
+        melodyGainNode.gain.linearRampToValueAtTime(0, now + 3.5);
+      }, 1500);
+    };
+
+    // Try starting immediately (works if user already interacted with page)
+    startAmbient();
+
+    // Also listen for any user interaction to unlock audio
+    const unlock = () => {
+      startAmbient();
+      // Also resume if context was suspended
+      if (ctxRef.current?.state === 'suspended') ctxRef.current.resume();
+    };
+    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('mousemove', unlock, { once: true });
+    document.addEventListener('keydown', unlock, { once: true });
 
     return () => {
-      clearInterval(melodyInterval);
-      // Fade out before closing
-      const now = ctx.currentTime;
-      master.gain.linearRampToValueAtTime(0, now + 0.3);
-      setTimeout(() => {
-        nodesRef.current.forEach((n) => {
-          try { (n as OscillatorNode).stop(); } catch { /* already stopped */ }
-        });
+      mounted = false;
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('mousemove', unlock);
+      document.removeEventListener('keydown', unlock);
+      if (melodyInterval) clearInterval(melodyInterval);
+      if (melodyTimeout) clearTimeout(melodyTimeout);
+      const ctx = ctxRef.current;
+      if (ctx && ctx.state !== 'closed') {
+        try {
+          nodesRef.current.forEach((n) => {
+            try { (n as OscillatorNode).stop(); } catch { /* already stopped */ }
+          });
+        } catch { /* ignore */ }
         nodesRef.current = [];
         ctx.close();
-      }, 350);
+      }
+      startedRef.current = false;
     };
   }, []);
 }

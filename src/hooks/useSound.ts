@@ -117,6 +117,11 @@ export function useSound() {
     playTone(800, 0.1, 'square', 0.15);
   }, []);
 
+  const playRouletteTick = useCallback((pitch = 0) => {
+    // Quick 8-bit tick that rises in pitch as roulette slows
+    playTone(400 + pitch * 30, 0.06, 'square', 0.12);
+  }, []);
+
   const playStart = useCallback(() => {
     playTone(600, 0.1, 'square', 0.2);
     setTimeout(() => playTone(900, 0.15, 'square', 0.2), 120);
@@ -131,6 +136,7 @@ export function useSound() {
     playWin,
     playLose,
     playSelect,
+    playRouletteTick,
     playStart,
   };
 }

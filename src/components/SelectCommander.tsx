@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Character } from '../types';
 import { salesCharacters, productCharacters } from '../data/characters';
+import { useSound } from '../hooks/useSound';
 import CharacterCard from './CharacterCard';
 import StarfieldBackground from './StarfieldBackground';
 import ArcadeCanvas from './ArcadeCanvas';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function SelectCommander({ onSelect, onExit }: Props) {
+  const sound = useSound();
   const [selectedSales, setSelectedSales] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [rouletteActive, setRouletteActive] = useState(false);
@@ -41,6 +43,7 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
       const idx = count % productCharacters.length;
       setRouletteIndex(idx);
       rouletteCountRef.current = count;
+      sound.playRouletteTick(count);
 
       if (count < totalSpins) {
         // Speed up then slow down
