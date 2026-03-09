@@ -729,8 +729,8 @@ export default function Gameplay({
 
         {/* Grids + center ship trackers */}
         <div className="flex-1 flex items-start justify-center" style={{ gap: '16px', paddingTop: '4px' }}>
-          {/* Player side (left) */}
-          <div className="flex flex-col items-center" style={{ position: 'relative' }}>
+          {/* Player side (left) — grid + avatar underneath */}
+          <div className="flex flex-col" style={{ position: 'relative' }}>
             <GameGrid
               board={playerBoard}
               borderColor="#3969CA"
@@ -765,6 +765,58 @@ export default function Gameplay({
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Player avatar + status text directly under grid */}
+            <div className="flex items-center" style={{ marginTop: '8px', gap: '10px' }}>
+              <motion.div
+                animate={shakePlayer ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
+                transition={{ duration: 0.5 }}
+                style={{
+                  width: `${photoSize}px`,
+                  height: `${photoSize}px`,
+                  borderRadius: '10px',
+                  border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
+                  overflow: 'hidden',
+                  boxShadow: isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
+                  transition: 'border-color 0.3s, box-shadow 0.3s',
+                  flexShrink: 0,
+                }}
+              >
+                {playerCharacter.portrait ? (
+                  <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+                ) : (
+                  <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '48px' }}>
+                    {String.fromCodePoint(0x1F3AF)}
+                  </div>
+                )}
+              </motion.div>
+              {/* Status text to the right of player avatar */}
+              <AnimatePresence mode="wait">
+                {statusText && (statusSide === 'player' || statusSide === 'both') && (
+                  <motion.div
+                    key={statusText + '-player'}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    <span style={{
+                      fontFamily: '"Press Start 2P", cursive',
+                      fontSize: '12px',
+                      color: statusColor,
+                      textShadow: `0 0 15px ${statusColor}88, 0 0 30px ${statusColor}44`,
+                      background: 'rgba(0,0,0,0.6)',
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {statusText}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* CENTER COLUMN — ship statuses */}
@@ -778,10 +830,23 @@ export default function Gameplay({
               <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '6px', color: '#21C19A', marginBottom: '4px', textAlign: 'center' }}>ENEMY FLEET</div>
               <ShipTracker placedShips={aiShips} borderColor="#21C19A" boardWidth={200} />
             </div>
+
+            {/* Missile stream animation (centered between grids) */}
+            <div style={{ width: '100%', position: 'relative', height: '60px' }}>
+              <AnimatePresence>
+                {missileDirection && (
+                  <MissileStream
+                    key={missileDirection + '-' + missileIdRef.current}
+                    direction={missileDirection}
+                    onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* AI side (right) */}
-          <div className="flex flex-col items-center" style={{ position: 'relative' }}>
+          {/* AI side (right) — grid + avatar underneath */}
+          <div className="flex flex-col" style={{ position: 'relative' }}>
             <GameGrid
               board={aiBoard}
               borderColor="#21C19A"
@@ -818,141 +883,58 @@ export default function Gameplay({
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-        </div>
 
-        {/* Bottom: missile stream between photos + player photos with status text */}
-        <div className="flex items-start justify-center" style={{ gap: '16px', paddingBottom: '4px', position: 'relative' }}>
-          {/* Player photo left-aligned under player grid */}
-          <div className="flex flex-col items-start" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, position: 'relative' }}>
-            <motion.div
-              animate={shakePlayer ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
-              transition={{ duration: 0.5 }}
-              style={{
-                width: `${photoSize}px`,
-                height: `${photoSize}px`,
-                borderRadius: '10px',
-                border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
-                overflow: 'hidden',
-                boxShadow: isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
-                transition: 'border-color 0.3s, box-shadow 0.3s',
-              }}
-            >
-              {playerCharacter.portrait ? (
-                <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
-              ) : (
-                <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '48px' }}>
-                  {String.fromCodePoint(0x1F3AF)}
-                </div>
-              )}
-            </motion.div>
-            {/* Status text under player photo */}
-            <AnimatePresence mode="wait">
-              {statusText && (statusSide === 'player' || statusSide === 'both') && (
-                <motion.div
-                  key={statusText + '-player'}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.3 }}
-                  style={{
-                    position: 'absolute',
-                    top: `${photoSize + 8}px`,
-                    left: 0,
-                    width: `${photoSize}px`,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    pointerEvents: 'none',
-                    zIndex: 50,
-                  }}
-                >
-                  <span style={{
-                    fontFamily: '"Press Start 2P", cursive',
-                    fontSize: '13px',
-                    color: statusColor,
-                    textShadow: `0 0 15px ${statusColor}88, 0 0 30px ${statusColor}44`,
-                    background: 'rgba(0,0,0,0.6)',
-                    padding: '4px 10px',
-                    borderRadius: '4px',
-                  }}>
-                    {statusText}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Center spacer with missile stream */}
-          <div style={{ width: '200px', position: 'relative', height: `${photoSize}px` }}>
-            {/* Missile stream animation */}
-            <AnimatePresence>
-              {missileDirection && (
-                <MissileStream
-                  key={missileDirection + '-' + missileIdRef.current}
-                  direction={missileDirection}
-                  onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
-                />
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* AI photo right-aligned under AI grid */}
-          <div className="flex flex-col items-end" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, position: 'relative' }}>
-            <motion.div
-              animate={shakeAI ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
-              transition={{ duration: 0.5 }}
-              style={{
-                width: `${photoSize}px`,
-                height: `${photoSize}px`,
-                borderRadius: '10px',
-                border: `3px solid ${!isPlayerTurn ? '#21C19A' : 'rgba(33,193,154,0.3)'}`,
-                overflow: 'hidden',
-                boxShadow: !isPlayerTurn ? '0 0 20px rgba(33,193,154,0.6)' : 'none',
-                transition: 'border-color 0.3s, box-shadow 0.3s',
-              }}
-            >
-              {aiCharacter.portrait ? (
-                <img src={aiCharacter.portrait} alt={aiCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
-              ) : (
-                <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))', fontSize: '48px' }}>
-                  {String.fromCodePoint(0x1F4BB)}
-                </div>
-              )}
-            </motion.div>
-            {/* Status text under AI photo */}
-            <AnimatePresence mode="wait">
-              {statusText && (statusSide === 'ai' || statusSide === 'both') && (
-                <motion.div
-                  key={statusText + '-ai'}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.3 }}
-                  style={{
-                    position: 'absolute',
-                    top: `${photoSize + 8}px`,
-                    right: 0,
-                    width: `${photoSize}px`,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    pointerEvents: 'none',
-                    zIndex: 50,
-                  }}
-                >
-                  <span style={{
-                    fontFamily: '"Press Start 2P", cursive',
-                    fontSize: '13px',
-                    color: statusColor,
-                    textShadow: `0 0 15px ${statusColor}88, 0 0 30px ${statusColor}44`,
-                    background: 'rgba(0,0,0,0.6)',
-                    padding: '4px 10px',
-                    borderRadius: '4px',
-                  }}>
-                    {statusText}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* AI avatar + status text directly under grid */}
+            <div className="flex items-center justify-end" style={{ marginTop: '8px', gap: '10px' }}>
+              {/* Status text to the left of AI avatar */}
+              <AnimatePresence mode="wait">
+                {statusText && (statusSide === 'ai' || statusSide === 'both') && (
+                  <motion.div
+                    key={statusText + '-ai'}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    <span style={{
+                      fontFamily: '"Press Start 2P", cursive',
+                      fontSize: '12px',
+                      color: statusColor,
+                      textShadow: `0 0 15px ${statusColor}88, 0 0 30px ${statusColor}44`,
+                      background: 'rgba(0,0,0,0.6)',
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {statusText}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <motion.div
+                animate={shakeAI ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
+                transition={{ duration: 0.5 }}
+                style={{
+                  width: `${photoSize}px`,
+                  height: `${photoSize}px`,
+                  borderRadius: '10px',
+                  border: `3px solid ${!isPlayerTurn ? '#21C19A' : 'rgba(33,193,154,0.3)'}`,
+                  overflow: 'hidden',
+                  boxShadow: !isPlayerTurn ? '0 0 20px rgba(33,193,154,0.6)' : 'none',
+                  transition: 'border-color 0.3s, box-shadow 0.3s',
+                  flexShrink: 0,
+                }}
+              >
+                {aiCharacter.portrait ? (
+                  <img src={aiCharacter.portrait} alt={aiCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+                ) : (
+                  <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))', fontSize: '48px' }}>
+                    {String.fromCodePoint(0x1F4BB)}
+                  </div>
+                )}
+              </motion.div>
+            </div>
           </div>
         </div>
       </motion.div>
