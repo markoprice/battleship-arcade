@@ -851,7 +851,7 @@ export default function Gameplay({
             </AnimatePresence>
 
             {/* Player avatar + status text directly under grid */}
-            <div className="flex items-center" style={{ marginTop: '8px', gap: '10px' }}>
+            <div className="flex items-start" style={{ marginTop: '8px', gap: '10px' }}>
               <motion.div
                 animate={shakePlayer ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
                 transition={{ duration: 0.5 }}
@@ -1002,7 +1002,7 @@ export default function Gameplay({
             </AnimatePresence>
 
             {/* AI avatar + status text directly under grid */}
-            <div className="flex items-center justify-end" style={{ marginTop: '8px', gap: '10px' }}>
+            <div className="flex items-start justify-end" style={{ marginTop: '8px', gap: '10px' }}>
               {/* Status text to the left of AI avatar */}
               <AnimatePresence mode="wait">
                 {statusText && (statusSide === 'ai' || statusSide === 'both') && (
