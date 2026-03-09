@@ -396,7 +396,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                 marginBottom: '24px',
               }}
             >
-              Press R to Rotate. Click to Place.
+              Press R to Rotate. Click on Grid to Place.
             </div>
 
             {/* Buttons */}
