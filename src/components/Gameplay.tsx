@@ -601,11 +601,8 @@ export default function Gameplay({
 
     onAIPeekTarget();
     const aiResult = onAIFire();
-    const cellLabel = `${COLS[aiResult.col]}${aiResult.row + 1}`;
-
     if (aiResult.result === 'hit') {
       playExplosion();
-      showGridCallout(`${cellLabel} HIT!`, '', 'player');
       setStatusText('');
       setShakePlayer(true);
       timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
@@ -620,9 +617,7 @@ export default function Gameplay({
       timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
     } else if (aiResult.result === 'miss') {
       playSplash();
-      setStatusText('MISS!');
-      setStatusColor('#4488ff');
-      setStatusSide('player');
+      setStatusText('');
     } else if (aiResult.result === 'lose') {
       playExplosion();
       playShipSunk();
@@ -679,11 +674,8 @@ export default function Gameplay({
         return;
       }
 
-      const cellLabel = `${COLS[col]}${row + 1}`;
-
       if (fireResult.result === 'hit') {
         playExplosion();
-        showGridCallout(`${cellLabel} HIT!`, '', 'ai');
         setStatusText('');
         setShakeAI(true);
         timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
@@ -701,9 +693,7 @@ export default function Gameplay({
         playSplash();
         salesSunkStreakRef.current = 0;
         fireHotHandPickRef.current = null;
-        setStatusText('MISS!');
-        setStatusColor('#4488ff');
-        setStatusSide('ai');
+        setStatusText('');
       } else if (fireResult.result === 'win') {
         playExplosion();
         playShipSunk();
@@ -800,41 +790,60 @@ export default function Gameplay({
               gridRef={playerGridRef}
               placedShips={playerShips}
             />
-            {/* Grid callout over player grid (Eng hitting Sales) */}
+            {/* Grid callout over player grid (Eng hitting Sales) — NBA Jam style */}
             <AnimatePresence>
               {gridCallout && gridCallout.side === 'player' && (
                 <motion.div
                   key={gridCallout.key}
                   className="absolute pointer-events-none flex items-center justify-center"
-                  style={{ top: '25%', left: 0, right: 0, zIndex: 55 }}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 1.5, opacity: 0 }}
-                  transition={{ duration: 0.4 }}
+                  style={{ top: '5%', left: '-10%', right: '-10%', bottom: '10%', zIndex: 55 }}
+                  initial={{ scale: 0, opacity: 0, rotate: -8 }}
+                  animate={{
+                    scale: [0, 1.3, 1.15],
+                    opacity: [0, 1, 1],
+                    rotate: [-8, -5, -3],
+                  }}
+                  exit={{ scale: 2, opacity: 0, rotate: 5 }}
+                  transition={{ duration: 0.5, times: [0, 0.6, 1], ease: 'easeOut' }}
                 >
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{
-                      fontFamily: '"Press Start 2P", cursive',
-                      fontSize: gridCallout.smallText ? '20px' : '14px',
-                      color: '#ff4444',
-                      textShadow: '0 0 20px rgba(255, 68, 68, 0.8), 2px 2px 0 #500',
-                      background: 'rgba(0,0,0,0.7)',
-                      padding: '8px 16px',
-                      borderRadius: '4px',
-                      border: '1px solid rgba(255,68,68,0.4)',
-                    }}>
-                      {gridCallout.bigText}
-                    </div>
-                    {gridCallout.smallText && (
-                      <div style={{
+                    <motion.div
+                      animate={{
+                        textShadow: [
+                          '0 0 30px rgba(255, 68, 68, 1), 4px 4px 0 #500, -2px -2px 0 #a00, 0 0 80px rgba(255,0,0,0.6)',
+                          '0 0 50px rgba(255, 68, 68, 1), 4px 4px 0 #500, -2px -2px 0 #a00, 0 0 120px rgba(255,0,0,0.8)',
+                          '0 0 30px rgba(255, 68, 68, 1), 4px 4px 0 #500, -2px -2px 0 #a00, 0 0 80px rgba(255,0,0,0.6)',
+                        ],
+                        scale: [1, 1.08, 1],
+                      }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{
                         fontFamily: '"Press Start 2P", cursive',
-                        fontSize: '12px',
+                        fontSize: '36px',
                         color: '#ff4444',
-                        textShadow: '0 0 15px rgba(255, 68, 68, 0.6)',
-                        marginTop: '6px',
-                      }}>
+                        letterSpacing: '3px',
+                        WebkitTextStroke: '1px #800',
+                        filter: 'drop-shadow(0 0 20px rgba(255,0,0,0.7))',
+                      }}
+                    >
+                      {gridCallout.bigText}
+                    </motion.div>
+                    {gridCallout.smallText && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.3 }}
+                        style={{
+                          fontFamily: '"Press Start 2P", cursive',
+                          fontSize: '16px',
+                          color: '#ff6666',
+                          textShadow: '0 0 20px rgba(255, 68, 68, 0.8), 2px 2px 0 #500',
+                          marginTop: '10px',
+                          letterSpacing: '2px',
+                        }}
+                      >
                         {gridCallout.smallText}
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </motion.div>
@@ -932,41 +941,60 @@ export default function Gameplay({
               gridRef={aiGridRef}
               placedShips={aiShips}
             />
-            {/* Grid callout over AI grid (Sales hitting Eng) */}
+            {/* Grid callout over AI grid (Sales hitting Eng) — NBA Jam style */}
             <AnimatePresence>
               {gridCallout && gridCallout.side === 'ai' && (
                 <motion.div
                   key={gridCallout.key}
                   className="absolute pointer-events-none flex items-center justify-center"
-                  style={{ top: '25%', left: 0, right: 0, zIndex: 55 }}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 1.5, opacity: 0 }}
-                  transition={{ duration: 0.4 }}
+                  style={{ top: '5%', left: '-10%', right: '-10%', bottom: '10%', zIndex: 55 }}
+                  initial={{ scale: 0, opacity: 0, rotate: 6 }}
+                  animate={{
+                    scale: [0, 1.3, 1.15],
+                    opacity: [0, 1, 1],
+                    rotate: [6, 4, 3],
+                  }}
+                  exit={{ scale: 2, opacity: 0, rotate: -5 }}
+                  transition={{ duration: 0.5, times: [0, 0.6, 1], ease: 'easeOut' }}
                 >
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{
-                      fontFamily: '"Press Start 2P", cursive',
-                      fontSize: gridCallout.smallText ? '20px' : '14px',
-                      color: '#FFD700',
-                      textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 2px 2px 0 #8B0000',
-                      background: 'rgba(0,0,0,0.7)',
-                      padding: '8px 16px',
-                      borderRadius: '4px',
-                      border: '1px solid rgba(255,215,0,0.4)',
-                    }}>
-                      {gridCallout.bigText}
-                    </div>
-                    {gridCallout.smallText && (
-                      <div style={{
+                    <motion.div
+                      animate={{
+                        textShadow: [
+                          '0 0 30px rgba(255, 215, 0, 1), 4px 4px 0 #8B0000, -2px -2px 0 #cc8800, 0 0 80px rgba(255,200,0,0.6)',
+                          '0 0 50px rgba(255, 215, 0, 1), 4px 4px 0 #8B0000, -2px -2px 0 #cc8800, 0 0 120px rgba(255,200,0,0.8)',
+                          '0 0 30px rgba(255, 215, 0, 1), 4px 4px 0 #8B0000, -2px -2px 0 #cc8800, 0 0 80px rgba(255,200,0,0.6)',
+                        ],
+                        scale: [1, 1.08, 1],
+                      }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{
                         fontFamily: '"Press Start 2P", cursive',
-                        fontSize: '12px',
+                        fontSize: '36px',
                         color: '#FFD700',
-                        textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
-                        marginTop: '6px',
-                      }}>
+                        letterSpacing: '3px',
+                        WebkitTextStroke: '1px #8B6914',
+                        filter: 'drop-shadow(0 0 20px rgba(255,200,0,0.7))',
+                      }}
+                    >
+                      {gridCallout.bigText}
+                    </motion.div>
+                    {gridCallout.smallText && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.3 }}
+                        style={{
+                          fontFamily: '"Press Start 2P", cursive',
+                          fontSize: '16px',
+                          color: '#FFE44D',
+                          textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 2px 2px 0 #8B6914',
+                          marginTop: '10px',
+                          letterSpacing: '2px',
+                        }}
+                      >
                         {gridCallout.smallText}
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </motion.div>

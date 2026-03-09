@@ -27,7 +27,7 @@ export default function HomeScreen({ onStart }: Props) {
       {/* Button positioned in the water below the boat */}
       <div
         className="absolute left-1/2 z-10"
-        style={{ top: '80%', transform: 'translateX(-50%)' }}
+        style={{ top: '80%', transform: 'translateX(-50%)', maxWidth: '90vw' }}
       >
         <motion.button
           onClick={onStart}
@@ -37,9 +37,10 @@ export default function HomeScreen({ onStart }: Props) {
             color: '#FFD700',
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             border: '3px solid #FFD700',
-            padding: '24px 64px',
+            padding: 'clamp(12px, 3vh, 24px) clamp(24px, 5vw, 64px)',
             textShadow: '0 0 20px rgba(255, 215, 0, 0.7), 0 0 40px rgba(255, 215, 0, 0.3)',
             boxShadow: '0 0 15px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1)',
+            whiteSpace: 'nowrap',
           }}
           animate={{
             boxShadow: [
