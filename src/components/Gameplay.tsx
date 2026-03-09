@@ -689,9 +689,9 @@ export default function Gameplay({
           <h1
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: '#0294DE',
+              color: '#3969CA',
               fontSize: '28px',
-              textShadow: '0 0 30px rgba(2, 148, 222, 0.6), 3px 3px 0 #015a87',
+              textShadow: '0 0 30px rgba(57, 105, 202, 0.6), 3px 3px 0 #1a3a7a',
               letterSpacing: '8px',
             }}
           >
