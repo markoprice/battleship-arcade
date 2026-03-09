@@ -370,6 +370,8 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                 ROTATE (R)
               </span>
               <span
+                onClick={() => setOrientation((o) => (o === 'horizontal' ? 'vertical' : 'horizontal'))}
+                className="cursor-pointer"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   fontSize: '9px',
