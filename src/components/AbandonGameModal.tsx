@@ -26,7 +26,7 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
 
           {/* Dialog */}
           <motion.div
-            className="relative flex flex-col items-center gap-6 px-10 py-8"
+            className="relative flex flex-col items-center gap-10 px-16 py-12"
             style={{
               background: 'rgba(10, 10, 26, 0.95)',
               border: '3px solid #FFD700',

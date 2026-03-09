@@ -542,9 +542,6 @@ export default function Gameplay({
     };
   }, []);
 
-  // Store pending shot info so we can defer onPlayerFire until after missile lands
-  const pendingShotRef = useRef<{ row: number; col: number } | null>(null);
-
   // Handle AI shot — starts missile animation from right to left
   const fireAIShot = useCallback(() => {
     if (cancelledRef.current) return;
@@ -608,75 +605,10 @@ export default function Gameplay({
     }, 1500));
   }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playExplosion, playSplash, playShipSunk]);
 
-  // Called when player missile stream reaches the AI side
+  // Called when player missile stream animation finishes (purely visual now)
   const handlePlayerMissileComplete = useCallback(() => {
     setMissileDirection(null);
-    if (cancelledRef.current) return;
-    const shot = pendingShotRef.current;
-    if (!shot) {
-      processingRef.current = false;
-      setProcessing(false);
-      return;
-    }
-    pendingShotRef.current = null;
-
-    const result = onPlayerFire(shot.row, shot.col);
-    if (result === 'already') {
-      processingRef.current = false;
-      setProcessing(false);
-      return;
-    }
-
-    setCalloutSide('ai');
-
-    if (result === 'hit' || result === 'sunk') {
-      playExplosion();
-      if (result === 'sunk') playShipSunk();
-      playerStreakRef.current += 1;
-      setStatusText(`[X${playerStreakRef.current}] HIT!`);
-      setStatusColor('#ff6600');
-      setStatusSide('ai');
-      // Shake AI photo on hit
-      setShakeAI(true);
-      setTimeout(() => setShakeAI(false), 500);
-    } else if (result === 'miss') {
-      playSplash();
-      playerStreakRef.current = 0;
-      setStatusText('MISS!');
-      setStatusColor('#4488ff');
-      setStatusSide('ai');
-    } else if (result === 'win') {
-      playShipSunk();
-      playerStreakRef.current += 1;
-      setStatusText(`[X${playerStreakRef.current}] HIT!`);
-      setStatusColor('#ff6600');
-      setStatusSide('ai');
-      setShakeAI(true);
-      setTimeout(() => setShakeAI(false), 500);
-      timeoutIdsRef.current.push(setTimeout(() => {
-        processingRef.current = false;
-        setProcessing(false);
-        onWin();
-      }, 1500));
-      return;
-    }
-
-    // Show result for 1.5s, then show AI TURN, then proceed
-    timeoutIdsRef.current.push(setTimeout(() => {
-      if (cancelledRef.current) return;
-      setStatusText('AI TURN');
-      setStatusColor('#ff4444');
-      setStatusSide('ai');
-      timeoutIdsRef.current.push(setTimeout(() => {
-        if (cancelledRef.current) return;
-        onEndPlayerTurn();
-        timeoutIdsRef.current.push(setTimeout(() => {
-          if (cancelledRef.current) return;
-          fireAIShot();
-        }, 300));
-      }, 800));
-    }, 1500));
-  }, [onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk]);
+  }, []);
 
   const handlePlayerShot = useCallback(
     (row: number, col: number) => {
@@ -686,13 +618,73 @@ export default function Gameplay({
 
       processingRef.current = true;
       setProcessing(true);
-      pendingShotRef.current = { row, col };
-      // Show missile stream from left (player) to right (AI)
-      setStatusText('');
+
+      // Fire immediately — update the board right away
+      const result = onPlayerFire(row, col);
+      if (result === 'already') {
+        processingRef.current = false;
+        setProcessing(false);
+        return;
+      }
+
+      setCalloutSide('ai');
+
+      // Show result text immediately
+      if (result === 'hit' || result === 'sunk') {
+        playExplosion();
+        if (result === 'sunk') playShipSunk();
+        playerStreakRef.current += 1;
+        setStatusText(`[X${playerStreakRef.current}] HIT!`);
+        setStatusColor('#ff6600');
+        setStatusSide('ai');
+        setShakeAI(true);
+        setTimeout(() => setShakeAI(false), 500);
+      } else if (result === 'miss') {
+        playSplash();
+        playerStreakRef.current = 0;
+        setStatusText('MISS!');
+        setStatusColor('#4488ff');
+        setStatusSide('ai');
+      } else if (result === 'win') {
+        playShipSunk();
+        playerStreakRef.current += 1;
+        setStatusText(`[X${playerStreakRef.current}] HIT!`);
+        setStatusColor('#ff6600');
+        setStatusSide('ai');
+        setShakeAI(true);
+        setTimeout(() => setShakeAI(false), 500);
+        timeoutIdsRef.current.push(setTimeout(() => {
+          processingRef.current = false;
+          setProcessing(false);
+          onWin();
+        }, 1500));
+        // Still fire missile animation visually
+        missileIdRef.current += 1;
+        setMissileDirection('left-to-right');
+        return;
+      }
+
+      // Fire missile animation visually (purely cosmetic now)
       missileIdRef.current += 1;
       setMissileDirection('left-to-right');
+
+      // Show result for 1.5s, then show AI TURN, then proceed
+      timeoutIdsRef.current.push(setTimeout(() => {
+        if (cancelledRef.current) return;
+        setStatusText('AI TURN');
+        setStatusColor('#ff4444');
+        setStatusSide('ai');
+        timeoutIdsRef.current.push(setTimeout(() => {
+          if (cancelledRef.current) return;
+          onEndPlayerTurn();
+          timeoutIdsRef.current.push(setTimeout(() => {
+            if (cancelledRef.current) return;
+            fireAIShot();
+          }, 300));
+        }, 800));
+      }, 1500));
     },
-    [isPlayerTurn, aiBoard]
+    [isPlayerTurn, aiBoard, onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk]
   );
 
   // Auto-unlock processing if stuck
@@ -725,9 +717,9 @@ export default function Gameplay({
           <h1
             style={{
               fontFamily: '"Press Start 2P", cursive',
-              color: '#FFD700',
+              color: '#0294DE',
               fontSize: '28px',
-              textShadow: '0 0 30px rgba(255, 215, 0, 0.6), 3px 3px 0 #8B6914',
+              textShadow: '0 0 30px rgba(2, 148, 222, 0.6), 3px 3px 0 #015a87',
               letterSpacing: '8px',
             }}
           >
@@ -738,7 +730,7 @@ export default function Gameplay({
               width: 'min(60%, 600px)',
               height: '2px',
               margin: '6px auto 0',
-              background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
+              background: 'linear-gradient(90deg, transparent, #0294DE, transparent)',
             }}
           />
         </div>
@@ -873,7 +865,7 @@ export default function Gameplay({
                   transition={{ duration: 0.3 }}
                   style={{
                     position: 'absolute',
-                    top: `${photoSize / 2 - 12}px`,
+                    top: `${photoSize + 8}px`,
                     left: 0,
                     right: 0,
                     display: 'flex',
@@ -946,7 +938,7 @@ export default function Gameplay({
                   transition={{ duration: 0.3 }}
                   style={{
                     position: 'absolute',
-                    top: `${photoSize / 2 - 12}px`,
+                    top: `${photoSize + 8}px`,
                     left: 0,
                     right: 0,
                     display: 'flex',
