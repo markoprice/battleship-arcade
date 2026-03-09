@@ -134,7 +134,7 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
           style={{
             fontFamily: '"Press Start 2P", cursive',
             color,
-            fontSize: '24px',
+            fontSize: '48px',
             textShadow: `0 0 15px ${color}66`,
             lineHeight: 1.2,
           }}
@@ -371,8 +371,9 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
                     fontFamily: '"Press Start 2P", cursive',
                     color: '#FFD700',
                     fontSize: '22px',
-                    width: '440px',
+                    width: '600px',
                     height: '90px',
+                    whiteSpace: 'nowrap',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
