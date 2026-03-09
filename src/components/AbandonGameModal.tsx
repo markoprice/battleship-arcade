@@ -103,11 +103,11 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
                   fontFamily: '"Press Start 2P", cursive',
                   fontSize: '16px',
                   padding: '14px 32px',
-                  color: '#21C19A',
-                  background: focusIndex === 1 ? 'rgba(33, 193, 154, 0.25)' : 'rgba(33, 193, 154, 0.1)',
-                  border: `2px solid ${focusIndex === 1 ? '#2AD4A8' : '#21C19A'}`,
+                  color: '#3969CA',
+                  background: focusIndex === 1 ? 'rgba(57, 105, 202, 0.25)' : 'rgba(57, 105, 202, 0.1)',
+                  border: `2px solid ${focusIndex === 1 ? '#4A7ADB' : '#3969CA'}`,
                   borderRadius: '2px',
-                  boxShadow: focusIndex === 1 ? '0 0 12px rgba(33,193,154,0.4)' : 'none',
+                  boxShadow: focusIndex === 1 ? '0 0 12px rgba(57,105,202,0.4)' : 'none',
                 }}
               >
                 NO

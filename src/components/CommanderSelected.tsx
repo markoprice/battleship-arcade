@@ -12,11 +12,11 @@ interface Props {
 
 function LargePortrait({ character, side, delay }: { character: Character; side: 'left' | 'right'; delay: number }) {
   const isSales = character.team === 'sales';
-  const borderColor = isSales ? '#21C19A' : '#3969CA';
-  const glowColor = isSales ? 'rgba(33, 193, 154, 0.6)' : 'rgba(57, 105, 202, 0.6)';
+  const borderColor = isSales ? '#3969CA' : '#21C19A';
+  const glowColor = isSales ? 'rgba(57, 105, 202, 0.6)' : 'rgba(33, 193, 154, 0.6)';
   const tintBg = isSales
-    ? 'linear-gradient(135deg, #0a3d2e 0%, #1a5e4a 50%, #0a3d2e 100%)'
-    : 'linear-gradient(135deg, #1a2a5e 0%, #2a3d7a 50%, #1a2a5e 100%)';
+    ? 'linear-gradient(135deg, #1a2a5e 0%, #2a3d7a 50%, #1a2a5e 100%)'
+    : 'linear-gradient(135deg, #0a3d2e 0%, #1a5e4a 50%, #0a3d2e 100%)';
 
   return (
     <motion.div
@@ -95,7 +95,7 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
           textShadow: `0 0 8px ${glowColor}`,
         }}
       >
-        {isSales ? 'SALES' : 'PRODUCT'}
+        {isSales ? 'GTM' : 'ENG'}
       </motion.div>
 
       {/* Stats with animated bars */}
@@ -124,8 +124,8 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
                 transition={{ duration: 0.8, delay: delay + 0.9 + i * 0.15, ease: 'easeOut' }}
                 style={{
                   background: isSales
-                    ? 'linear-gradient(90deg, #21C19A, #2ECC71)'
-                    : 'linear-gradient(90deg, #3969CA, #9B59B6)',
+                    ? 'linear-gradient(90deg, #3969CA, #9B59B6)'
+                    : 'linear-gradient(90deg, #21C19A, #2ECC71)',
                 }}
               />
             </div>

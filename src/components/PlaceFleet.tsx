@@ -260,7 +260,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                       bottom: !sameShip(row + 1, col),
                       left: !sameShip(row, col - 1),
                     } : null;
-                    const shipBorderColor = '#21C19A';
+                    const shipBorderColor = '#3969CA';
                     const defaultBorder = '1px solid rgba(0, 229, 255, 0.3)';
 
                     return (
@@ -278,14 +278,14 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                                                     borderLeft: borders?.left ? `2px solid ${shipBorderColor}` : (borders && !borders.left) ? `1px solid ${shipBorderColor}22` : defaultBorder,
                           boxSizing: 'border-box',
                           background: isShip
-                            ? 'rgba(33, 193, 154, 0.2)'
+                            ? 'rgba(57, 105, 202, 0.2)'
                             : hover
-                              ? 'rgba(33, 193, 154, 0.3)'
+                              ? 'rgba(57, 105, 202, 0.3)'
                               : invalid
                                 ? 'rgba(255, 60, 60, 0.3)'
                                 : 'rgba(0, 229, 255, 0.05)',
                           boxShadow: hover
-                              ? '0 0 5px rgba(33, 193, 154, 0.4)'
+                              ? '0 0 5px rgba(57, 105, 202, 0.4)'
                               : invalid
                                 ? '0 0 5px rgba(255, 60, 60, 0.3)'
                                 : 'none',
@@ -391,9 +391,9 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   fontSize: '11px',
-                  color: '#21C19A',
-                  backgroundColor: 'rgba(33, 193, 154, 0.1)',
-                  border: '3px solid #21C19A',
+                  color: '#3969CA',
+                  backgroundColor: 'rgba(57, 105, 202, 0.1)',
+                  border: '3px solid #3969CA',
                   borderRadius: '2px',
                   padding: '12px 20px',
                 }}

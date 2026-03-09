@@ -193,7 +193,7 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
           {/* Commander cards row */}
           <div className="flex items-start justify-center">
           {/* SALES stacked label */}
-          <StackedLabel text="SALES" color="#21C19A" />
+          <StackedLabel text="GTM" color="#3969CA" />
 
           {/* Sales panel */}
           <div className="flex flex-col items-center shrink-0" style={{ maxWidth: '340px' }}>
@@ -258,9 +258,9 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
               className="text-center mt-6"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
-                color: '#21C19A',
+                color: '#3969CA',
                 fontSize: '13px',
-                textShadow: '0 0 8px rgba(33, 193, 154, 0.5)',
+                textShadow: '0 0 8px rgba(57, 105, 202, 0.5)',
               }}
             >
               HUMAN PLAYER
@@ -347,9 +347,9 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
               className="text-center mt-6"
               style={{
                 fontFamily: '"Press Start 2P", cursive',
-                color: '#3969CA',
+                color: '#21C19A',
                 fontSize: '13px',
-                textShadow: '0 0 8px rgba(57, 105, 202, 0.5)',
+                textShadow: '0 0 8px rgba(33, 193, 154, 0.5)',
               }}
             >
               AI OPPONENT
@@ -357,7 +357,7 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
           </div>
 
           {/* ENG stacked label */}
-          <StackedLabel text="PRODUCT" color="#3969CA" />
+          <StackedLabel text="ENG" color="#21C19A" />
           </div>
 
           {/* PLACE YOUR FLEET button — inside commander section, directly under cards */}
