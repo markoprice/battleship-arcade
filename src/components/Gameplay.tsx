@@ -26,6 +26,7 @@ interface Props {
   playSplash: () => void;
   playShipSunk: () => void;
   playClickSound: () => void;
+  playIncomingHit: () => void;
 }
 
 // NBA Jam-style callout phrases
@@ -795,6 +796,7 @@ export default function Gameplay({
   playSplash,
   playShipSunk,
   playClickSound,
+  playIncomingHit,
   onExit,
 }: Props) {
   const [processing, setProcessing] = useState(false);
@@ -888,11 +890,11 @@ export default function Gameplay({
     onAIPeekTarget();
     const aiResult = onAIFire();
     if (aiResult.result === 'hit') {
-      playExplosion();
+      playIncomingHit();
       setShakePlayer(true);
       timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
     } else if (aiResult.result === 'sunk') {
-      playExplosion();
+      playIncomingHit();
       playShipSunk();
       engSunkCountRef.current += 1;
       const bigText = getEngSunkBigText(engSunkCountRef.current);
@@ -902,7 +904,7 @@ export default function Gameplay({
     } else if (aiResult.result === 'miss') {
       playSplash();
     } else if (aiResult.result === 'lose') {
-      playExplosion();
+      playIncomingHit();
       playShipSunk();
       engSunkCountRef.current += 1;
       const bigText = getEngSunkBigText(engSunkCountRef.current);
@@ -933,7 +935,7 @@ export default function Gameplay({
         setProcessing(false);
       }, 300));
     }, 600));
-  }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playExplosion, playSplash, playShipSunk, showGridCallout, getEngSunkBigText]);
+  }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playIncomingHit, playSplash, playShipSunk, showGridCallout, getEngSunkBigText]);
 
 
   const handlePlayerShot = useCallback(

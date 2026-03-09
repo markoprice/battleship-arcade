@@ -169,6 +169,26 @@ export function useSound() {
     setTimeout(() => playTone(900, 0.15, 'square', 0.2), 120);
   }, []);
 
+  /** Incoming hit — deep boom when opponent strikes your ship */
+  const playIncomingHit = useCallback(() => {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+    // Deep boom
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.35);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.4);
+    // Impact noise burst
+    playNoise(0.2, 0.25);
+  }, []);
+
   return {
     startSonarLoop,
     stopSonarLoop,
@@ -181,5 +201,6 @@ export function useSound() {
     playClickSound,
     playRouletteTick,
     playStart,
+    playIncomingHit,
   };
 }
