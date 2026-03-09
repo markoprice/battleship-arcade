@@ -569,7 +569,7 @@ export default function Gameplay({
       return;
     }
 
-    // Show result for 1.5s, then show YOUR TURN, then proceed
+    // Show YOUR TURN quickly and unlock
     timeoutIdsRef.current.push(setTimeout(() => {
       if (cancelledRef.current) return;
       setStatusText('YOUR TURN');
@@ -580,8 +580,8 @@ export default function Gameplay({
         onStartPlayerTurn();
         processingRef.current = false;
         setProcessing(false);
-      }, 800));
-    }, 1500));
+      }, 300));
+    }, 600));
   }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playExplosion, playSplash, playShipSunk, showGridCallout, getEngSunkBigText]);
 
 
@@ -639,7 +639,7 @@ export default function Gameplay({
         return;
       }
 
-      // Show result for 1.5s, then show AI TURN, then proceed
+      // Show AI TURN quickly and proceed
       timeoutIdsRef.current.push(setTimeout(() => {
         if (cancelledRef.current) return;
         setStatusText('AI TURN');
@@ -651,9 +651,9 @@ export default function Gameplay({
           timeoutIdsRef.current.push(setTimeout(() => {
             if (cancelledRef.current) return;
             fireAIShot();
-          }, 300));
-        }, 800));
-      }, 1500));
+          }, 100));
+        }, 300));
+      }, 600));
     },
     [isPlayerTurn, aiBoard, onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk, playClickSound, showGridCallout, getSalesSunkBigText]
   );
