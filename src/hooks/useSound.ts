@@ -72,9 +72,27 @@ export function useSound() {
   }, []);
 
   const playExplosion = useCallback(() => {
-    playNoise(0.3, 0.4);
-    playTone(100, 0.4, 'sawtooth', 0.3);
-    setTimeout(() => playTone(60, 0.3, 'square', 0.2), 100);
+    // Deep boom — low rumble with falling pitch
+    const ctx = getCtx();
+    // Bass rumble oscillator with pitch drop
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.5);
+    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.6);
+    // Noise burst for crackle
+    playNoise(0.4, 0.3);
+    // Secondary low thud
+    setTimeout(() => {
+      playTone(40, 0.3, 'sine', 0.25);
+      playNoise(0.2, 0.15);
+    }, 80);
   }, []);
 
   const playSplash = useCallback(() => {
