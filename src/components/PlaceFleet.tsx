@@ -430,6 +430,13 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
             >
               <motion.div
                 className="flex flex-col items-center gap-8"
+                style={{
+                  background: 'rgba(0, 0, 0, 0.6)',
+                  border: '2px solid rgba(255, 215, 0, 0.3)',
+                  borderRadius: '4px',
+                  padding: '48px 64px',
+                  boxShadow: '0 0 40px rgba(0, 0, 0, 0.5)',
+                }}
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.5, opacity: 0 }}
