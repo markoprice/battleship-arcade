@@ -72,7 +72,7 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
               style={{
                 fontFamily: '"Press Start 2P", cursive',
                 color: '#FFD700',
-                fontSize: '16px',
+                fontSize: '24px',
                 textShadow: '0 0 15px rgba(255, 215, 0, 0.5)',
               }}
             >
@@ -82,10 +82,11 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
             <div className="flex gap-6">
               <button
                 onClick={() => { sound.playClickSound(); onConfirm(); }}
-                className="px-6 py-3 cursor-pointer transition-all hover:scale-105"
+                className="cursor-pointer transition-all hover:scale-105"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
-                  fontSize: '12px',
+                  fontSize: '16px',
+                  padding: '14px 32px',
                   color: '#ff4444',
                   background: focusIndex === 0 ? 'rgba(255, 68, 68, 0.25)' : 'rgba(255, 68, 68, 0.1)',
                   border: `2px solid ${focusIndex === 0 ? '#ff6666' : '#ff4444'}`,
@@ -97,10 +98,11 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
               </button>
               <button
                 onClick={() => { sound.playClickSound(); onCancel(); }}
-                className="px-6 py-3 cursor-pointer transition-all hover:scale-105"
+                className="cursor-pointer transition-all hover:scale-105"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
-                  fontSize: '12px',
+                  fontSize: '16px',
+                  padding: '14px 32px',
                   color: '#21C19A',
                   background: focusIndex === 1 ? 'rgba(33, 193, 154, 0.25)' : 'rgba(33, 193, 154, 0.1)',
                   border: `2px solid ${focusIndex === 1 ? '#2AD4A8' : '#21C19A'}`,
