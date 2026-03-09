@@ -570,17 +570,11 @@ function GameGrid({
               const isHit = cell.state === 'hit';
               const isMiss = cell.state === 'miss';
               const hasShip = (cell.state === 'ship' || cell.state === 'hit') && !!cell.shipId;
-              const showShip = hasShip && (!isEnemy || isShipSunk(cell.shipId, placedShips));
               const canClick = isEnemy && !isHit && !isMiss && !disabled;
               const sunk = hasShip && isShipSunk(cell.shipId, placedShips);
 
-              // Suppress internal borders between cells of the same ship
+              // Uniform grid lines for ALL cells — ships are rendered as SVG silhouettes, not cell styles
               const gridLine = `1px solid ${borderColor}33`;
-              const suppressedLine = '1px solid transparent';
-              const bTop = showShip && isInternalShipEdge(board, row, col, 'top') ? suppressedLine : gridLine;
-              const bRight = showShip && isInternalShipEdge(board, row, col, 'right') ? suppressedLine : gridLine;
-              const bBottom = showShip && isInternalShipEdge(board, row, col, 'bottom') ? suppressedLine : gridLine;
-              const bLeft = showShip && isInternalShipEdge(board, row, col, 'left') ? suppressedLine : gridLine;
 
               return (
                 <div
@@ -588,10 +582,10 @@ function GameGrid({
                   style={{
                     width: `${CELL_SIZE}px`,
                     height: `${CELL_SIZE}px`,
-                    borderTop: bTop,
-                    borderRight: bRight,
-                    borderBottom: bBottom,
-                    borderLeft: bLeft,
+                    borderTop: gridLine,
+                    borderRight: gridLine,
+                    borderBottom: gridLine,
+                    borderLeft: gridLine,
                     background: isHit
                       ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(80, 20, 0, 0.6)')
                       : isMiss

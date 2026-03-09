@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Ship, PlacedShip, Board, BoardCell, Orientation } from '../types';
-import { buildShipOutlinePaths, isInternalShipEdge } from './Gameplay';
+import { buildShipOutlinePaths } from './Gameplay';
 import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
 import ArcadeCanvas from './ArcadeCanvas';
@@ -244,18 +244,10 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                     {row + 1}
                   </div>
                   {Array.from({ length: 10 }, (_, col) => {
-                    const cell = board[row][col];
                     const hover = isHovered(row, col);
                     const invalid = isInvalidHover(row, col);
-                    const isShip = cell.state === 'ship';
-
-                    // Suppress internal borders between cells of the same ship
+                    // Uniform grid lines for ALL cells — ships are SVG silhouettes, not cell styles
                     const gridLine = '1px solid rgba(0, 229, 255, 0.3)';
-                    const suppressedLine = '1px solid transparent';
-                    const bTop = isShip && isInternalShipEdge(board, row, col, 'top') ? suppressedLine : gridLine;
-                    const bRight = isShip && isInternalShipEdge(board, row, col, 'right') ? suppressedLine : gridLine;
-                    const bBottom = isShip && isInternalShipEdge(board, row, col, 'bottom') ? suppressedLine : gridLine;
-                    const bLeft = isShip && isInternalShipEdge(board, row, col, 'left') ? suppressedLine : gridLine;
 
                     return (
                       <div
@@ -265,10 +257,10 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                           position: 'relative',
                           width: `${CELL}px`,
                           height: `${CELL}px`,
-                          borderTop: bTop,
-                          borderRight: bRight,
-                          borderBottom: bBottom,
-                          borderLeft: bLeft,
+                          borderTop: gridLine,
+                          borderRight: gridLine,
+                          borderBottom: gridLine,
+                          borderLeft: gridLine,
                           boxSizing: 'border-box',
                           background: hover
                               ? 'rgba(57, 105, 202, 0.3)'
