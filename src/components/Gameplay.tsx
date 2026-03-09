@@ -615,17 +615,6 @@ function GameGrid({
                     if (canClick && onCellClick) onCellClick(row, col);
                   }}
                 >
-                  {isHit && sunk && <SunkFireAnimation />}
-                  {isHit && !sunk && (
-                    <div style={{
-                      position: 'absolute',
-                      inset: '0%',
-                      borderRadius: '20%',
-                      background: 'radial-gradient(ellipse at center, rgba(255,100,10,0.9) 0%, rgba(200,50,0,0.5) 50%, transparent 90%)',
-                    }}>
-                      <FireAnimation />
-                    </div>
-                  )}
                   {isMiss && <SplashAnimation />}
                 </div>
               );
@@ -670,6 +659,52 @@ function GameGrid({
             </svg>
           );
         })()}
+        {/* Fire/explosion effects overlay — renders ABOVE ships (zIndex > 10) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: `${LABEL_WIDTH}px`,
+            width: `${CELL_SIZE * 10}px`,
+            height: `${CELL_SIZE * 10}px`,
+            pointerEvents: 'none',
+            zIndex: 20,
+          }}
+        >
+          {Array.from({ length: 10 }, (_, row) =>
+            Array.from({ length: 10 }, (_, col) => {
+              const cell = board[row][col];
+              if (cell.state !== 'hit') return null;
+              const sunk = cell.shipId ? (isShipSunk(cell.shipId, placedShips)) : false;
+              return (
+                <div
+                  key={`${row}-${col}`}
+                  style={{
+                    position: 'absolute',
+                    left: `${col * CELL_SIZE}px`,
+                    top: `${row * CELL_SIZE}px`,
+                    width: `${CELL_SIZE}px`,
+                    height: `${CELL_SIZE}px`,
+                    overflow: 'hidden',
+                  }}
+                >
+                  {sunk ? (
+                    <SunkFireAnimation />
+                  ) : (
+                    <div style={{
+                      position: 'absolute',
+                      inset: '0%',
+                      borderRadius: '20%',
+                      background: 'radial-gradient(ellipse at center, rgba(255,100,10,0.9) 0%, rgba(200,50,0,0.5) 50%, transparent 90%)',
+                    }}>
+                      <FireAnimation />
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
         </div>
       </div>
     </motion.div>
