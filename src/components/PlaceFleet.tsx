@@ -5,6 +5,7 @@ import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
 import ArcadeCanvas from './ArcadeCanvas';
 import ExitButton from './ExitButton';
+import { useSound } from '../hooks/useSound';
 
 interface Props {
   onReady: (board: Board, placedShips: PlacedShip[]) => void;
@@ -20,6 +21,7 @@ function createEmptyBoard(): Board {
 }
 
 export default function PlaceFleet({ onReady, onExit }: Props) {
+  const sound = useSound();
   const [board, setBoard] = useState<Board>(createEmptyBoard);
   const [placedShips, setPlacedShips] = useState<PlacedShip[]>([]);
   const [selectedShip, setSelectedShip] = useState<Ship | null>(ships[0]);
@@ -89,6 +91,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
   const handleCellClick = useCallback(
     (row: number, col: number) => {
       if (!selectedShip) return;
+      sound.playClickSound();
       const cells = getCells(row, col, selectedShip, orientation);
       if (!cells) return;
 
@@ -106,7 +109,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
       const nextShip = ships.find((s) => !newPlacedIds.includes(s.id)) ?? null;
       setSelectedShip(nextShip);
     },
-    [selectedShip, orientation, board, placedShips, getCells]
+    [selectedShip, orientation, board, placedShips, getCells, sound]
   );
 
   // Reset focus when popup opens
@@ -140,6 +143,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
   }, [allPlaced]);
 
   const handleReset = () => {
+    sound.playClickSound();
     setBoard(createEmptyBoard());
     setPlacedShips([]);
     setSelectedShip(ships[0]);
@@ -256,7 +260,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                       bottom: !sameShip(row + 1, col),
                       left: !sameShip(row, col - 1),
                     } : null;
-                    const shipBorderColor = '#3969CA';
+                    const shipBorderColor = '#21C19A';
                     const defaultBorder = '1px solid rgba(0, 229, 255, 0.3)';
 
                     return (
@@ -274,14 +278,14 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                                                     borderLeft: borders?.left ? `2px solid ${shipBorderColor}` : (borders && !borders.left) ? `1px solid ${shipBorderColor}22` : defaultBorder,
                           boxSizing: 'border-box',
                           background: isShip
-                            ? 'rgba(57, 105, 202, 0.2)'
+                            ? 'rgba(33, 193, 154, 0.2)'
                             : hover
-                              ? 'rgba(57, 105, 202, 0.3)'
+                              ? 'rgba(33, 193, 154, 0.3)'
                               : invalid
                                 ? 'rgba(255, 60, 60, 0.3)'
                                 : 'rgba(0, 229, 255, 0.05)',
                           boxShadow: hover
-                              ? '0 0 5px rgba(57, 105, 202, 0.4)'
+                              ? '0 0 5px rgba(33, 193, 154, 0.4)'
                               : invalid
                                 ? '0 0 5px rgba(255, 60, 60, 0.3)'
                                 : 'none',
@@ -387,9 +391,9 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   fontSize: '11px',
-                  color: '#3969CA',
-                  backgroundColor: 'rgba(57, 105, 202, 0.1)',
-                  border: '3px solid #3969CA',
+                  color: '#21C19A',
+                  backgroundColor: 'rgba(33, 193, 154, 0.1)',
+                  border: '3px solid #21C19A',
                   borderRadius: '2px',
                   padding: '12px 20px',
                 }}

@@ -25,6 +25,7 @@ interface Props {
   playExplosion: () => void;
   playSplash: () => void;
   playShipSunk: () => void;
+  playClickSound: () => void;
 }
 
 // NBA Jam-style callout phrases
@@ -516,6 +517,7 @@ export default function Gameplay({
   playExplosion,
   playSplash,
   playShipSunk,
+  playClickSound,
   onExit,
 }: Props) {
   const [processing, setProcessing] = useState(false);
@@ -683,6 +685,9 @@ export default function Gameplay({
       const cell = aiBoard[row][col];
       if (cell.state === 'hit' || cell.state === 'miss') return;
 
+      // Click feedback on grid cell
+      playClickSound();
+
       processingRef.current = true;
       setProcessing(true);
 
@@ -755,7 +760,7 @@ export default function Gameplay({
         }, 800));
       }, 1500));
     },
-    [isPlayerTurn, aiBoard, onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk, showGridCallout, getSalesSunkBigText]
+    [isPlayerTurn, aiBoard, onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk, playClickSound, showGridCallout, getSalesSunkBigText]
   );
 
   // Auto-unlock processing if stuck
@@ -804,7 +809,7 @@ export default function Gameplay({
           <div className="flex flex-col" style={{ position: 'relative' }}>
             <GameGrid
               board={playerBoard}
-              borderColor="#3969CA"
+              borderColor="#21C19A"
               isEnemy={false}
               isBeingAttacked={!isPlayerTurn}
               gridRef={playerGridRef}
@@ -879,9 +884,9 @@ export default function Gameplay({
                   width: `${photoSize}px`,
                   height: `${photoSize}px`,
                   borderRadius: '10px',
-                  border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
+                  border: `3px solid ${isPlayerTurn ? '#21C19A' : 'rgba(33,193,154,0.3)'}`,
                   overflow: 'hidden',
-                  boxShadow: isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
+                  boxShadow: isPlayerTurn ? '0 0 20px rgba(33,193,154,0.6)' : 'none',
                   transition: 'border-color 0.3s, box-shadow 0.3s',
                   flexShrink: 0,
                 }}
@@ -889,7 +894,7 @@ export default function Gameplay({
                 {playerCharacter.portrait ? (
                   <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
                 ) : (
-                  <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '48px' }}>
+                  <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))', fontSize: '48px' }}>
                     {String.fromCodePoint(0x1F3AF)}
                   </div>
                 )}
@@ -926,13 +931,13 @@ export default function Gameplay({
           {/* CENTER COLUMN — ship statuses */}
           <div className="flex flex-col items-center justify-start" style={{ width: '200px', paddingTop: '20px', gap: '12px' }}>
             <div style={{ width: '100%' }}>
-              <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '6px', color: '#3969CA', marginBottom: '4px', textAlign: 'center' }}>YOUR FLEET</div>
-              <ShipTracker placedShips={playerShips} borderColor="#3969CA" boardWidth={200} />
+              <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '6px', color: '#21C19A', marginBottom: '4px', textAlign: 'center' }}>YOUR FLEET</div>
+              <ShipTracker placedShips={playerShips} borderColor="#21C19A" boardWidth={200} />
             </div>
             <div style={{ width: '80%', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
             <div style={{ width: '100%' }}>
-              <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '6px', color: '#21C19A', marginBottom: '4px', textAlign: 'center' }}>ENEMY FLEET</div>
-              <ShipTracker placedShips={aiShips} borderColor="#21C19A" boardWidth={200} />
+              <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '6px', color: '#3969CA', marginBottom: '4px', textAlign: 'center' }}>ENEMY FLEET</div>
+              <ShipTracker placedShips={aiShips} borderColor="#3969CA" boardWidth={200} />
             </div>
 
             {/* Missile stream removed from center — now rendered as full-width overlay */}
@@ -942,7 +947,7 @@ export default function Gameplay({
           <div className="flex flex-col" style={{ position: 'relative' }}>
             <GameGrid
               board={aiBoard}
-              borderColor="#21C19A"
+              borderColor="#3969CA"
               isEnemy
               isBeingAttacked={isPlayerTurn}
               onCellClick={handlePlayerShot}
@@ -1045,9 +1050,9 @@ export default function Gameplay({
                   width: `${photoSize}px`,
                   height: `${photoSize}px`,
                   borderRadius: '10px',
-                  border: `3px solid ${!isPlayerTurn ? '#21C19A' : 'rgba(33,193,154,0.3)'}`,
+                  border: `3px solid ${!isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
                   overflow: 'hidden',
-                  boxShadow: !isPlayerTurn ? '0 0 20px rgba(33,193,154,0.6)' : 'none',
+                  boxShadow: !isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
                   transition: 'border-color 0.3s, box-shadow 0.3s',
                   flexShrink: 0,
                 }}
@@ -1055,7 +1060,7 @@ export default function Gameplay({
                 {aiCharacter.portrait ? (
                   <img src={aiCharacter.portrait} alt={aiCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
                 ) : (
-                  <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))', fontSize: '48px' }}>
+                  <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '48px' }}>
                     {String.fromCodePoint(0x1F4BB)}
                   </div>
                 )}

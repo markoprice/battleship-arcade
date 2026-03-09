@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSound } from '../hooks/useSound';
 
 interface Props {
   open: boolean;
@@ -9,6 +10,7 @@ interface Props {
 
 export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
   const [focusIndex, setFocusIndex] = useState(0); // 0 = YES, 1 = NO
+  const sound = useSound();
 
   // Reset focus when opened
   useEffect(() => {
@@ -76,7 +78,7 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
 
             <div className="flex gap-6">
               <button
-                onClick={onConfirm}
+                onClick={() => { sound.playClickSound(); onConfirm(); }}
                 className="px-6 py-3 cursor-pointer transition-all hover:scale-105"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
@@ -91,7 +93,7 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
                 YES
               </button>
               <button
-                onClick={onCancel}
+                onClick={() => { sound.playClickSound(); onCancel(); }}
                 className="px-6 py-3 cursor-pointer transition-all hover:scale-105"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AbandonGameModal from './AbandonGameModal';
+import { useSound } from '../hooks/useSound';
 
 interface Props {
   onExit: () => void;
@@ -7,11 +8,12 @@ interface Props {
 
 export default function ExitButton({ onExit }: Props) {
   const [showModal, setShowModal] = useState(false);
+  const sound = useSound();
 
   return (
     <>
       <button
-        onClick={() => setShowModal(true)}
+        onClick={() => { sound.playClickSound(); setShowModal(true); }}
         className="absolute w-10 h-10 flex items-center justify-center cursor-pointer transition-all hover:scale-110"
         style={{
           top: '12px',

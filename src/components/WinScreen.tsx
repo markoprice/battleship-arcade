@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import bgImage from '../assets/background.jpg';
 import ArcadeCanvas from './ArcadeCanvas';
+import { useSound } from '../hooks/useSound';
 
 interface Props {
   onPlayAgain: () => void;
 }
 
 export default function WinScreen({ onPlayAgain }: Props) {
+  const sound = useSound();
   useEffect(() => {
     // Gold confetti explosion
     const duration = 3000;
@@ -81,12 +83,12 @@ export default function WinScreen({ onPlayAgain }: Props) {
             marginBottom: '48px',
           }}
         >
-          Sales wins. Maybe stick to coding, Engineering.
+          Sales wins. Maybe stick to coding, Product.
         </div>
       </motion.div>
 
       <motion.button
-        onClick={onPlayAgain}
+        onClick={() => { sound.playClickSound(); onPlayAgain(); }}
         className="relative z-10 tracking-wider cursor-pointer"
         style={{
           fontFamily: '"Press Start 2P", cursive',

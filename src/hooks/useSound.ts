@@ -122,6 +122,10 @@ export function useSound() {
     playTone(400 + pitch * 30, 0.06, 'square', 0.12);
   }, []);
 
+  const playClickSound = useCallback(() => {
+    playTone(500, 0.08, 'square', 0.1);
+  }, []);
+
   const playStart = useCallback(() => {
     playTone(600, 0.1, 'square', 0.2);
     setTimeout(() => playTone(900, 0.15, 'square', 0.2), 120);
@@ -136,6 +140,7 @@ export function useSound() {
     playWin,
     playLose,
     playSelect,
+    playClickSound,
     playRouletteTick,
     playStart,
   };

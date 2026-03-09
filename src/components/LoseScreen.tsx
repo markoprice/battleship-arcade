@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 import bgImage from '../assets/background.jpg';
 import ArcadeCanvas from './ArcadeCanvas';
+import { useSound } from '../hooks/useSound';
 
 interface Props {
   onPlayAgain: () => void;
 }
 
 export default function LoseScreen({ onPlayAgain }: Props) {
+  const sound = useSound();
   return (
     <ArcadeCanvas>
     <motion.div
@@ -48,12 +50,12 @@ export default function LoseScreen({ onPlayAgain }: Props) {
             marginBottom: '48px',
           }}
         >
-          Engineering shipped faster. Better luck next quarter.
+          Product shipped faster. Better luck next quarter.
         </div>
       </motion.div>
 
       <motion.button
-        onClick={onPlayAgain}
+        onClick={() => { sound.playClickSound(); onPlayAgain(); }}
         className="relative z-10 tracking-wider cursor-pointer"
         style={{
           fontFamily: '"Press Start 2P", cursive',

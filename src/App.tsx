@@ -105,6 +105,7 @@ function App() {
             playExplosion={sound.playExplosion}
             playSplash={sound.playSplash}
             playShipSunk={sound.playShipSunk}
+            playClickSound={sound.playClickSound}
           />
         )}
         {game.screen === 'win' && (

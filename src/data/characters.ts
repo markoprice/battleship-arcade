@@ -25,7 +25,7 @@ export const salesCharacters: Character[] = [
   {
     id: 'sebastian',
     name: 'Sebastian Canizares',
-    title: 'GTM Leader',
+    title: 'GTM Lead',
     nickname: 'The Connector',
     team: 'sales',
     portrait: arcadeSebastian,
@@ -38,7 +38,7 @@ export const salesCharacters: Character[] = [
   {
     id: 'bobby',
     name: 'Bobby Nobakht',
-    title: 'GTM',
+    title: 'Account Director',
     nickname: 'The Hunter',
     team: 'sales',
     portrait: arcadeBobby,
@@ -51,7 +51,7 @@ export const salesCharacters: Character[] = [
   {
     id: 'satwik',
     name: 'Satwik Bebortha',
-    title: 'Engineering Leader',
+    title: 'FDE Lead',
     nickname: 'The Leader',
     team: 'sales',
     portrait: arcadeSatwik,
@@ -74,7 +74,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 90 },
       { label: 'BACK-END', value: 95 },
-      { label: 'AI', value: 90 },
+      { label: 'SCALE', value: 90 },
     ],
   },
   {
@@ -87,7 +87,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 85 },
       { label: 'BACK-END', value: 90 },
-      { label: 'AI', value: 85 },
+      { label: 'SCALE', value: 85 },
     ],
   },
   {
@@ -100,7 +100,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 80 },
       { label: 'BACK-END', value: 95 },
-      { label: 'AI', value: 75 },
+      { label: 'SCALE', value: 75 },
     ],
   },
   {
@@ -113,7 +113,7 @@ export const productCharacters: Character[] = [
     stats: [
       { label: 'FRONT-END', value: 85 },
       { label: 'BACK-END', value: 80 },
-      { label: 'AI', value: 90 },
+      { label: 'SCALE', value: 90 },
     ],
   },
 ];
