@@ -358,17 +358,18 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
             {/* Orientation toggle */}
             <div className="flex items-center" style={{ gap: '10px', marginBottom: '16px' }}>
               <span
+                onClick={() => setOrientation((o) => (o === 'horizontal' ? 'vertical' : 'horizontal'))}
+                className="cursor-pointer"
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   color: '#FFD700',
                   fontSize: '10px',
+                  textShadow: '0 0 8px rgba(255, 215, 0, 0.4)',
                 }}
               >
-                {orientation.toUpperCase()}
+                ROTATE (R)
               </span>
-              <button
-                onClick={() => setOrientation((o) => (o === 'horizontal' ? 'vertical' : 'horizontal'))}
-                className="cursor-pointer hover:scale-105 transition-transform"
+              <span
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   fontSize: '9px',
@@ -376,12 +377,11 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                   background: 'rgba(255, 215, 0, 0.15)',
                   border: '2px solid #FFD700',
                   borderRadius: '4px',
-                  textShadow: '0 0 8px rgba(255, 215, 0, 0.4)',
                   padding: '6px 14px',
                 }}
               >
-                ROTATE (R)
-              </button>
+                {orientation.toUpperCase()}
+              </span>
             </div>
 
             {/* Instructions */}
@@ -394,7 +394,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                 marginBottom: '24px',
               }}
             >
-              Click to place. Press R to rotate.
+              Press R to Rotate. Click to Place.
             </div>
 
             {/* Buttons */}
