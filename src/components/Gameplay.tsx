@@ -43,30 +43,46 @@ const HEADER_FONT = 7;
 function FireAnimation() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      {/* Outer glow — fills most of the cell */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          inset: '0%',
+          borderRadius: '30%',
+          background: 'radial-gradient(ellipse at center, rgba(255,100,10,0.95) 0%, rgba(220,60,0,0.7) 40%, rgba(180,30,0,0.35) 70%, transparent 95%)',
+        }}
+        animate={{
+          opacity: [0.85, 1, 0.85],
+          scale: [0.95, 1.08, 0.95],
+        }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Inner bright core */}
       <motion.div
         style={{
           position: 'absolute',
           inset: '15%',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(255,120,20,0.7) 0%, rgba(200,60,0,0.3) 60%, transparent 85%)',
+          background: 'radial-gradient(ellipse at center, rgba(255,220,80,1) 0%, rgba(255,150,30,0.85) 50%, rgba(255,80,0,0.4) 80%, transparent 100%)',
         }}
         animate={{
-          opacity: [0.7, 0.9, 0.7],
-          scale: [0.95, 1.05, 0.95],
+          opacity: [0.8, 1, 0.8],
+          scale: [0.9, 1.1, 0.9],
         }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
       />
+      {/* Bright white-yellow hotspot center */}
       <motion.div
         style={{
           position: 'absolute',
           inset: '30%',
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(255,180,50,0.8) 0%, rgba(255,100,0,0.3) 70%, transparent 90%)',
+          background: 'radial-gradient(circle, rgba(255,255,200,0.95) 0%, rgba(255,200,50,0.6) 60%, transparent 100%)',
         }}
         animate={{
-          opacity: [0.6, 0.85, 0.6],
+          opacity: [0.7, 1, 0.7],
         }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }}
       />
     </div>
   );
@@ -558,7 +574,7 @@ function GameGrid({
                     borderBottom: bBottom,
                     borderLeft: bLeft,
                     background: isHit
-                      ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(0, 40, 80, 0.45)')
+                      ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(80, 20, 0, 0.6)')
                       : isMiss
                         ? 'rgba(0, 40, 80, 0.45)'
                         : 'rgba(0, 0, 0, 0.3)',
@@ -578,9 +594,9 @@ function GameGrid({
                   {isHit && !sunk && (
                     <div style={{
                       position: 'absolute',
-                      inset: '10%',
-                      borderRadius: '50%',
-                      background: 'radial-gradient(ellipse at center, rgba(255,120,20,0.8) 0%, rgba(200,60,0,0.5) 40%, rgba(150,30,0,0.2) 70%, transparent 100%)',
+                      inset: '0%',
+                      borderRadius: '20%',
+                      background: 'radial-gradient(ellipse at center, rgba(255,100,10,0.9) 0%, rgba(200,50,0,0.5) 50%, transparent 90%)',
                     }}>
                       <FireAnimation />
                     </div>
