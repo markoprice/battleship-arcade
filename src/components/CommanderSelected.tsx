@@ -49,89 +49,22 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
         )}
       </motion.div>
 
-      {/* Name */}
+      {/* Big team label */}
       <motion.div
-        className="text-center mb-1"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: delay + 0.4, duration: 0.5 }}
-        style={{
-          fontFamily: '"Press Start 2P", cursive',
-          color: '#FFD700',
-          fontSize: '14px',
-          textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
-        }}
-      >
-        {character.name}
-      </motion.div>
-
-      {/* Title */}
-      <motion.div
-        className="text-center mb-1"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: delay + 0.6, duration: 0.5 }}
-        style={{
-          fontFamily: '"Press Start 2P", cursive',
-          color: '#aaa',
-          fontSize: '9px',
-        }}
-      >
-        {character.title}
-      </motion.div>
-
-      {/* Team badge */}
-      <motion.div
+        className="text-center mt-6"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: delay + 0.8, type: 'spring' }}
-        className="px-4 py-1.5"
+        transition={{ delay: delay + 0.5, duration: 0.6, type: 'spring', bounce: 0.4 }}
         style={{
           fontFamily: '"Press Start 2P", cursive',
           color: borderColor,
-          fontSize: '10px',
-          border: `2px solid ${borderColor}`,
-          background: 'rgba(0,0,0,0.6)',
-          textShadow: `0 0 8px ${glowColor}`,
+          fontSize: '48px',
+          textShadow: `0 0 20px ${glowColor}, 0 0 40px ${glowColor}`,
+          letterSpacing: '6px',
         }}
       >
         {isSales ? 'GTM' : 'ENG'}
       </motion.div>
-
-      {/* Stats with animated bars */}
-      <div className="w-full max-w-xs space-y-2 mt-4">
-        {character.stats.map((stat, i) => (
-          <div key={stat.label} className="flex items-center gap-2">
-            <span
-              className="shrink-0 text-right"
-              style={{
-                fontFamily: '"Press Start 2P", cursive',
-                color: '#ccc',
-                fontSize: '7px',
-                width: '80px',
-              }}
-            >
-              {stat.label}
-            </span>
-            <div
-              className="flex-1 h-3 rounded-sm overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
-            >
-              <motion.div
-                className="h-full rounded-sm"
-                initial={{ width: 0 }}
-                animate={{ width: `${stat.value}%` }}
-                transition={{ duration: 0.8, delay: delay + 0.9 + i * 0.15, ease: 'easeOut' }}
-                style={{
-                  background: isSales
-                    ? 'linear-gradient(90deg, #3969CA, #9B59B6)'
-                    : 'linear-gradient(90deg, #21C19A, #2ECC71)',
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
     </motion.div>
   );
 }
