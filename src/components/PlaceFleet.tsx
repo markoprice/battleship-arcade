@@ -291,7 +291,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
               ))}
               {/* SVG overlay for arcade-style ship silhouettes */}
               {(() => {
-                const shipShapes = buildShipOutlinePaths(board, CELL, [], '#3969CA');
+                const shipShapes = buildShipOutlinePaths(board, CELL, [], '#3969CA', true);
                 if (shipShapes.length === 0) return null;
                 return (
                   <svg
@@ -308,8 +308,8 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                   >
                     {shipShapes.map((s, i) => (
                       <g key={i}>
-                        {/* Filled silhouette — unified game piece */}
-                        <path d={s.fillPath} fill={s.fillColor} stroke="none" />
+                        {/* Ship-shaped silhouette — arcade game piece */}
+                        <path d={s.silhouettePath} fill={s.fillColor} stroke="none" />
                         {/* Chunky perimeter outline — retro sprite border */}
                         <path d={s.outlinePath} stroke={s.color} strokeWidth="3" fill="none" strokeLinecap="butt" />
                       </g>

@@ -179,14 +179,110 @@ function SplashAnimation() {
 }
 
 
+/**
+ * Pixel-art ship silhouette definitions.
+ * Each shape is an array of [x, y] points defining a polygon,
+ * in normalised coordinates where one cell = 1.0 unit.
+ * Horizontal orientation; ships pointing right (bow on the right).
+ * The polygon is slightly inset from the cell edges so grid lines remain visible.
+ */
+const INSET = 0.06; // fraction of a cell to inset from edges
+const SHIP_SILHOUETTES: Record<string, [number, number][]> = {
+  // Carrier (5 cells) — long flat-deck aircraft carrier with angled bow
+  carrier: [
+    [INSET, 0.30],                    // top-left (flight deck port side)
+    [4.0, 0.30],                      // top runs most of length
+    [4.5, 0.15],                      // bow tapers up
+    [5 - INSET, 0.50],               // bow tip (center)
+    [4.5, 0.85],                      // bow tapers down
+    [4.0, 0.70],                      // bottom runs back
+    [INSET, 0.70],                    // bottom-left
+  ],
+  // Battleship (4 cells) — chunky warship with wide hull and narrow bow
+  battleship: [
+    [INSET, 0.25],                    // top-left
+    [2.8, 0.25],                      // top runs forward
+    [3.3, 0.18],                      // bow narrows up
+    [4 - INSET, 0.42],               // bow tip upper
+    [4 - INSET, 0.58],               // bow tip lower
+    [3.3, 0.82],                      // bow narrows down
+    [2.8, 0.75],                      // bottom runs back
+    [INSET, 0.75],                    // bottom-left
+  ],
+  // Destroyer (3 cells) — sleek narrower profile
+  destroyer: [
+    [INSET, 0.28],                    // top-left
+    [2.0, 0.28],                      // top forward
+    [2.5, 0.18],                      // bow narrows
+    [3 - INSET, 0.50],               // bow tip
+    [2.5, 0.82],                      // bow bottom
+    [2.0, 0.72],                      // bottom forward
+    [INSET, 0.72],                    // bottom-left
+  ],
+  // Submarine (3 cells) — rounded capsule / cigar shape
+  submarine: [
+    [0.3, 0.22],                      // top-left rounded
+    [INSET, 0.38],                    // stern top indent
+    [INSET, 0.62],                    // stern bottom indent
+    [0.3, 0.78],                      // bottom-left rounded
+    [2.7, 0.78],                      // bottom-right rounded
+    [3 - INSET, 0.62],               // bow bottom
+    [3 - INSET, 0.38],               // bow top
+    [2.7, 0.22],                      // top-right rounded
+  ],
+  // Patrol boat (2 cells) — small fast boat
+  patrol: [
+    [INSET, 0.30],                    // top-left
+    [1.4, 0.30],                      // top forward
+    [2 - INSET, 0.50],               // bow tip
+    [1.4, 0.70],                      // bottom forward
+    [INSET, 0.70],                    // bottom-left
+  ],
+};
+
+/** Build an SVG polygon path string for a ship silhouette, given its cells and cell size.
+ *  Determines orientation from cell layout and applies the correct silhouette shape. */
+function buildShipSilhouettePath(
+  shipId: string,
+  cells: [number, number][],
+  cellSize: number,
+): string {
+  const silhouette = SHIP_SILHOUETTES[shipId];
+  if (!silhouette) return '';
+
+  // Sort cells to determine orientation and origin
+  const sorted = [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const [minR, minC] = sorted[0];
+  const isHorizontal = sorted.length > 1 && sorted[1][1] !== sorted[0][1];
+
+  if (isHorizontal) {
+    // Ship points right: x = col direction, y = row direction
+    const ox = minC * cellSize;
+    const oy = minR * cellSize;
+    const points = silhouette.map(([nx, ny]) =>
+      `${ox + nx * cellSize},${oy + ny * cellSize}`
+    );
+    return `M${points.join('L')}Z`;
+  } else {
+    // Vertical: rotate 90° — swap x/y in the silhouette coordinates
+    const ox = minC * cellSize;
+    const oy = minR * cellSize;
+    const points = silhouette.map(([nx, ny]) =>
+      `${ox + ny * cellSize},${oy + nx * cellSize}`
+    );
+    return `M${points.join('L')}Z`;
+  }
+}
+
 /** Build SVG data for arcade-style ship silhouettes on a 10×10 board.
- *  Returns both a filled silhouette path and a perimeter outline path per ship. */
+ *  Returns a ship-shaped silhouette path and a perimeter outline path per ship. */
 export function buildShipOutlinePaths(
   board: Board,
   cellSize: number,
   placedShips: PlacedShip[],
   defaultColor: string,
-): { fillPath: string; outlinePath: string; color: string; fillColor: string }[] {
+  isPlayerBoard = false,
+): { silhouettePath: string; outlinePath: string; color: string; fillColor: string }[] {
   // Group cells by shipId
   const shipCells = new Map<string, [number, number][]>();
   for (let r = 0; r < 10; r++) {
@@ -199,20 +295,15 @@ export function buildShipOutlinePaths(
     }
   }
 
-  const results: { fillPath: string; outlinePath: string; color: string; fillColor: string }[] = [];
+  const results: { silhouettePath: string; outlinePath: string; color: string; fillColor: string }[] = [];
   shipCells.forEach((cells, shipId) => {
     const cellSet = new Set(cells.map(([r, c]) => `${r},${c}`));
     const sunk = placedShips.find((s) => s.shipId === shipId)?.sunk ?? false;
 
-    // Fill path: one rect per cell to create unified silhouette
-    let fill = '';
-    for (const [r, c] of cells) {
-      const x = c * cellSize;
-      const y = r * cellSize;
-      fill += `M${x},${y}h${cellSize}v${cellSize}h${-cellSize}Z`;
-    }
+    // Build ship-shaped silhouette path
+    const silhouette = buildShipSilhouettePath(shipId, cells, cellSize);
 
-    // Outline path: only outer perimeter edges
+    // Outline path: only outer perimeter edges (for grid-aligned border)
     let outline = '';
     for (const [r, c] of cells) {
       const x = c * cellSize;
@@ -224,8 +315,9 @@ export function buildShipOutlinePaths(
     }
 
     const strokeColor = sunk ? '#ff4444' : defaultColor;
-    const bgColor = sunk ? 'rgba(255,40,0,0.25)' : `${defaultColor}20`;
-    results.push({ fillPath: fill, outlinePath: outline, color: strokeColor, fillColor: bgColor });
+    // Player ships: mostly opaque fill. Enemy sunk ships: translucent red.
+    const fillOpacity = sunk ? 'rgba(255,40,0,0.35)' : isPlayerBoard ? `${defaultColor}B0` : `${defaultColor}20`;
+    results.push({ silhouettePath: silhouette, outlinePath: outline, color: strokeColor, fillColor: fillOpacity });
   });
   return results;
 }
@@ -393,7 +485,7 @@ function GameGrid({
               return show ? cell : { ...cell, shipId: undefined };
             })
           );
-          const ships = buildShipOutlinePaths(outlineBoard, CELL_SIZE, placedShips, borderColor);
+          const ships = buildShipOutlinePaths(outlineBoard, CELL_SIZE, placedShips, borderColor, !isEnemy);
           if (ships.length === 0) return null;
           return (
             <svg
@@ -410,8 +502,8 @@ function GameGrid({
             >
               {ships.map((s, i) => (
                 <g key={i}>
-                  {/* Filled silhouette — unified game piece */}
-                  <path d={s.fillPath} fill={s.fillColor} stroke="none" />
+                  {/* Ship-shaped silhouette — arcade game piece */}
+                  <path d={s.silhouettePath} fill={s.fillColor} stroke="none" />
                   {/* Chunky perimeter outline — retro sprite border */}
                   <path d={s.outlinePath} stroke={s.color} strokeWidth="3" fill="none" strokeLinecap="butt" />
                 </g>
@@ -704,7 +796,13 @@ export default function Gameplay({
         return;
       }
 
-      // Show AI TURN quickly and proceed
+      // Delay before switching to AI turn:
+      // If player sunk a ship, wait for the celebration callout to disappear (2500ms + 300ms buffer)
+      // Otherwise, transition quickly (600ms)
+      const isSunkResult = fireResult.result === 'sunk';
+      const turnTransitionDelay = isSunkResult ? 2800 : 600;
+
+      // Show AI TURN and proceed after celebration finishes
       timeoutIdsRef.current.push(setTimeout(() => {
         if (cancelledRef.current) return;
         setStatusText('AI TURN');
@@ -719,7 +817,7 @@ export default function Gameplay({
             fireAIShot();
           }, aiDelay));
         }, 300));
-      }, 600));
+      }, turnTransitionDelay));
     },
     [isPlayerTurn, aiBoard, onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk, playClickSound, showGridCallout, getSalesSunkBigText]
   );
