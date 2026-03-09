@@ -351,12 +351,12 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
           <StackedLabel text="ENG" color="#21C19A" />
         </div>
 
-        {/* PLACE YOUR FLEET button — right below the tile area */}
+        {/* PLACE YOUR FLEET button — directly under commander cards */}
         <AnimatePresence>
           {bothSelected && salesChar && productChar && (
             <motion.div
               className="flex justify-center"
-              style={{ marginTop: '-8px' }}
+              style={{ marginTop: '24px' }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -368,17 +368,21 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
                 style={{
                   fontFamily: '"Press Start 2P", cursive',
                   color: '#FFD700',
-                  fontSize: '16px',
-                  padding: '20px 48px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  fontSize: '22px',
+                  width: '460px',
+                  height: '90px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
                   border: '3px solid #FFD700',
                   borderRadius: '2px',
-                  textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
-                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.05)',
+                  textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
+                  boxShadow: '0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.05)',
+                  letterSpacing: '2px',
                 }}
               >
                 PLACE YOUR FLEET {'>>'}
-
               </button>
             </motion.div>
           )}

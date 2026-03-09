@@ -185,50 +185,104 @@ function MissileStream({
   direction: 'left-to-right' | 'right-to-left';
   onComplete: () => void;
 }) {
+  const ltr = direction === 'left-to-right';
+  const grad = ltr ? '90deg' : '270deg';
   return (
     <motion.div
       style={{
         position: 'absolute',
-        top: '50%',
+        top: 0,
         left: 0,
-        right: 0,
-        height: '6px',
-        marginTop: '-3px',
-        overflow: 'hidden',
-        zIndex: 40,
+        width: '100%',
+        height: '100%',
         pointerEvents: 'none',
+        zIndex: 40,
+        overflow: 'hidden',
       }}
     >
+      {/* Exhaust trail — wide blurred wake */}
       <motion.div
         style={{
           position: 'absolute',
-          top: 0,
-          width: '100%',
-          height: '100%',
-          background: direction === 'left-to-right'
-            ? 'linear-gradient(90deg, transparent 0%, rgba(100,200,255,0.1) 10%, rgba(100,200,255,0.4) 30%, rgba(150,220,255,0.8) 60%, rgba(200,240,255,1) 85%, rgba(255,255,255,0.9) 95%, transparent 100%)'
-            : 'linear-gradient(270deg, transparent 0%, rgba(100,200,255,0.1) 10%, rgba(100,200,255,0.4) 30%, rgba(150,220,255,0.8) 60%, rgba(200,240,255,1) 85%, rgba(255,255,255,0.9) 95%, transparent 100%)',
+          top: '50%',
+          marginTop: '-16px',
+          width: '60%',
+          height: '32px',
+          background: `linear-gradient(${grad}, transparent 0%, rgba(80,160,220,0.03) 15%, rgba(100,180,240,0.08) 40%, rgba(120,200,255,0.15) 70%, rgba(150,220,255,0.25) 90%, transparent 100%)`,
+          filter: 'blur(6px)',
         }}
-        initial={{ x: direction === 'left-to-right' ? '-100%' : '100%' }}
-        animate={{ x: direction === 'left-to-right' ? '100%' : '-100%' }}
-        transition={{ duration: 1.8, ease: [0.25, 0.1, 0.25, 1] }}
-        onAnimationComplete={onComplete}
+        initial={{ x: ltr ? '-60%' : '100%' }}
+        animate={{ x: ltr ? '100%' : '-60%' }}
+        transition={{ duration: 2.5, ease: [0.2, 0.05, 0.3, 1] }}
       />
+      {/* Outer glow — medium trail */}
       <motion.div
         style={{
           position: 'absolute',
-          top: '-8px',
-          width: '100%',
-          height: '22px',
-          background: direction === 'left-to-right'
-            ? 'linear-gradient(90deg, transparent 0%, rgba(80,160,220,0.05) 20%, rgba(100,200,255,0.15) 50%, rgba(150,220,255,0.3) 80%, transparent 100%)'
-            : 'linear-gradient(270deg, transparent 0%, rgba(80,160,220,0.05) 20%, rgba(100,200,255,0.15) 50%, rgba(150,220,255,0.3) 80%, transparent 100%)',
+          top: '50%',
+          marginTop: '-10px',
+          width: '45%',
+          height: '20px',
+          background: `linear-gradient(${grad}, transparent 0%, rgba(80,160,255,0.05) 10%, rgba(100,200,255,0.2) 35%, rgba(150,220,255,0.5) 65%, rgba(200,240,255,0.7) 85%, rgba(220,245,255,0.4) 95%, transparent 100%)`,
           filter: 'blur(3px)',
         }}
-        initial={{ x: direction === 'left-to-right' ? '-100%' : '100%' }}
-        animate={{ x: direction === 'left-to-right' ? '100%' : '-100%' }}
-        transition={{ duration: 1.8, ease: [0.25, 0.1, 0.25, 1] }}
+        initial={{ x: ltr ? '-45%' : '100%' }}
+        animate={{ x: ltr ? '100%' : '-45%' }}
+        transition={{ duration: 2.5, ease: [0.2, 0.05, 0.3, 1] }}
       />
+      {/* Core beam — bright center */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          marginTop: '-4px',
+          width: '35%',
+          height: '8px',
+          background: `linear-gradient(${grad}, transparent 0%, rgba(100,200,255,0.1) 10%, rgba(150,220,255,0.5) 30%, rgba(200,240,255,0.9) 60%, rgba(255,255,255,1) 85%, rgba(200,240,255,0.6) 95%, transparent 100%)`,
+          borderRadius: '4px',
+        }}
+        initial={{ x: ltr ? '-35%' : '100%' }}
+        animate={{ x: ltr ? '100%' : '-35%' }}
+        transition={{ duration: 2.5, ease: [0.2, 0.05, 0.3, 1] }}
+        onAnimationComplete={onComplete}
+      />
+      {/* Bright nose / tip */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          marginTop: '-8px',
+          width: '16px',
+          height: '16px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(200,240,255,0.8) 40%, rgba(100,200,255,0.3) 70%, transparent 100%)',
+          boxShadow: '0 0 20px rgba(150,220,255,0.9), 0 0 40px rgba(100,200,255,0.5), 0 0 60px rgba(80,160,220,0.3)',
+        }}
+        initial={{ [ltr ? 'left' : 'right']: '-16px' }}
+        animate={{ [ltr ? 'left' : 'right']: 'calc(100% + 16px)' }}
+        transition={{ duration: 2.5, ease: [0.2, 0.05, 0.3, 1] }}
+      />
+      {/* Sparkle particles along trail */}
+      {[0.12, 0.25, 0.38, 0.5, 0.62].map((delay, i) => (
+        <motion.div
+          key={i}
+          style={{
+            position: 'absolute',
+            top: `${46 + (i % 3 - 1) * 6}%`,
+            width: '4px',
+            height: '4px',
+            borderRadius: '50%',
+            background: 'rgba(200,240,255,0.8)',
+            boxShadow: '0 0 6px rgba(150,220,255,0.6)',
+          }}
+          initial={{ [ltr ? 'left' : 'right']: '-4px', opacity: 0 }}
+          animate={{
+            [ltr ? 'left' : 'right']: 'calc(100% + 4px)',
+            opacity: [0, 0.8, 0.5, 0],
+          }}
+          transition={{ duration: 2.5, delay: delay * 0.8, ease: [0.2, 0.05, 0.3, 1] }}
+        />
+      ))}
     </motion.div>
   );
 }
@@ -915,18 +969,7 @@ export default function Gameplay({
               <ShipTracker placedShips={aiShips} borderColor="#21C19A" boardWidth={200} />
             </div>
 
-            {/* Missile stream animation (centered between grids) */}
-            <div style={{ width: '100%', position: 'relative', height: '60px' }}>
-              <AnimatePresence>
-                {missileDirection && (
-                  <MissileStream
-                    key={missileDirection + '-' + missileIdRef.current}
-                    direction={missileDirection}
-                    onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
-                  />
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Missile stream removed from center — now rendered as full-width overlay */}
           </div>
 
           {/* AI side (right) — grid + avatar underneath */}
@@ -1054,6 +1097,27 @@ export default function Gameplay({
             </div>
           </div>
         </div>
+
+        {/* Missile stream overlay — spans full width at avatar row height */}
+        <AnimatePresence>
+          {missileDirection && (
+            <div style={{
+              position: 'absolute',
+              bottom: '8px',
+              left: '12px',
+              right: '12px',
+              height: `${photoSize}px`,
+              pointerEvents: 'none',
+              zIndex: 40,
+            }}>
+              <MissileStream
+                key={missileDirection + '-' + missileIdRef.current}
+                direction={missileDirection}
+                onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
+              />
+            </div>
+          )}
+        </AnimatePresence>
       </motion.div>
       </div>
     </ArcadeCanvas>
