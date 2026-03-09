@@ -33,11 +33,10 @@ const CELL_SIZE = 32;
 const LABEL_WIDTH = 22;
 const HEADER_FONT = 7;
 
-// Subtle 80s arcade hit indicator — soft warm glow, no hyperactive animation
+// Hit indicator for regular hits
 function FireAnimation() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-      {/* Warm orange base glow — slow gentle pulse */}
       <motion.div
         style={{
           position: 'absolute',
@@ -51,7 +50,6 @@ function FireAnimation() {
         }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Inner bright core — subtle flicker */}
       <motion.div
         style={{
           position: 'absolute',
@@ -68,83 +66,154 @@ function FireAnimation() {
   );
 }
 
-function PlayerCard({
-  character,
-  borderColor,
-  teamLabel,
-  isSales,
-  boardWidth,
-}: {
-  character: Character;
-  borderColor: string;
-  teamLabel: string;
-  isSales: boolean;
-  boardWidth: number;
-}) {
+// Sunk ship fire — more intense, flickering flames with multiple layers
+function SunkFireAnimation() {
   return (
-    <div className="flex items-center gap-3 mb-2" style={{ width: `${boardWidth}px`, padding: '0 4px' }}>
-      <div
-        className="flex items-center justify-center rounded overflow-hidden flex-shrink-0"
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      <motion.div
         style={{
-          width: '52px',
-          height: '52px',
-          border: `2px solid ${borderColor}`,
-          background: isSales
-            ? 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))'
-            : 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))',
+          position: 'absolute',
+          inset: '5%',
+          borderRadius: '40%',
+          background: 'radial-gradient(ellipse at center, rgba(255,80,0,0.9) 0%, rgba(200,40,0,0.5) 50%, rgba(150,20,0,0.2) 80%, transparent 100%)',
         }}
-      >
-        {character.portrait ? (
-          <img src={character.portrait} alt={character.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
-        ) : (
-          <span style={{ fontSize: '20px' }}>{isSales ? '\uD83C\uDFAF' : '\uD83D\uDCBB'}</span>
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div
-          style={{
-            fontFamily: '"Press Start 2P", cursive',
-            color: '#FFD700',
-            fontSize: '10px',
-          }}
-        >
-          {character.name.toUpperCase()}
-        </div>
-        <div
-          style={{
-            fontFamily: '"Press Start 2P", cursive',
-            color: '#aaa',
-            fontSize: '7px',
-            marginTop: '3px',
-          }}
-        >
-          {character.title}
-        </div>
-        <div
-          className="px-2 py-0.5 text-center mt-1 inline-block"
-          style={{
-            fontFamily: '"Press Start 2P", cursive',
-            color: borderColor,
-            fontSize: '5px',
-            border: `1px solid ${borderColor}`,
-            background: 'rgba(0,0,0,0.5)',
-          }}
-        >
-          {teamLabel}
-        </div>
-      </div>
+        animate={{
+          opacity: [0.8, 1, 0.75, 0.95, 0.8],
+          scale: [0.95, 1.08, 0.98, 1.05, 0.95],
+        }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        style={{
+          position: 'absolute',
+          inset: '15%',
+          borderRadius: '50%',
+          background: 'radial-gradient(ellipse at center, rgba(255,200,50,0.9) 0%, rgba(255,120,0,0.6) 50%, transparent 90%)',
+        }}
+        animate={{
+          opacity: [0.7, 1, 0.6, 0.9, 0.7],
+          scale: [1, 1.1, 0.9, 1.05, 1],
+          y: [0, -1, 1, -0.5, 0],
+        }}
+        transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+      />
+      <motion.div
+        style={{
+          position: 'absolute',
+          left: '25%',
+          right: '25%',
+          top: '5%',
+          bottom: '40%',
+          borderRadius: '50% 50% 40% 40%',
+          background: 'radial-gradient(ellipse at bottom, rgba(255,160,30,0.8) 0%, rgba(255,80,0,0.3) 60%, transparent 100%)',
+        }}
+        animate={{
+          opacity: [0.5, 0.9, 0.4, 0.8, 0.5],
+          scaleY: [0.8, 1.15, 0.7, 1.1, 0.8],
+          x: [-1, 1, -0.5, 0.5, -1],
+        }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut', delay: 0.1 }}
+      />
     </div>
   );
 }
 
-// Missile animation removed per user request
+// Arcade-style splash animation for misses
+function SplashAnimation() {
+  return (
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      <motion.div
+        style={{
+          position: 'absolute',
+          inset: '20%',
+          borderRadius: '50%',
+          border: '2px solid rgba(100,180,255,0.6)',
+          background: 'transparent',
+        }}
+        animate={{
+          scale: [0.5, 1.2, 0.5],
+          opacity: [0.8, 0.2, 0.8],
+        }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        style={{
+          position: 'absolute',
+          inset: '35%',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(100,180,255,0.5) 0%, rgba(50,120,200,0.2) 60%, transparent 100%)',
+        }}
+        animate={{
+          opacity: [0.6, 0.3, 0.6],
+          scale: [0.9, 1.1, 0.9],
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+      />
+    </div>
+  );
+}
+
+// Underwater missile stream animation between player photos
+function MissileStream({
+  direction,
+  onComplete,
+}: {
+  direction: 'left-to-right' | 'right-to-left';
+  onComplete: () => void;
+}) {
+  return (
+    <motion.div
+      style={{
+        position: 'absolute',
+        top: '50%',
+        left: 0,
+        right: 0,
+        height: '6px',
+        marginTop: '-3px',
+        overflow: 'hidden',
+        zIndex: 40,
+        pointerEvents: 'none',
+      }}
+    >
+      <motion.div
+        style={{
+          position: 'absolute',
+          top: 0,
+          width: '100%',
+          height: '100%',
+          background: direction === 'left-to-right'
+            ? 'linear-gradient(90deg, transparent 0%, rgba(100,200,255,0.1) 10%, rgba(100,200,255,0.4) 30%, rgba(150,220,255,0.8) 60%, rgba(200,240,255,1) 85%, rgba(255,255,255,0.9) 95%, transparent 100%)'
+            : 'linear-gradient(270deg, transparent 0%, rgba(100,200,255,0.1) 10%, rgba(100,200,255,0.4) 30%, rgba(150,220,255,0.8) 60%, rgba(200,240,255,1) 85%, rgba(255,255,255,0.9) 95%, transparent 100%)',
+        }}
+        initial={{ x: direction === 'left-to-right' ? '-100%' : '100%' }}
+        animate={{ x: direction === 'left-to-right' ? '100%' : '-100%' }}
+        transition={{ duration: 0.6, ease: 'easeIn' }}
+        onAnimationComplete={onComplete}
+      />
+      <motion.div
+        style={{
+          position: 'absolute',
+          top: '-8px',
+          width: '100%',
+          height: '22px',
+          background: direction === 'left-to-right'
+            ? 'linear-gradient(90deg, transparent 0%, rgba(80,160,220,0.05) 20%, rgba(100,200,255,0.15) 50%, rgba(150,220,255,0.3) 80%, transparent 100%)'
+            : 'linear-gradient(270deg, transparent 0%, rgba(80,160,220,0.05) 20%, rgba(100,200,255,0.15) 50%, rgba(150,220,255,0.3) 80%, transparent 100%)',
+          filter: 'blur(3px)',
+        }}
+        initial={{ x: direction === 'left-to-right' ? '-100%' : '100%' }}
+        animate={{ x: direction === 'left-to-right' ? '100%' : '-100%' }}
+        transition={{ duration: 0.6, ease: 'easeIn' }}
+      />
+    </motion.div>
+  );
+}
 
 // Compute per-cell border edges for ship group outlines
 function getShipBorders(
   row: number,
   col: number,
   board: Board,
-  placedShips: PlacedShip[],
 ): { top: boolean; right: boolean; bottom: boolean; left: boolean } {
   const cell = board[row][col];
   const shipId = cell.shipId;
@@ -249,7 +318,7 @@ function GameGrid({
 
               // Compute ship group border edges (only for own ships or sunk enemy ships)
               const showBorders = hasShip && (!isEnemy || sunk);
-              const borders = showBorders ? getShipBorders(row, col, board, placedShips) : null;
+              const borders = showBorders ? getShipBorders(row, col, board) : null;
               const shipBorderColor = sunk ? '#ff4444' : 'rgba(0, 255, 100, 0.8)';
               const shipBorderWidth = '2px';
 
@@ -259,14 +328,30 @@ function GameGrid({
                   style={{
                     width: `${CELL_SIZE}px`,
                     height: `${CELL_SIZE}px`,
-                    borderTop: borders?.top ? `${shipBorderWidth} solid ${shipBorderColor}` : (borders && !borders.top) ? `1px solid ${shipBorderColor}22` : `1px solid ${borderColor}33`,
-                    borderRight: borders?.right ? `${shipBorderWidth} solid ${shipBorderColor}` : (borders && !borders.right) ? `1px solid ${shipBorderColor}22` : `1px solid ${borderColor}33`,
-                    borderBottom: borders?.bottom ? `${shipBorderWidth} solid ${shipBorderColor}` : (borders && !borders.bottom) ? `1px solid ${shipBorderColor}22` : `1px solid ${borderColor}33`,
-                    borderLeft: borders?.left ? `${shipBorderWidth} solid ${shipBorderColor}` : (borders && !borders.left) ? `1px solid ${shipBorderColor}22` : `1px solid ${borderColor}33`,
+                    borderTop: borders?.top
+                      ? `${shipBorderWidth} solid ${shipBorderColor}`
+                      : (borders && !borders.top)
+                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
+                        : `1px solid ${borderColor}33`,
+                    borderRight: borders?.right
+                      ? `${shipBorderWidth} solid ${shipBorderColor}`
+                      : (borders && !borders.right)
+                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
+                        : `1px solid ${borderColor}33`,
+                    borderBottom: borders?.bottom
+                      ? `${shipBorderWidth} solid ${shipBorderColor}`
+                      : (borders && !borders.bottom)
+                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
+                        : `1px solid ${borderColor}33`,
+                    borderLeft: borders?.left
+                      ? `${shipBorderWidth} solid ${shipBorderColor}`
+                      : (borders && !borders.left)
+                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
+                        : `1px solid ${borderColor}33`,
                     background: isHit
                       ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(255, 80, 0, 0.3)')
                       : isMiss
-                        ? 'rgba(255, 255, 255, 0.05)'
+                        ? 'rgba(0, 0, 0, 0.3)'
                         : showShipCell
                           ? 'rgba(0, 255, 100, 0.15)'
                           : 'rgba(0, 0, 0, 0.3)',
@@ -282,12 +367,8 @@ function GameGrid({
                     if (canClick && onCellClick) onCellClick(row, col);
                   }}
                 >
-                  {isHit && <FireAnimation />}
-                  {isMiss && (
-                    <div
-                      style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.4)' }}
-                    />
-                  )}
+                  {isHit && (sunk ? <SunkFireAnimation /> : <FireAnimation />)}
+                  {isMiss && <SplashAnimation />}
                 </div>
               );
             })}
@@ -389,11 +470,14 @@ export default function Gameplay({
 
   const cancelledRef = useRef(false);
 
-  // Refs for player card containers
-  const playerCardContainerRef = useRef<HTMLDivElement>(null);
-  const aiCardContainerRef = useRef<HTMLDivElement>(null);
   const playerGridRef = useRef<HTMLDivElement>(null);
   const aiGridRef = useRef<HTMLDivElement>(null);
+
+  // Missile stream animation state
+  const [missileDirection, setMissileDirection] = useState<'left-to-right' | 'right-to-left' | null>(null);
+
+  // Track which grid was last hit for callout positioning
+  const [calloutSide, setCalloutSide] = useState<'player' | 'ai'>('ai');
 
   // Clear all pending timeouts on unmount (e.g. abandon game)
   useEffect(() => {
@@ -408,13 +492,20 @@ export default function Gameplay({
   // Store pending shot info so we can defer onPlayerFire until after missile lands
   const pendingShotRef = useRef<{ row: number; col: number } | null>(null);
 
-  // Handle AI shot — fire and update board
+  // Handle AI shot — starts missile animation from right to left
   const fireAIShot = useCallback(() => {
     if (cancelledRef.current) return;
+    setMissileDirection('right-to-left');
+  }, []);
 
-    // Must peek first to set the pending target, then fire
+  // Called when AI missile stream reaches the player side
+  const handleAIMissileComplete = useCallback(() => {
+    setMissileDirection(null);
+    if (cancelledRef.current) return;
+
     onAIPeekTarget();
     const aiResult = onAIFire();
+    setCalloutSide('player');
 
     if (aiResult.result === 'hit') playExplosion();
     else if (aiResult.result === 'miss') playSplash();
@@ -434,18 +525,11 @@ export default function Gameplay({
       processingRef.current = false;
       setProcessing(false);
     }, 500));
-  }, [
-    onAIPeekTarget,
-    onAIFire,
-    onStartPlayerTurn,
-    onLose,
-    playExplosion,
-    playSplash,
-    playShipSunk,
-  ]);
+  }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playExplosion, playSplash, playShipSunk]);
 
-  // Process player shot result and trigger AI turn
-  const processPlayerShot = useCallback(() => {
+  // Called when player missile stream reaches the AI side
+  const handlePlayerMissileComplete = useCallback(() => {
+    setMissileDirection(null);
     if (cancelledRef.current) return;
     const shot = pendingShotRef.current;
     if (!shot) {
@@ -461,6 +545,8 @@ export default function Gameplay({
       setProcessing(false);
       return;
     }
+
+    setCalloutSide('ai');
 
     if (result === 'hit') {
       playExplosion();
@@ -486,15 +572,7 @@ export default function Gameplay({
         fireAIShot();
       }, 800));
     }, 500));
-  }, [
-    onPlayerFire,
-    fireAIShot,
-    onEndPlayerTurn,
-    onWin,
-    playExplosion,
-    playSplash,
-    playShipSunk,
-  ]);
+  }, [onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk]);
 
   const handlePlayerShot = useCallback(
     (row: number, col: number) => {
@@ -504,18 +582,11 @@ export default function Gameplay({
 
       processingRef.current = true;
       setProcessing(true);
-
       pendingShotRef.current = { row, col };
-      // Small delay for feel, then process
-      const id = setTimeout(() => processPlayerShot(), 150);
-      timeoutIdsRef.current.push(id);
+      // Show missile stream from left (player) to right (AI)
+      setMissileDirection('left-to-right');
     },
-    [
-      isPlayerTurn,
-      processing,
-      aiBoard,
-      processPlayerShot,
-    ]
+    [isPlayerTurn, aiBoard]
   );
 
   // Auto-unlock processing if stuck
@@ -530,7 +601,7 @@ export default function Gameplay({
     }
   }, [processing, onStartPlayerTurn]);
 
-  const boardWidth = LABEL_WIDTH + CELL_SIZE * 10 + 12;
+  const photoSize = 80;
 
   return (
     <ArcadeCanvas>
@@ -542,20 +613,10 @@ export default function Gameplay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        {/* Grids with center column for turn indicator + ship trackers */}
+        {/* Top area: grids + center ship trackers */}
         <div className="flex-1 flex items-start justify-center" style={{ gap: '16px', paddingTop: '4px' }}>
           {/* Player side (left) */}
-          <div className="flex flex-col items-center">
-            {/* Player card ABOVE grid */}
-            <div ref={playerCardContainerRef}>
-              <PlayerCard
-                character={playerCharacter}
-                borderColor="#3969CA"
-                teamLabel="SALES"
-                isSales
-                boardWidth={boardWidth}
-              />
-            </div>
+          <div className="flex flex-col items-center" style={{ position: 'relative' }}>
             <GameGrid
               board={playerBoard}
               borderColor="#3969CA"
@@ -564,78 +625,49 @@ export default function Gameplay({
               gridRef={playerGridRef}
               placedShips={playerShips}
             />
+            {/* Ship sunk callout over player grid */}
+            <AnimatePresence>
+              {calloutText && calloutSide === 'player' && (
+                <motion.div
+                  className="absolute pointer-events-none flex items-center justify-center"
+                  style={{ top: '30%', left: 0, right: 0, zIndex: 55 }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 1.5, opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    fontSize: '14px',
+                    color: '#ff4444',
+                    textShadow: '0 0 20px rgba(255, 68, 68, 0.8), 2px 2px 0 #500',
+                    background: 'rgba(0,0,0,0.7)',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(255,68,68,0.4)',
+                  }}>
+                    {calloutText}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* CENTER COLUMN — turn indicator + ship statuses */}
-          <div className="flex flex-col items-center justify-start" style={{ width: '200px', paddingTop: '70px', gap: '12px' }}>
-            {/* Turn indicator */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={isPlayerTurn ? 'player' : 'opponent'}
-                className="text-center"
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <span
-                  style={{
-                    fontFamily: '"Press Start 2P", cursive',
-                    color: isPlayerTurn ? '#FFD700' : '#ff4444',
-                    fontSize: '11px',
-                    textShadow: isPlayerTurn
-                      ? '0 0 10px rgba(255, 215, 0, 0.5)'
-                      : '0 0 10px rgba(255, 68, 68, 0.5)',
-                  }}
-                >
-                  {isPlayerTurn && !processing ? 'YOUR TURN' : processing ? 'FIRING...' : "OPPONENT'S TURN"}
-                </span>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Divider */}
-            <div style={{ width: '80%', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
-
-            {/* Player ship tracker */}
+          {/* CENTER COLUMN — ship statuses */}
+          <div className="flex flex-col items-center justify-start" style={{ width: '200px', paddingTop: '20px', gap: '12px' }}>
             <div style={{ width: '100%' }}>
-              <div style={{
-                fontFamily: '"Press Start 2P", cursive',
-                fontSize: '6px',
-                color: '#3969CA',
-                marginBottom: '4px',
-                textAlign: 'center',
-              }}>YOUR FLEET</div>
+              <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '6px', color: '#3969CA', marginBottom: '4px', textAlign: 'center' }}>YOUR FLEET</div>
               <ShipTracker placedShips={playerShips} borderColor="#3969CA" boardWidth={200} />
             </div>
-
-            {/* Divider */}
             <div style={{ width: '80%', height: '1px', background: 'rgba(255,255,255,0.15)' }} />
-
-            {/* AI ship tracker */}
             <div style={{ width: '100%' }}>
-              <div style={{
-                fontFamily: '"Press Start 2P", cursive',
-                fontSize: '6px',
-                color: '#21C19A',
-                marginBottom: '4px',
-                textAlign: 'center',
-              }}>ENEMY FLEET</div>
+              <div style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '6px', color: '#21C19A', marginBottom: '4px', textAlign: 'center' }}>ENEMY FLEET</div>
               <ShipTracker placedShips={aiShips} borderColor="#21C19A" boardWidth={200} />
             </div>
           </div>
 
           {/* AI side (right) */}
-          <div className="flex flex-col items-center">
-            {/* AI card ABOVE grid */}
-            <div ref={aiCardContainerRef}>
-              <PlayerCard
-                character={aiCharacter}
-                borderColor="#21C19A"
-                teamLabel="PRODUCT"
-                isSales={false}
-                boardWidth={boardWidth}
-              />
-            </div>
+          <div className="flex flex-col items-center" style={{ position: 'relative' }}>
             <GameGrid
               board={aiBoard}
               borderColor="#21C19A"
@@ -646,35 +678,111 @@ export default function Gameplay({
               gridRef={aiGridRef}
               placedShips={aiShips}
             />
+            {/* Ship sunk callout over AI grid */}
+            <AnimatePresence>
+              {calloutText && calloutSide === 'ai' && (
+                <motion.div
+                  className="absolute pointer-events-none flex items-center justify-center"
+                  style={{ top: '30%', left: 0, right: 0, zIndex: 55 }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 1.5, opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <div style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    fontSize: '14px',
+                    color: '#FFD700',
+                    textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 2px 2px 0 #8B0000',
+                    background: 'rgba(0,0,0,0.7)',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(255,215,0,0.4)',
+                  }}>
+                    {calloutText}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* NBA Jam Callout */}
-        <AnimatePresence>
-          {calloutText && (
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-              style={{ zIndex: 50 }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 2, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div
-                style={{
-                  fontFamily: '"Press Start 2P", cursive',
-                  fontSize: '32px',
-                  color: '#FFD700',
-                  textShadow:
-                    '0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 100, 0, 0.5), 3px 3px 0 #8B0000',
-                  transform: 'rotate(-5deg)',
-                }}
-              >
-                {calloutText}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Bottom: player photos + turn indicator + missile stream */}
+        <div className="flex items-center justify-center" style={{ gap: '24px', paddingBottom: '8px', paddingTop: '8px' }}>
+          {/* Player photo + turn label */}
+          <div className="flex flex-col items-center" style={{ gap: '4px' }}>
+            <div style={{
+              width: `${photoSize}px`,
+              height: `${photoSize}px`,
+              borderRadius: '8px',
+              border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
+              overflow: 'hidden',
+              boxShadow: isPlayerTurn ? '0 0 15px rgba(57,105,202,0.5)' : 'none',
+              transition: 'border-color 0.3s, box-shadow 0.3s',
+            }}>
+              {playerCharacter.portrait ? (
+                <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+              ) : (
+                <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(57,105,202,0.4), rgba(57,105,202,0.15))', fontSize: '32px' }}>
+                  {String.fromCodePoint(0x1F3AF)}
+                </div>
+              )}
+            </div>
+            <AnimatePresence mode="wait">
+              {isPlayerTurn && (
+                <motion.div key="player-turn" initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 3 }} transition={{ duration: 0.3 }}>
+                  <span style={{ fontFamily: '"Press Start 2P", cursive', color: processing ? '#ff8800' : '#FFD700', fontSize: '8px', textShadow: '0 0 8px rgba(255, 215, 0, 0.5)' }}>
+                    {processing ? 'FIRING...' : 'YOUR TURN'}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* VS divider + missile stream area */}
+          <div style={{ position: 'relative', width: '200px', height: `${photoSize + 30}px`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: '"Press Start 2P", cursive', fontSize: '14px', color: 'rgba(255,255,255,0.2)' }}>VS</span>
+            <AnimatePresence>
+              {missileDirection && (
+                <MissileStream
+                  key={missileDirection + '-' + Date.now()}
+                  direction={missileDirection}
+                  onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* AI photo + turn label */}
+          <div className="flex flex-col items-center" style={{ gap: '4px' }}>
+            <div style={{
+              width: `${photoSize}px`,
+              height: `${photoSize}px`,
+              borderRadius: '8px',
+              border: `3px solid ${!isPlayerTurn ? '#21C19A' : 'rgba(33,193,154,0.3)'}`,
+              overflow: 'hidden',
+              boxShadow: !isPlayerTurn ? '0 0 15px rgba(33,193,154,0.5)' : 'none',
+              transition: 'border-color 0.3s, box-shadow 0.3s',
+            }}>
+              {aiCharacter.portrait ? (
+                <img src={aiCharacter.portrait} alt={aiCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+              ) : (
+                <div className="flex items-center justify-center" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, rgba(33,193,154,0.4), rgba(33,193,154,0.15))', fontSize: '32px' }}>
+                  {String.fromCodePoint(0x1F4BB)}
+                </div>
+              )}
+            </div>
+            <AnimatePresence mode="wait">
+              {!isPlayerTurn && (
+                <motion.div key="ai-turn" initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 3 }} transition={{ duration: 0.3 }}>
+                  <span style={{ fontFamily: '"Press Start 2P", cursive', color: '#ff4444', fontSize: '8px', textShadow: '0 0 8px rgba(255, 68, 68, 0.5)' }}>
+                    {"OPPONENT'S TURN"}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </motion.div>
       </div>
     </ArcadeCanvas>

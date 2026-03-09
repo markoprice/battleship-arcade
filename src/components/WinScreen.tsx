@@ -81,7 +81,7 @@ export default function WinScreen({ onPlayAgain }: Props) {
             marginBottom: '48px',
           }}
         >
-          Sales wins. Product couldn't ship fast enough.
+          Sales wins. Maybe stick to coding, Product team.
         </div>
       </motion.div>
 

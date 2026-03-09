@@ -47,15 +47,7 @@ function placeAIShips(): { board: Board; ships: PlacedShip[] } {
   return { board, ships: placedShips };
 }
 
-const NBA_JAM_CALLOUTS = [
-  'BOOMSHAKALAKA!',
-  "HE'S ON FIRE!",
-  'FROM DOWNTOWN!',
-  'IS IT THE SHOES?',
-  "CAN'T BUY A BUCKET!",
-  'MONSTER JAM!',
-  'THE NAIL IN THE COFFIN!',
-];
+// No longer using NBA Jam callouts — ship sunk messages are now handled in Gameplay component
 
 export function useGameState() {
   const [screen, setScreen] = useState<GameScreen>('home');
@@ -130,12 +122,9 @@ export function useGameState() {
             return 'win';
           }
 
-          showCallout(NBA_JAM_CALLOUTS[Math.floor(Math.random() * NBA_JAM_CALLOUTS.length)]);
+          const sunkShip = ships.find((s) => s.id === shipId);
+          showCallout(`${sunkShip?.name.toUpperCase() ?? 'SHIP'} DOWN`);
           return 'sunk';
-        }
-
-        if (newHits >= 3) {
-          showCallout(NBA_JAM_CALLOUTS[Math.floor(Math.random() * NBA_JAM_CALLOUTS.length)]);
         }
 
         return 'hit';
@@ -281,6 +270,8 @@ export function useGameState() {
           return { row, col, result: 'lose' };
         }
 
+        const sunkShip = ships.find((s) => s.id === shipId);
+        showCallout(`${sunkShip?.name.toUpperCase() ?? 'SHIP'} DOWN`);
         return { row, col, result: 'sunk' };
       }
 
