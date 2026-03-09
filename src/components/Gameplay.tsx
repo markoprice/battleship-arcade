@@ -200,89 +200,54 @@ function MissileStream({
         overflow: 'hidden',
       }}
     >
-      {/* Exhaust trail — wide blurred wake */}
+      {/* Soft glow trail */}
       <motion.div
         style={{
           position: 'absolute',
           top: '50%',
-          marginTop: '-16px',
-          width: '60%',
-          height: '32px',
-          background: `linear-gradient(${grad}, transparent 0%, rgba(80,160,220,0.03) 15%, rgba(100,180,240,0.08) 40%, rgba(120,200,255,0.15) 70%, rgba(150,220,255,0.25) 90%, transparent 100%)`,
-          filter: 'blur(6px)',
+          marginTop: '-6px',
+          width: '30%',
+          height: '12px',
+          background: `linear-gradient(${grad}, transparent 0%, rgba(100,200,255,0.1) 20%, rgba(150,220,255,0.35) 60%, rgba(200,240,255,0.5) 85%, transparent 100%)`,
+          filter: 'blur(2px)',
+          borderRadius: '6px',
         }}
-        initial={{ x: ltr ? '-60%' : '100%' }}
-        animate={{ x: ltr ? '100%' : '-60%' }}
-        transition={{ duration: 2.5, ease: [0.2, 0.05, 0.3, 1] }}
+        initial={{ x: ltr ? '-30%' : '100%' }}
+        animate={{ x: ltr ? '100%' : '-30%' }}
+        transition={{ duration: 2.2, ease: [0.25, 0.1, 0.25, 1] }}
       />
-      {/* Outer glow — medium trail */}
+      {/* Core streak */}
       <motion.div
         style={{
           position: 'absolute',
           top: '50%',
-          marginTop: '-10px',
-          width: '45%',
-          height: '20px',
-          background: `linear-gradient(${grad}, transparent 0%, rgba(80,160,255,0.05) 10%, rgba(100,200,255,0.2) 35%, rgba(150,220,255,0.5) 65%, rgba(200,240,255,0.7) 85%, rgba(220,245,255,0.4) 95%, transparent 100%)`,
-          filter: 'blur(3px)',
+          marginTop: '-2px',
+          width: '25%',
+          height: '4px',
+          background: `linear-gradient(${grad}, transparent 0%, rgba(150,220,255,0.3) 20%, rgba(220,245,255,0.8) 70%, rgba(255,255,255,0.9) 90%, transparent 100%)`,
+          borderRadius: '2px',
         }}
-        initial={{ x: ltr ? '-45%' : '100%' }}
-        animate={{ x: ltr ? '100%' : '-45%' }}
-        transition={{ duration: 2.5, ease: [0.2, 0.05, 0.3, 1] }}
+        initial={{ x: ltr ? '-25%' : '100%' }}
+        animate={{ x: ltr ? '100%' : '-25%' }}
+        transition={{ duration: 2.2, ease: [0.25, 0.1, 0.25, 1] }}
+        onAnimationComplete={onComplete}
       />
-      {/* Core beam — bright center */}
+      {/* Small bright tip */}
       <motion.div
         style={{
           position: 'absolute',
           top: '50%',
           marginTop: '-4px',
-          width: '35%',
+          width: '8px',
           height: '8px',
-          background: `linear-gradient(${grad}, transparent 0%, rgba(100,200,255,0.1) 10%, rgba(150,220,255,0.5) 30%, rgba(200,240,255,0.9) 60%, rgba(255,255,255,1) 85%, rgba(200,240,255,0.6) 95%, transparent 100%)`,
-          borderRadius: '4px',
-        }}
-        initial={{ x: ltr ? '-35%' : '100%' }}
-        animate={{ x: ltr ? '100%' : '-35%' }}
-        transition={{ duration: 2.5, ease: [0.2, 0.05, 0.3, 1] }}
-        onAnimationComplete={onComplete}
-      />
-      {/* Bright nose / tip */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          marginTop: '-8px',
-          width: '16px',
-          height: '16px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(200,240,255,0.8) 40%, rgba(100,200,255,0.3) 70%, transparent 100%)',
-          boxShadow: '0 0 20px rgba(150,220,255,0.9), 0 0 40px rgba(100,200,255,0.5), 0 0 60px rgba(80,160,220,0.3)',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(180,230,255,0.5) 50%, transparent 100%)',
+          boxShadow: '0 0 8px rgba(150,220,255,0.6)',
         }}
-        initial={{ [ltr ? 'left' : 'right']: '-16px' }}
-        animate={{ [ltr ? 'left' : 'right']: 'calc(100% + 16px)' }}
-        transition={{ duration: 2.5, ease: [0.2, 0.05, 0.3, 1] }}
+        initial={{ [ltr ? 'left' : 'right']: '-8px' }}
+        animate={{ [ltr ? 'left' : 'right']: 'calc(100% + 8px)' }}
+        transition={{ duration: 2.2, ease: [0.25, 0.1, 0.25, 1] }}
       />
-      {/* Sparkle particles along trail */}
-      {[0.12, 0.25, 0.38, 0.5, 0.62].map((delay, i) => (
-        <motion.div
-          key={i}
-          style={{
-            position: 'absolute',
-            top: `${46 + (i % 3 - 1) * 6}%`,
-            width: '4px',
-            height: '4px',
-            borderRadius: '50%',
-            background: 'rgba(200,240,255,0.8)',
-            boxShadow: '0 0 6px rgba(150,220,255,0.6)',
-          }}
-          initial={{ [ltr ? 'left' : 'right']: '-4px', opacity: 0 }}
-          animate={{
-            [ltr ? 'left' : 'right']: 'calc(100% + 4px)',
-            opacity: [0, 0.8, 0.5, 0],
-          }}
-          transition={{ duration: 2.5, delay: delay * 0.8, ease: [0.2, 0.05, 0.3, 1] }}
-        />
-      ))}
     </motion.div>
   );
 }

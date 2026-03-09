@@ -178,11 +178,13 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
           />
         </div>
 
-        {/* Main content area */}
+        {/* Main content area — column layout wrapping cards row + button */}
         <div
-          className="flex-1 flex items-start justify-center min-h-0 overflow-auto px-2"
+          className="flex-1 flex flex-col items-center min-h-0 overflow-auto px-2"
           style={{ paddingTop: '16px' }}
         >
+          {/* Commander cards row */}
+          <div className="flex items-start justify-center">
           {/* SALES stacked label */}
           <StackedLabel text="SALES" color="#3969CA" />
 
@@ -349,44 +351,45 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
 
           {/* ENG stacked label */}
           <StackedLabel text="ENG" color="#21C19A" />
-        </div>
+          </div>
 
-        {/* PLACE YOUR FLEET button — directly under commander cards */}
-        <AnimatePresence>
-          {bothSelected && salesChar && productChar && (
-            <motion.div
-              className="flex justify-center"
-              style={{ marginTop: '24px' }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.4, type: 'spring' }}
-            >
-              <button
-                onClick={() => onSelect(salesChar, productChar)}
-                className="cursor-pointer transition-transform hover:scale-[1.05]"
-                style={{
-                  fontFamily: '"Press Start 2P", cursive',
-                  color: '#FFD700',
-                  fontSize: '22px',
-                  width: '460px',
-                  height: '90px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  border: '3px solid #FFD700',
-                  borderRadius: '2px',
-                  textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
-                  boxShadow: '0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.05)',
-                  letterSpacing: '2px',
-                }}
+          {/* PLACE YOUR FLEET button — inside commander section, directly under cards */}
+          <AnimatePresence>
+            {bothSelected && salesChar && productChar && (
+              <motion.div
+                className="flex justify-center"
+                style={{ marginTop: '48px' }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.4, type: 'spring' }}
               >
-                PLACE YOUR FLEET {'>>'}
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <button
+                  onClick={() => onSelect(salesChar, productChar)}
+                  className="cursor-pointer transition-transform hover:scale-[1.05]"
+                  style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    color: '#FFD700',
+                    fontSize: '22px',
+                    width: '440px',
+                    height: '90px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    border: '3px solid #FFD700',
+                    borderRadius: '2px',
+                    textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
+                    boxShadow: '0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.05)',
+                    letterSpacing: '2px',
+                  }}
+                >
+                  PLACE YOUR FLEET {'>>'}
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.div>
       </div>
     </ArcadeCanvas>
