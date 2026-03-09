@@ -473,10 +473,10 @@ export function buildShipOutlinePaths(
     }
 
     const strokeColor = sunk ? '#ff4444' : defaultColor;
-    // Player ships: fully opaque solid fill. Enemy sunk ships: translucent red.
-    const fillOpacity = sunk ? 'rgba(255,40,0,0.35)' : isPlayerBoard ? defaultColor : `${defaultColor}20`;
-    // Superstructure detail color: lighter shade for depth
-    const detailFill = sunk ? 'rgba(255,80,0,0.45)' : isPlayerBoard ? lightenHex(defaultColor, 40) : `${defaultColor}30`;
+    // Fully opaque solid fills — no transparency, ships are solid sprites
+    const fillOpacity = sunk ? '#991500' : isPlayerBoard ? defaultColor : `${defaultColor}20`;
+    // Superstructure detail color: lighter solid shade for depth
+    const detailFill = sunk ? '#cc3300' : isPlayerBoard ? lightenHex(defaultColor, 40) : `${defaultColor}30`;
     results.push({ hullPath, detailPaths, outlinePath: outline, color: strokeColor, fillColor: fillOpacity, detailColor: detailFill });
   });
   return results;
@@ -597,11 +597,11 @@ function GameGrid({
                     borderBottom: gridLine,
                     borderLeft: gridLine,
                     background: isHit
-                      ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(80, 20, 0, 0.6)')
+                      ? (sunk ? '#661000' : '#3d1200')
                       : isMiss
                         ? 'rgba(0, 40, 80, 0.45)'
                         : showShip
-                          ? 'rgba(0, 20, 50, 0.55)'
+                          ? '#0a1a30'
                           : 'rgba(0, 0, 0, 0.3)',
                     cursor: canClick ? 'crosshair' : 'default',
                     display: 'flex',
