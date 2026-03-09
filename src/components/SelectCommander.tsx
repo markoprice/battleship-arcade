@@ -114,6 +114,9 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
 
   const handleManualProductSelect = (charId: string) => {
     if (rouletteActive) return;
+    // Cancel any pending roulette start
+    if (startDelayRef.current) clearTimeout(startDelayRef.current);
+    rouletteStartedRef.current = false;
     setSelectedProduct(charId);
     setBothSelected(true);
   };
