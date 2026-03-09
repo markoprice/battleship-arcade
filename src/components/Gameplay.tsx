@@ -123,38 +123,11 @@ function SunkFireAnimation() {
   );
 }
 
-// Arcade-style splash animation for misses — pulses a few times then settles to a static dot
+// Arcade-style splash animation for misses — single outward ripple then settles to static
 function SplashAnimation() {
-  const [settled, setSettled] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setSettled(true), 3000); // 3 seconds of pulsing
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (settled) {
-    // Static shaded square with a small dot
-    return (
-      <div style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(40, 60, 90, 0.4)',
-      }}>
-        <div style={{
-          width: '6px',
-          height: '6px',
-          borderRadius: '50%',
-          background: 'rgba(150,200,255,0.5)',
-        }} />
-      </div>
-    );
-  }
-
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      {/* Single outward ripple ring */}
       <motion.div
         style={{
           position: 'absolute',
@@ -163,25 +136,43 @@ function SplashAnimation() {
           border: '2px solid rgba(100,180,255,0.6)',
           background: 'transparent',
         }}
-        animate={{
-          scale: [0.5, 1.2, 0.5],
-          opacity: [0.8, 0.2, 0.8],
-        }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+        initial={{ scale: 0.3, opacity: 0.8 }}
+        animate={{ scale: 1.4, opacity: 0 }}
+        transition={{ duration: 1.2, ease: 'easeOut' }}
       />
+      {/* Inner glow that fades out */}
       <motion.div
         style={{
           position: 'absolute',
-          inset: '35%',
+          inset: '25%',
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(100,180,255,0.5) 0%, rgba(50,120,200,0.2) 60%, transparent 100%)',
         }}
-        animate={{
-          opacity: [0.6, 0.3, 0.6],
-          scale: [0.9, 1.1, 0.9],
-        }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+        initial={{ opacity: 0.7, scale: 0.5 }}
+        animate={{ opacity: 0, scale: 1.1 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
       />
+      {/* Static settled state — fades in as ripple fades out */}
+      <motion.div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(40, 60, 90, 0.4)',
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.6, ease: 'easeIn' }}
+      >
+        <div style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '50%',
+          background: 'rgba(150,200,255,0.5)',
+        }} />
+      </motion.div>
     </div>
   );
 }
