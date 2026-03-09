@@ -179,28 +179,45 @@ function SplashAnimation() {
 }
 
 
-// Compute per-cell border edges for ship group outlines
-function getShipBorders(
-  row: number,
-  col: number,
+/** Build SVG path strings for continuous ship outlines on a 10×10 board */
+export function buildShipOutlinePaths(
   board: Board,
-): { top: boolean; right: boolean; bottom: boolean; left: boolean } {
-  const cell = board[row][col];
-  const shipId = cell.shipId;
-  if (!shipId) return { top: false, right: false, bottom: false, left: false };
+  cellSize: number,
+  placedShips: PlacedShip[],
+  defaultColor: string,
+): { path: string; color: string }[] {
+  // Group cells by shipId
+  const shipCells = new Map<string, [number, number][]>();
+  for (let r = 0; r < 10; r++) {
+    for (let c = 0; c < 10; c++) {
+      const id = board[r][c].shipId;
+      if (id && (board[r][c].state === 'ship' || board[r][c].state === 'hit')) {
+        if (!shipCells.has(id)) shipCells.set(id, []);
+        shipCells.get(id)!.push([r, c]);
+      }
+    }
+  }
 
-  // Check if adjacent cell belongs to the same ship
-  const sameShip = (r: number, c: number) => {
-    if (r < 0 || r >= 10 || c < 0 || c >= 10) return false;
-    return board[r][c].shipId === shipId;
-  };
-
-  return {
-    top: !sameShip(row - 1, col),
-    right: !sameShip(row, col + 1),
-    bottom: !sameShip(row + 1, col),
-    left: !sameShip(row, col - 1),
-  };
+  const results: { path: string; color: string }[] = [];
+  shipCells.forEach((cells, shipId) => {
+    const cellSet = new Set(cells.map(([r, c]) => `${r},${c}`));
+    let d = '';
+    for (const [r, c] of cells) {
+      const x = c * cellSize;
+      const y = r * cellSize;
+      // top edge
+      if (!cellSet.has(`${r - 1},${c}`)) d += `M${x},${y}L${x + cellSize},${y}`;
+      // right edge
+      if (!cellSet.has(`${r},${c + 1}`)) d += `M${x + cellSize},${y}L${x + cellSize},${y + cellSize}`;
+      // bottom edge
+      if (!cellSet.has(`${r + 1},${c}`)) d += `M${x},${y + cellSize}L${x + cellSize},${y + cellSize}`;
+      // left edge
+      if (!cellSet.has(`${r},${c - 1}`)) d += `M${x},${y}L${x},${y + cellSize}`;
+    }
+    const sunk = placedShips.find((s) => s.shipId === shipId)?.sunk ?? false;
+    results.push({ path: d, color: sunk ? '#ff4444' : defaultColor });
+  });
+  return results;
 }
 
 function isShipSunk(shipId: string | undefined, placedShips: PlacedShip[]): boolean {
@@ -264,6 +281,8 @@ function GameGrid({
           ))}
         </div>
 
+        {/* Grid cells + SVG ship outline overlay */}
+        <div style={{ position: 'relative' }}>
         {Array.from({ length: 10 }, (_, row) => (
           <div key={row} className="flex">
             <div
@@ -286,38 +305,13 @@ function GameGrid({
               const canClick = isEnemy && !isHit && !isMiss && !disabled;
               const sunk = hasShip && isShipSunk(cell.shipId, placedShips);
 
-              // Compute ship group border edges (only for own ships or sunk enemy ships)
-              const showBorders = hasShip && (!isEnemy || sunk);
-              const borders = showBorders ? getShipBorders(row, col, board) : null;
-              const shipBorderColor = sunk ? '#ff4444' : borderColor;
-              const shipBorderWidth = '2px';
-
               return (
                 <div
                   key={col}
                   style={{
                     width: `${CELL_SIZE}px`,
                     height: `${CELL_SIZE}px`,
-                    borderTop: borders?.top
-                      ? `${shipBorderWidth} solid ${shipBorderColor}`
-                      : (borders && !borders.top)
-                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
-                        : `1px solid ${borderColor}33`,
-                    borderRight: borders?.right
-                      ? `${shipBorderWidth} solid ${shipBorderColor}`
-                      : (borders && !borders.right)
-                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
-                        : `1px solid ${borderColor}33`,
-                    borderBottom: borders?.bottom
-                      ? `${shipBorderWidth} solid ${shipBorderColor}`
-                      : (borders && !borders.bottom)
-                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
-                        : `1px solid ${borderColor}33`,
-                    borderLeft: borders?.left
-                      ? `${shipBorderWidth} solid ${shipBorderColor}`
-                      : (borders && !borders.left)
-                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
-                        : `1px solid ${borderColor}33`,
+                    border: `1px solid ${borderColor}33`,
                     background: isHit
                       ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(0, 40, 80, 0.45)')
                       : isMiss
@@ -330,7 +324,6 @@ function GameGrid({
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
-                    zIndex: showBorders ? 2 : 1,
                     overflow: 'hidden',
                     boxSizing: 'border-box',
                   }}
@@ -355,6 +348,37 @@ function GameGrid({
             })}
           </div>
         ))}
+        {/* SVG overlay for continuous ship outlines */}
+        {(() => {
+          // Only show outlines for own ships, or sunk enemy ships
+          const outlineBoard: Board = board.map((row) =>
+            row.map((cell) => {
+              if (!cell.shipId) return cell;
+              const show = !isEnemy || (isShipSunk(cell.shipId, placedShips));
+              return show ? cell : { ...cell, shipId: undefined };
+            })
+          );
+          const paths = buildShipOutlinePaths(outlineBoard, CELL_SIZE, placedShips, borderColor);
+          if (paths.length === 0) return null;
+          return (
+            <svg
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: `${LABEL_WIDTH}px`,
+                width: `${CELL_SIZE * 10}px`,
+                height: `${CELL_SIZE * 10}px`,
+                pointerEvents: 'none',
+                zIndex: 10,
+              }}
+            >
+              {paths.map((p, i) => (
+                <path key={i} d={p.path} stroke={p.color} strokeWidth="2" fill="none" />
+              ))}
+            </svg>
+          );
+        })()}
+        </div>
       </div>
     </motion.div>
   );

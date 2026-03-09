@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Ship, PlacedShip, Board, BoardCell, Orientation } from '../types';
+import { buildShipOutlinePaths } from './Gameplay';
 import { ships } from '../data/ships';
 import StarfieldBackground from './StarfieldBackground';
 import ArcadeCanvas from './ArcadeCanvas';
@@ -227,7 +228,8 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                 ))}
               </div>
 
-              {/* Rows */}
+              {/* Rows + SVG ship outline overlay */}
+              <div style={{ position: 'relative' }}>
               {Array.from({ length: 10 }, (_, row) => (
                 <div key={row} className="flex">
                   <div
@@ -247,35 +249,15 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                     const invalid = isInvalidHover(row, col);
                     const isShip = cell.state === 'ship';
 
-                    // Compute ship group border edges
-                    const shipId = cell.shipId;
-                    const hasShipBorder = isShip && !!shipId;
-                    const sameShip = (r: number, c: number) => {
-                      if (r < 0 || r >= 10 || c < 0 || c >= 10) return false;
-                      return board[r][c].shipId === shipId;
-                    };
-                    const borders = hasShipBorder ? {
-                      top: !sameShip(row - 1, col),
-                      right: !sameShip(row, col + 1),
-                      bottom: !sameShip(row + 1, col),
-                      left: !sameShip(row, col - 1),
-                    } : null;
-                    const shipBorderColor = '#3969CA';
-                    const defaultBorder = '1px solid rgba(0, 229, 255, 0.3)';
-
                     return (
                       <div
                         key={col}
                         className="cursor-pointer transition-all flex items-center justify-center"
                         style={{
                           position: 'relative',
-                          zIndex: hasShipBorder ? 2 : 1,
                           width: `${CELL}px`,
                           height: `${CELL}px`,
-                          borderTop: borders?.top ? `2px solid ${shipBorderColor}` :                           (borders && !borders.top) ? `1px solid ${shipBorderColor}22` : defaultBorder,
-                                                    borderRight: borders?.right ? `2px solid ${shipBorderColor}` : (borders && !borders.right) ? `1px solid ${shipBorderColor}22` : defaultBorder,
-                                                    borderBottom: borders?.bottom ? `2px solid ${shipBorderColor}` : (borders && !borders.bottom) ? `1px solid ${shipBorderColor}22` : defaultBorder,
-                                                    borderLeft: borders?.left ? `2px solid ${shipBorderColor}` : (borders && !borders.left) ? `1px solid ${shipBorderColor}22` : defaultBorder,
+                          border: '1px solid rgba(0, 229, 255, 0.3)',
                           boxSizing: 'border-box',
                           background: isShip
                             ? 'rgba(57, 105, 202, 0.2)'
@@ -298,6 +280,29 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                   })}
                 </div>
               ))}
+              {/* SVG overlay for continuous ship outlines */}
+              {(() => {
+                const paths = buildShipOutlinePaths(board, CELL, [], '#3969CA');
+                if (paths.length === 0) return null;
+                return (
+                  <svg
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: `${LABEL_W}px`,
+                      width: `${CELL * 10}px`,
+                      height: `${CELL * 10}px`,
+                      pointerEvents: 'none',
+                      zIndex: 10,
+                    }}
+                  >
+                    {paths.map((p, i) => (
+                      <path key={i} d={p.path} stroke={p.color} strokeWidth="2" fill="none" />
+                    ))}
+                  </svg>
+                );
+              })()}
+              </div>
             </div>
           </div>
 
