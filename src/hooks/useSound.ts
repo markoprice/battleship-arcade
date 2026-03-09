@@ -171,79 +171,81 @@ export function useSound() {
 
   /** Incoming hit — punchy arcade explosion when opponent strikes your ship */
   const playIncomingHit = useCallback(() => {
+    console.log('[SOUND] playIncomingHit fired — v2 arcade explosion');
     const ctx = getCtx();
     const now = ctx.currentTime;
 
-    // Layer 1: Impact crack — sharp initial transient (square wave snap)
-    const crack = ctx.createOscillator();
-    const crackGain = ctx.createGain();
-    crack.type = 'square';
-    crack.frequency.setValueAtTime(800, now);
-    crack.frequency.exponentialRampToValueAtTime(200, now + 0.04);
-    crackGain.gain.setValueAtTime(0.45, now);
-    crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-    crack.connect(crackGain);
-    crackGain.connect(ctx.destination);
-    crack.start(now);
-    crack.stop(now + 0.06);
+    // === IMPACT TRANSIENT (0-30ms) — loud sharp crack ===
+    // Distorted square wave snap at high volume
+    const impact = ctx.createOscillator();
+    const impactGain = ctx.createGain();
+    const distortion = ctx.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) {
+      const x = (i * 2) / 256 - 1;
+      curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x));
+    }
+    distortion.curve = curve;
+    impact.type = 'square';
+    impact.frequency.setValueAtTime(1200, now);
+    impact.frequency.exponentialRampToValueAtTime(100, now + 0.03);
+    impactGain.gain.setValueAtTime(0.6, now);
+    impactGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    impact.connect(distortion);
+    distortion.connect(impactGain);
+    impactGain.connect(ctx.destination);
+    impact.start(now);
+    impact.stop(now + 0.04);
 
-    // Layer 1b: Noise burst for the crack transient
-    const crackBuf = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
-    const crackData = crackBuf.getChannelData(0);
-    for (let i = 0; i < crackData.length; i++) crackData[i] = Math.random() * 2 - 1;
-    const crackSrc = ctx.createBufferSource();
-    crackSrc.buffer = crackBuf;
-    const crackNoiseGain = ctx.createGain();
-    crackNoiseGain.gain.setValueAtTime(0.5, now);
-    crackNoiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-    crackSrc.connect(crackNoiseGain);
-    crackNoiseGain.connect(ctx.destination);
-    crackSrc.start(now);
+    // === EXPLOSION BODY (20-250ms) — heavy low boom ===
+    // Two detuned sawtooth oscillators for thickness
+    for (const detune of [-10, 10]) {
+      const boom = ctx.createOscillator();
+      const boomGain = ctx.createGain();
+      boom.type = 'sawtooth';
+      boom.frequency.setValueAtTime(100, now + 0.015);
+      boom.frequency.exponentialRampToValueAtTime(35, now + 0.25);
+      boom.detune.setValueAtTime(detune, now);
+      boomGain.gain.setValueAtTime(0.5, now + 0.015);
+      boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      boom.connect(boomGain);
+      boomGain.connect(ctx.destination);
+      boom.start(now + 0.015);
+      boom.stop(now + 0.3);
+    }
 
-    // Layer 2: Compact explosion burst — low-mid frequency boom
-    const boom = ctx.createOscillator();
-    const boomGain = ctx.createGain();
-    boom.type = 'sawtooth';
-    boom.frequency.setValueAtTime(150, now + 0.02);
-    boom.frequency.exponentialRampToValueAtTime(50, now + 0.2);
-    boomGain.gain.setValueAtTime(0.4, now + 0.02);
-    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-    boom.connect(boomGain);
-    boomGain.connect(ctx.destination);
-    boom.start(now + 0.02);
-    boom.stop(now + 0.25);
-
-    // Layer 2b: Explosion noise body
-    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+    // === NOISE CRUNCH (0-200ms) — filtered white noise for texture ===
+    const noiseDur = 0.2;
+    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * noiseDur, ctx.sampleRate);
     const noiseData = noiseBuf.getChannelData(0);
     for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1;
     const noiseSrc = ctx.createBufferSource();
     noiseSrc.buffer = noiseBuf;
     const noiseGain = ctx.createGain();
-    // Low-pass filter for chunky body
-    const lpf = ctx.createBiquadFilter();
-    lpf.type = 'lowpass';
-    lpf.frequency.setValueAtTime(1200, now + 0.03);
-    lpf.frequency.exponentialRampToValueAtTime(300, now + 0.25);
-    noiseGain.gain.setValueAtTime(0.35, now + 0.03);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-    noiseSrc.connect(lpf);
-    lpf.connect(noiseGain);
+    const bandpass = ctx.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.setValueAtTime(800, now);
+    bandpass.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+    bandpass.Q.setValueAtTime(1.5, now);
+    noiseGain.gain.setValueAtTime(0.55, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + noiseDur);
+    noiseSrc.connect(bandpass);
+    bandpass.connect(noiseGain);
     noiseGain.connect(ctx.destination);
-    noiseSrc.start(now + 0.03);
+    noiseSrc.start(now);
 
-    // Layer 3: Short rumble tail — sub-bass decay
-    const rumble = ctx.createOscillator();
-    const rumbleGain = ctx.createGain();
-    rumble.type = 'sine';
-    rumble.frequency.setValueAtTime(60, now + 0.1);
-    rumble.frequency.exponentialRampToValueAtTime(30, now + 0.35);
-    rumbleGain.gain.setValueAtTime(0.25, now + 0.1);
-    rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-    rumble.connect(rumbleGain);
-    rumbleGain.connect(ctx.destination);
-    rumble.start(now + 0.1);
-    rumble.stop(now + 0.38);
+    // === SUB BASS THUD (30-350ms) — you feel this one ===
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(80, now + 0.03);
+    sub.frequency.exponentialRampToValueAtTime(25, now + 0.35);
+    subGain.gain.setValueAtTime(0.5, now + 0.03);
+    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+    sub.connect(subGain);
+    subGain.connect(ctx.destination);
+    sub.start(now + 0.03);
+    sub.stop(now + 0.38);
   }, []);
 
   return {
