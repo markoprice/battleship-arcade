@@ -83,7 +83,7 @@ export default function WinScreen({ onPlayAgain }: Props) {
             marginBottom: '48px',
           }}
         >
-          Sales wins. Maybe stick to coding, Product.
+          Sales wins. Stick to coding, Eng team.
         </div>
       </motion.div>
 
