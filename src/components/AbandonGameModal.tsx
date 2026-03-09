@@ -53,12 +53,15 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
 
           {/* Dialog */}
           <motion.div
-            className="relative flex flex-col items-center gap-10 px-16 py-12"
+            className="relative flex flex-col items-center"
             style={{
               background: 'rgba(10, 10, 26, 0.95)',
               border: '3px solid #FFD700',
               boxShadow: '0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.05)',
               borderRadius: '4px',
+              padding: '48px 64px',
+              minWidth: '450px',
+              gap: '28px',
             }}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
