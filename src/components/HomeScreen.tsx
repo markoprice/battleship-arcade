@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import homeBg from '../assets/01-home_bg.jpg';
+import { salesCharacters, productCharacters } from '../data/characters';
+import bgImage from '../assets/background.jpg';
 
 // Chill ominous 8-bit ambient loop for the home screen
 // Defers AudioContext creation until first user gesture to satisfy autoplay policy
@@ -143,6 +145,20 @@ interface Props {
 
 export default function HomeScreen({ onStart }: Props) {
   useHomeAmbient();
+
+  // Preload all character portraits + background so they're cached before SELECT COMMANDER
+  useEffect(() => {
+    const urls: string[] = [
+      bgImage,
+      ...salesCharacters.map((c) => c.portrait).filter((p): p is string => !!p),
+      ...productCharacters.map((c) => c.portrait).filter((p): p is string => !!p),
+    ];
+    urls.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgBounds, setImgBounds] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
