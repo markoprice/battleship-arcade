@@ -217,7 +217,7 @@ function MissileStream({
         }}
         initial={{ x: direction === 'left-to-right' ? '-100%' : '100%' }}
         animate={{ x: direction === 'left-to-right' ? '100%' : '-100%' }}
-        transition={{ duration: 0.6, ease: 'easeIn' }}
+        transition={{ duration: 1.8, ease: [0.25, 0.1, 0.25, 1] }}
         onAnimationComplete={onComplete}
       />
       <motion.div
@@ -233,7 +233,7 @@ function MissileStream({
         }}
         initial={{ x: direction === 'left-to-right' ? '-100%' : '100%' }}
         animate={{ x: direction === 'left-to-right' ? '100%' : '-100%' }}
-        transition={{ duration: 0.6, ease: 'easeIn' }}
+        transition={{ duration: 1.8, ease: [0.25, 0.1, 0.25, 1] }}
       />
     </motion.div>
   );
@@ -379,7 +379,7 @@ function GameGrid({
                         ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
                         : `1px solid ${borderColor}33`,
                     background: isHit
-                      ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(255, 80, 0, 0.3)')
+                      ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(0, 0, 0, 0.3)')
                       : isMiss
                         ? 'rgba(0, 0, 0, 0.3)'
                         : showShipCell
@@ -397,7 +397,17 @@ function GameGrid({
                     if (canClick && onCellClick) onCellClick(row, col);
                   }}
                 >
-                  {isHit && (sunk ? <SunkFireAnimation /> : <FireAnimation />)}
+                  {isHit && sunk && <SunkFireAnimation />}
+                  {isHit && !sunk && (
+                    <div style={{
+                      position: 'absolute',
+                      inset: '10%',
+                      borderRadius: '50%',
+                      background: 'radial-gradient(ellipse at center, rgba(255,120,20,0.8) 0%, rgba(200,60,0,0.5) 40%, rgba(150,30,0,0.2) 70%, transparent 100%)',
+                    }}>
+                      <FireAnimation />
+                    </div>
+                  )}
                   {isMiss && <SplashAnimation />}
                 </div>
               );
@@ -511,11 +521,16 @@ export default function Gameplay({
   // Track which grid was last hit for callout positioning
   const [calloutSide, setCalloutSide] = useState<'player' | 'ai'>('ai');
 
-  // Status text displayed between grids and photos
+  // Status text displayed over player photos
   const [statusText, setStatusText] = useState<string>('YOUR TURN');
   const [statusColor, setStatusColor] = useState<string>('#FFD700');
+  // Which player's photo should show the status text
+  const [statusSide, setStatusSide] = useState<'player' | 'ai' | 'both'>('player');
   const playerStreakRef = useRef(0);
   const aiStreakRef = useRef(0);
+  // Photo shake state
+  const [shakePlayer, setShakePlayer] = useState(false);
+  const [shakeAI, setShakeAI] = useState(false);
 
   // Clear all pending timeouts on unmount (e.g. abandon game)
   useEffect(() => {
@@ -553,15 +568,23 @@ export default function Gameplay({
       aiStreakRef.current += 1;
       setStatusText(`[X${aiStreakRef.current}] HIT!`);
       setStatusColor('#ff6600');
+      setStatusSide('player');
+      // Shake player photo on hit
+      setShakePlayer(true);
+      setTimeout(() => setShakePlayer(false), 500);
     } else if (aiResult.result === 'miss') {
       playSplash();
       aiStreakRef.current = 0;
       setStatusText('MISS!');
       setStatusColor('#4488ff');
+      setStatusSide('player');
     } else if (aiResult.result === 'lose') {
       playShipSunk();
       setStatusText('GAME OVER');
       setStatusColor('#ff4444');
+      setStatusSide('player');
+      setShakePlayer(true);
+      setTimeout(() => setShakePlayer(false), 500);
       timeoutIdsRef.current.push(setTimeout(() => {
         processingRef.current = false;
         setProcessing(false);
@@ -575,6 +598,7 @@ export default function Gameplay({
       if (cancelledRef.current) return;
       setStatusText('YOUR TURN');
       setStatusColor('#FFD700');
+      setStatusSide('player');
       timeoutIdsRef.current.push(setTimeout(() => {
         if (cancelledRef.current) return;
         onStartPlayerTurn();
@@ -611,16 +635,24 @@ export default function Gameplay({
       playerStreakRef.current += 1;
       setStatusText(`[X${playerStreakRef.current}] HIT!`);
       setStatusColor('#ff6600');
+      setStatusSide('ai');
+      // Shake AI photo on hit
+      setShakeAI(true);
+      setTimeout(() => setShakeAI(false), 500);
     } else if (result === 'miss') {
       playSplash();
       playerStreakRef.current = 0;
       setStatusText('MISS!');
       setStatusColor('#4488ff');
+      setStatusSide('ai');
     } else if (result === 'win') {
       playShipSunk();
       playerStreakRef.current += 1;
       setStatusText(`[X${playerStreakRef.current}] HIT!`);
       setStatusColor('#ff6600');
+      setStatusSide('ai');
+      setShakeAI(true);
+      setTimeout(() => setShakeAI(false), 500);
       timeoutIdsRef.current.push(setTimeout(() => {
         processingRef.current = false;
         setProcessing(false);
@@ -634,6 +666,7 @@ export default function Gameplay({
       if (cancelledRef.current) return;
       setStatusText('AI TURN');
       setStatusColor('#ff4444');
+      setStatusSide('ai');
       timeoutIdsRef.current.push(setTimeout(() => {
         if (cancelledRef.current) return;
         onEndPlayerTurn();
@@ -669,7 +702,7 @@ export default function Gameplay({
         processingRef.current = false;
         setProcessing(false);
         onStartPlayerTurn();
-      }, 12000);
+      }, 15000);
       return () => clearTimeout(timeout);
     }
   }, [processing, onStartPlayerTurn]);
@@ -688,23 +721,23 @@ export default function Gameplay({
         animate={{ opacity: 1 }}
       >
         {/* BATTLESHIP Header */}
-        <div className="text-center" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
+        <div className="text-center" style={{ paddingTop: '4px', paddingBottom: '4px' }}>
           <h1
             style={{
               fontFamily: '"Press Start 2P", cursive',
               color: '#FFD700',
-              fontSize: '16px',
-              textShadow: '0 0 20px rgba(255, 215, 0, 0.5), 2px 2px 0 #8B6914',
-              letterSpacing: '4px',
+              fontSize: '28px',
+              textShadow: '0 0 30px rgba(255, 215, 0, 0.6), 3px 3px 0 #8B6914',
+              letterSpacing: '8px',
             }}
           >
             BATTLESHIP
           </h1>
           <div
             style={{
-              width: 'min(60%, 500px)',
+              width: 'min(60%, 600px)',
               height: '2px',
-              margin: '4px auto 0',
+              margin: '6px auto 0',
               background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
             }}
           />
@@ -804,56 +837,23 @@ export default function Gameplay({
           </div>
         </div>
 
-        {/* Status Row — missile stream + result/turn text */}
-        <div style={{ position: 'relative', height: '36px', marginTop: '4px' }}>
-          {/* Missile stream animation */}
-          <AnimatePresence>
-            {missileDirection && (
-              <MissileStream
-                key={missileDirection + '-' + missileIdRef.current}
-                direction={missileDirection}
-                onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
-              />
-            )}
-          </AnimatePresence>
-          {/* Status text (result + turn indicator) */}
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-            <AnimatePresence mode="wait">
-              {statusText && (
-                <motion.div
-                  key={statusText}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <span style={{
-                    fontFamily: '"Press Start 2P", cursive',
-                    fontSize: '14px',
-                    color: statusColor,
-                    textShadow: `0 0 15px ${statusColor}88`,
-                  }}>
-                    {statusText}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Bottom: player photos centered under grids */}
-        <div className="flex items-start justify-center" style={{ gap: '16px', paddingBottom: '4px' }}>
+        {/* Bottom: missile stream between photos + player photos with status text */}
+        <div className="flex items-start justify-center" style={{ gap: '16px', paddingBottom: '4px', position: 'relative' }}>
           {/* Player photo centered under player grid */}
-          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px` }}>
-            <div style={{
-              width: `${photoSize}px`,
-              height: `${photoSize}px`,
-              borderRadius: '10px',
-              border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
-              overflow: 'hidden',
-              boxShadow: isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
-              transition: 'border-color 0.3s, box-shadow 0.3s',
-            }}>
+          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, position: 'relative' }}>
+            <motion.div
+              animate={shakePlayer ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                width: `${photoSize}px`,
+                height: `${photoSize}px`,
+                borderRadius: '10px',
+                border: `3px solid ${isPlayerTurn ? '#3969CA' : 'rgba(57,105,202,0.3)'}`,
+                overflow: 'hidden',
+                boxShadow: isPlayerTurn ? '0 0 20px rgba(57,105,202,0.6)' : 'none',
+                transition: 'border-color 0.3s, box-shadow 0.3s',
+              }}
+            >
               {playerCharacter.portrait ? (
                 <img src={playerCharacter.portrait} alt={playerCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
               ) : (
@@ -861,23 +861,72 @@ export default function Gameplay({
                   {String.fromCodePoint(0x1F3AF)}
                 </div>
               )}
-            </div>
+            </motion.div>
+            {/* Status text over player photo */}
+            <AnimatePresence mode="wait">
+              {statusText && (statusSide === 'player' || statusSide === 'both') && (
+                <motion.div
+                  key={statusText + '-player'}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.3 }}
+                  style={{
+                    position: 'absolute',
+                    top: `${photoSize / 2 - 12}px`,
+                    left: 0,
+                    right: 0,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                    zIndex: 50,
+                  }}
+                >
+                  <span style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    fontSize: '13px',
+                    color: statusColor,
+                    textShadow: `0 0 15px ${statusColor}88, 0 0 30px ${statusColor}44`,
+                    background: 'rgba(0,0,0,0.6)',
+                    padding: '4px 10px',
+                    borderRadius: '4px',
+                  }}>
+                    {statusText}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Center spacer (same width as center column above) */}
-          <div style={{ width: '200px' }} />
+          {/* Center spacer with missile stream */}
+          <div style={{ width: '200px', position: 'relative', height: `${photoSize}px` }}>
+            {/* Missile stream animation */}
+            <AnimatePresence>
+              {missileDirection && (
+                <MissileStream
+                  key={missileDirection + '-' + missileIdRef.current}
+                  direction={missileDirection}
+                  onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
+                />
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* AI photo centered under AI grid */}
-          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px` }}>
-            <div style={{
-              width: `${photoSize}px`,
-              height: `${photoSize}px`,
-              borderRadius: '10px',
-              border: `3px solid ${!isPlayerTurn ? '#21C19A' : 'rgba(33,193,154,0.3)'}`,
-              overflow: 'hidden',
-              boxShadow: !isPlayerTurn ? '0 0 20px rgba(33,193,154,0.6)' : 'none',
-              transition: 'border-color 0.3s, box-shadow 0.3s',
-            }}>
+          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, position: 'relative' }}>
+            <motion.div
+              animate={shakeAI ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                width: `${photoSize}px`,
+                height: `${photoSize}px`,
+                borderRadius: '10px',
+                border: `3px solid ${!isPlayerTurn ? '#21C19A' : 'rgba(33,193,154,0.3)'}`,
+                overflow: 'hidden',
+                boxShadow: !isPlayerTurn ? '0 0 20px rgba(33,193,154,0.6)' : 'none',
+                transition: 'border-color 0.3s, box-shadow 0.3s',
+              }}
+            >
               {aiCharacter.portrait ? (
                 <img src={aiCharacter.portrait} alt={aiCharacter.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
               ) : (
@@ -885,7 +934,41 @@ export default function Gameplay({
                   {String.fromCodePoint(0x1F4BB)}
                 </div>
               )}
-            </div>
+            </motion.div>
+            {/* Status text over AI photo */}
+            <AnimatePresence mode="wait">
+              {statusText && (statusSide === 'ai' || statusSide === 'both') && (
+                <motion.div
+                  key={statusText + '-ai'}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.3 }}
+                  style={{
+                    position: 'absolute',
+                    top: `${photoSize / 2 - 12}px`,
+                    left: 0,
+                    right: 0,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                    zIndex: 50,
+                  }}
+                >
+                  <span style={{
+                    fontFamily: '"Press Start 2P", cursive',
+                    fontSize: '13px',
+                    color: statusColor,
+                    textShadow: `0 0 15px ${statusColor}88, 0 0 30px ${statusColor}44`,
+                    background: 'rgba(0,0,0,0.6)',
+                    padding: '4px 10px',
+                    borderRadius: '4px',
+                  }}>
+                    {statusText}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </motion.div>
