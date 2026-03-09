@@ -355,22 +355,22 @@ function GameGrid({
                     borderTop: borders?.top
                       ? `${shipBorderWidth} solid ${shipBorderColor}`
                       : (borders && !borders.top)
-                        ? (sunk ? `1px solid ${shipBorderColor}18` : `1px solid ${shipBorderColor}22`)
+                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
                         : `1px solid ${borderColor}33`,
                     borderRight: borders?.right
                       ? `${shipBorderWidth} solid ${shipBorderColor}`
                       : (borders && !borders.right)
-                        ? (sunk ? `1px solid ${shipBorderColor}18` : `1px solid ${shipBorderColor}22`)
+                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
                         : `1px solid ${borderColor}33`,
                     borderBottom: borders?.bottom
                       ? `${shipBorderWidth} solid ${shipBorderColor}`
                       : (borders && !borders.bottom)
-                        ? (sunk ? `1px solid ${shipBorderColor}18` : `1px solid ${shipBorderColor}22`)
+                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
                         : `1px solid ${borderColor}33`,
                     borderLeft: borders?.left
                       ? `${shipBorderWidth} solid ${shipBorderColor}`
                       : (borders && !borders.left)
-                        ? (sunk ? `1px solid ${shipBorderColor}18` : `1px solid ${shipBorderColor}22`)
+                        ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
                         : `1px solid ${borderColor}33`,
                     background: isHit
                       ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(0, 40, 80, 0.45)')
