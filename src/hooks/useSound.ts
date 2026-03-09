@@ -104,41 +104,20 @@ export function useSound() {
   }, []);
 
   const playSplash = useCallback(() => {
-    // Water splash — filtered noise burst + low thud for a clear "miss" sound
+    // Brief, hollow "empty" tone — a soft low thud that feels like nothing happened
     const ctx = getCtx();
     const now = ctx.currentTime;
-
-    // Noise burst filtered to sound like water splash
-    const splashDur = 0.25;
-    const buf = ctx.createBuffer(1, ctx.sampleRate * splashDur, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    const hpf = ctx.createBiquadFilter();
-    hpf.type = 'highpass';
-    hpf.frequency.setValueAtTime(2000, now);
-    hpf.frequency.exponentialRampToValueAtTime(600, now + 0.2);
-    const splashGain = ctx.createGain();
-    splashGain.gain.setValueAtTime(0.35, now);
-    splashGain.gain.exponentialRampToValueAtTime(0.001, now + splashDur);
-    src.connect(hpf);
-    hpf.connect(splashGain);
-    splashGain.connect(ctx.destination);
-    src.start(now);
-
-    // Low thud underneath
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(180, now);
-    osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.2);
+    osc.stop(now + 0.15);
   }, []);
 
   const playShipSunk = useCallback(() => {
