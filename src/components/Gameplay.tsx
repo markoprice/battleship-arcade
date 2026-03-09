@@ -178,80 +178,6 @@ function SplashAnimation() {
   );
 }
 
-// Underwater missile stream animation between player photos
-function MissileStream({
-  direction,
-  onComplete,
-}: {
-  direction: 'left-to-right' | 'right-to-left';
-  onComplete: () => void;
-}) {
-  const ltr = direction === 'left-to-right';
-  const grad = ltr ? '90deg' : '270deg';
-  return (
-    <motion.div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 40,
-        overflow: 'hidden',
-      }}
-    >
-      {/* Soft glow trail */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          marginTop: '-6px',
-          width: '30%',
-          height: '12px',
-          background: `linear-gradient(${grad}, transparent 0%, rgba(100,200,255,0.1) 20%, rgba(150,220,255,0.35) 60%, rgba(200,240,255,0.5) 85%, transparent 100%)`,
-          filter: 'blur(2px)',
-          borderRadius: '6px',
-        }}
-        initial={{ x: ltr ? '-30%' : '100%' }}
-        animate={{ x: ltr ? '100%' : '-30%' }}
-        transition={{ duration: 2.2, ease: [0.25, 0.1, 0.25, 1] }}
-      />
-      {/* Core streak */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          marginTop: '-2px',
-          width: '25%',
-          height: '4px',
-          background: `linear-gradient(${grad}, transparent 0%, rgba(150,220,255,0.3) 20%, rgba(220,245,255,0.8) 70%, rgba(255,255,255,0.9) 90%, transparent 100%)`,
-          borderRadius: '2px',
-        }}
-        initial={{ x: ltr ? '-25%' : '100%' }}
-        animate={{ x: ltr ? '100%' : '-25%' }}
-        transition={{ duration: 2.2, ease: [0.25, 0.1, 0.25, 1] }}
-        onAnimationComplete={onComplete}
-      />
-      {/* Small bright tip */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          marginTop: '-4px',
-          width: '8px',
-          height: '8px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(180,230,255,0.5) 50%, transparent 100%)',
-          boxShadow: '0 0 8px rgba(150,220,255,0.6)',
-        }}
-        initial={{ [ltr ? 'left' : 'right']: '-8px' }}
-        animate={{ [ltr ? 'left' : 'right']: 'calc(100% + 8px)' }}
-        transition={{ duration: 2.2, ease: [0.25, 0.1, 0.25, 1] }}
-      />
-    </motion.div>
-  );
-}
 
 // Compute per-cell border edges for ship group outlines
 function getShipBorders(
@@ -529,10 +455,6 @@ export default function Gameplay({
   const playerGridRef = useRef<HTMLDivElement>(null);
   const aiGridRef = useRef<HTMLDivElement>(null);
 
-  // Missile stream animation state
-  const [missileDirection, setMissileDirection] = useState<'left-to-right' | 'right-to-left' | null>(null);
-  const missileIdRef = useRef(0);
-
   // Grid callout state (NBA Jam-style notifications over grids)
   const [gridCallout, setGridCallout] = useState<{
     bigText: string;
@@ -608,24 +530,14 @@ export default function Gameplay({
     return ENG_WARNING[Math.floor(Math.random() * ENG_WARNING.length)];
   }, []);
 
-  // Handle AI shot — starts missile animation from right to left
+  // Handle AI shot — fires immediately (no missile animation)
   const fireAIShot = useCallback(() => {
     if (cancelledRef.current) return;
-    setStatusText('');
-    missileIdRef.current += 1;
-    setMissileDirection('right-to-left');
-  }, []);
-
-  // Called when AI missile stream reaches the player side
-  const handleAIMissileComplete = useCallback(() => {
-    setMissileDirection(null);
-    if (cancelledRef.current) return;
-
+    // Fire AI shot directly
     onAIPeekTarget();
     const aiResult = onAIFire();
     if (aiResult.result === 'hit') {
       playExplosion();
-      setStatusText('');
       setShakePlayer(true);
       timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
     } else if (aiResult.result === 'sunk') {
@@ -634,12 +546,10 @@ export default function Gameplay({
       engSunkCountRef.current += 1;
       const bigText = getEngSunkBigText(engSunkCountRef.current);
       showGridCallout(bigText, `${aiResult.shipName?.toUpperCase() ?? 'SHIP'} DOWN`, 'player');
-      setStatusText('');
       setShakePlayer(true);
       timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
     } else if (aiResult.result === 'miss') {
       playSplash();
-      setStatusText('');
     } else if (aiResult.result === 'lose') {
       playExplosion();
       playShipSunk();
@@ -674,10 +584,6 @@ export default function Gameplay({
     }, 1500));
   }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playExplosion, playSplash, playShipSunk, showGridCallout, getEngSunkBigText]);
 
-  // Called when player missile stream animation finishes (purely visual now)
-  const handlePlayerMissileComplete = useCallback(() => {
-    setMissileDirection(null);
-  }, []);
 
   const handlePlayerShot = useCallback(
     (row: number, col: number) => {
@@ -701,7 +607,6 @@ export default function Gameplay({
 
       if (fireResult.result === 'hit') {
         playExplosion();
-        setStatusText('');
         setShakeAI(true);
         timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
       } else if (fireResult.result === 'sunk') {
@@ -711,14 +616,12 @@ export default function Gameplay({
         salesSunkStreakRef.current += 1;
         const bigText = getSalesSunkBigText(salesSunkCountRef.current, salesSunkStreakRef.current);
         showGridCallout(bigText, `${fireResult.shipName?.toUpperCase() ?? 'SHIP'} DOWN`, 'ai');
-        setStatusText('');
         setShakeAI(true);
         timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
       } else if (fireResult.result === 'miss') {
         playSplash();
         salesSunkStreakRef.current = 0;
         fireHotHandPickRef.current = null;
-        setStatusText('');
       } else if (fireResult.result === 'win') {
         playExplosion();
         playShipSunk();
@@ -726,7 +629,6 @@ export default function Gameplay({
         salesSunkStreakRef.current += 1;
         const bigText = getSalesSunkBigText(salesSunkCountRef.current, salesSunkStreakRef.current);
         showGridCallout(bigText, `${fireResult.shipName?.toUpperCase() ?? 'SHIP'} DOWN`, 'ai');
-        setStatusText('');
         setShakeAI(true);
         timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
         timeoutIdsRef.current.push(setTimeout(() => {
@@ -734,15 +636,8 @@ export default function Gameplay({
           setProcessing(false);
           onWin();
         }, 2500));
-        // Still fire missile animation visually
-        missileIdRef.current += 1;
-        setMissileDirection('left-to-right');
         return;
       }
-
-      // Fire missile animation visually (purely cosmetic now)
-      missileIdRef.current += 1;
-      setMissileDirection('left-to-right');
 
       // Show result for 1.5s, then show AI TURN, then proceed
       timeoutIdsRef.current.push(setTimeout(() => {
@@ -1069,26 +964,6 @@ export default function Gameplay({
           </div>
         </div>
 
-        {/* Missile stream overlay — spans full width at avatar row height */}
-        <AnimatePresence>
-          {missileDirection && (
-            <div style={{
-              position: 'absolute',
-              bottom: '8px',
-              left: '12px',
-              right: '12px',
-              height: `${photoSize}px`,
-              pointerEvents: 'none',
-              zIndex: 40,
-            }}>
-              <MissileStream
-                key={missileDirection + '-' + missileIdRef.current}
-                direction={missileDirection}
-                onComplete={missileDirection === 'left-to-right' ? handlePlayerMissileComplete : handleAIMissileComplete}
-              />
-            </div>
-          )}
-        </AnimatePresence>
       </motion.div>
       </div>
     </ArcadeCanvas>
