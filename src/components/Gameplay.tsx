@@ -210,30 +210,49 @@ interface ShipShape {
   details: [number, number][][]; // additional superstructure polygons
 }
 const SHIP_SILHOUETTES: Record<string, ShipShape> = {
-  // Carrier (5 cells) — long flat flight deck, small island superstructure near rear
+  // Carrier (5 cells) — wide rectangular flight deck, flat bow, island + deck markings
   carrier: {
     hull: [
       // Stern (flat back)
-      [INSET, 0.32],
-      // Port side runs forward
-      [3.8, 0.30],
-      // Bow tapers to a gentle point
-      [4.4, 0.22],
-      [4.8, 0.38],
-      [5 - INSET, 0.50],
-      [4.8, 0.62],
-      [4.4, 0.78],
-      // Starboard side runs back
-      [3.8, 0.70],
-      [INSET, 0.68],
+      [INSET, 0.20],
+      // Port side runs straight forward
+      [4.5, 0.20],
+      // Bow — slightly angled, NOT pointed
+      [4.82, 0.35],
+      [4.92, 0.50],
+      [4.82, 0.65],
+      // Starboard side runs straight back
+      [4.5, 0.80],
+      [INSET, 0.80],
     ],
     details: [
-      // Island superstructure (small rectangle, starboard side, near rear)
+      // Island / control tower — offset to port side, ~2/3 toward stern from bow
       [
-        [0.7, 0.32],
-        [1.5, 0.32],
-        [1.5, 0.42],
-        [0.7, 0.42],
+        [1.2, 0.20],
+        [2.0, 0.20],
+        [2.0, 0.38],
+        [1.2, 0.38],
+      ],
+      // Deck segmentation line — aft
+      [
+        [0.5, 0.28],
+        [0.6, 0.28],
+        [0.6, 0.72],
+        [0.5, 0.72],
+      ],
+      // Deck segmentation line — mid-forward
+      [
+        [2.8, 0.28],
+        [2.9, 0.28],
+        [2.9, 0.72],
+        [2.8, 0.72],
+      ],
+      // Deck segmentation line — forward
+      [
+        [3.8, 0.28],
+        [3.9, 0.28],
+        [3.9, 0.72],
+        [3.8, 0.72],
       ],
     ],
   },
