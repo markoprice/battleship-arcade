@@ -137,11 +137,11 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
 }
 
 export default function CommanderSelected({ player, ai, onStart }: Props) {
-  // Auto-advance after 4 seconds
+  // Auto-advance after animations settle (~3.5s)
   useEffect(() => {
     const timer = setTimeout(() => {
       onStart();
-    }, 4000);
+    }, 3500);
     return () => clearTimeout(timer);
   }, [onStart]);
 
@@ -189,37 +189,6 @@ export default function CommanderSelected({ player, ai, onStart }: Props) {
           <LargePortrait character={ai} side="right" delay={0.4} />
         </div>
 
-        {/* PREPARE FOR BATTLE — close below the portraits */}
-        <motion.div
-          className="flex flex-col items-center mt-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-        >
-          <div
-            className="text-center mb-3"
-            style={{
-              fontFamily: '"Press Start 2P", cursive',
-              color: '#FFD700',
-              fontSize: '16px',
-              textShadow: '0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.3)',
-            }}
-          >
-            PREPARE FOR BATTLE
-          </div>
-          <div
-            className="h-1.5 rounded-full overflow-hidden"
-            style={{ background: 'rgba(255, 255, 255, 0.1)', width: '320px' }}
-          >
-            <motion.div
-              className="h-full rounded-full"
-              initial={{ width: '0%' }}
-              animate={{ width: '100%' }}
-              transition={{ duration: 3.5, delay: 0.5, ease: 'linear' }}
-              style={{ background: 'linear-gradient(90deg, #FFD700, #FFA500)' }}
-            />
-          </div>
-        </motion.div>
       </motion.div>
       </div>
     </ArcadeCanvas>
