@@ -944,9 +944,6 @@ export default function Gameplay({
       const cell = aiBoard[row][col];
       if (cell.state === 'hit' || cell.state === 'miss') return;
 
-      // Click feedback on grid cell
-      playClickSound();
-
       processingRef.current = true;
       setProcessing(true);
 
@@ -959,10 +956,12 @@ export default function Gameplay({
       }
 
       if (fireResult.result === 'hit') {
+        playClickSound();
         playExplosion();
         setShakeAI(true);
         timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
       } else if (fireResult.result === 'sunk') {
+        playClickSound();
         playExplosion();
         playShipSunk();
         salesSunkCountRef.current += 1;
@@ -976,6 +975,7 @@ export default function Gameplay({
         salesSunkStreakRef.current = 0;
         fireHotHandPickRef.current = null;
       } else if (fireResult.result === 'win') {
+        playClickSound();
         playExplosion();
         playShipSunk();
         salesSunkCountRef.current += 1;

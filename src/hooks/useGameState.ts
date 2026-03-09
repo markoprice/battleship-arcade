@@ -185,6 +185,12 @@ export function useGameState() {
           }
         }
       }
+      if (available.length === 0) {
+        // Shouldn't happen in normal gameplay, but defend against corrupted state
+        pendingAITarget.current = { row: 0, col: 0 };
+        pendingAIStateRef.current = currentAIState;
+        return { row: 0, col: 0, predictedResult: 'miss' as const };
+      }
       const pick = available[Math.floor(Math.random() * available.length)];
       row = pick[0];
       col = pick[1];
