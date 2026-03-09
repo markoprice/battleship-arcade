@@ -49,21 +49,20 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
         )}
       </motion.div>
 
-      {/* Big team label */}
+      {/* Player name — white, matching SELECT COMMANDER style */}
       <motion.div
-        className="text-center mt-6"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: delay + 0.5, duration: 0.6, type: 'spring', bounce: 0.4 }}
+        className="text-center mt-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: delay + 0.5, duration: 0.5 }}
         style={{
           fontFamily: '"Press Start 2P", cursive',
-          color: borderColor,
-          fontSize: '48px',
-          textShadow: `0 0 20px ${glowColor}, 0 0 40px ${glowColor}`,
-          letterSpacing: '6px',
+          color: '#FFFFFF',
+          fontSize: '14px',
+          textShadow: '0 0 10px rgba(255, 255, 255, 0.4)',
         }}
       >
-        {isSales ? 'GTM' : 'ENG'}
+        {character.name}
       </motion.div>
     </motion.div>
   );
