@@ -206,14 +206,16 @@ export function useGameState() {
       col = pick[1];
     }
 
-    // Store the chosen coordinates for aiFireOnce to use
+    // Store the chosen coordinates and mutated AI state for aiFireOnce to use
     pendingAITarget.current = { row: row!, col: col! };
+    pendingAIStateRef.current = currentAIState;
     const cell = board[row!][col!];
     return { row: row!, col: col!, predictedResult: cell.state === 'ship' ? 'hit' : 'miss' };
   }, [playerBoard, aiState]);
 
-  // Ref to store the AI's pre-determined target between peek and fire
+  // Refs to store the AI's pre-determined target and state between peek and fire
   const pendingAITarget = useRef<{ row: number; col: number } | null>(null);
+  const pendingAIStateRef = useRef<AIState | null>(null);
 
   // Actually execute the AI fire and update board state (call AFTER missile animation)
   const aiFireOnce = useCallback((): {
@@ -230,7 +232,11 @@ export function useGameState() {
     const { row, col } = target;
 
     const board = playerBoard;
-    const currentAIState = { ...aiState, hitStack: [...aiState.hitStack], triedDirections: new Map(Array.from(aiState.triedDirections.entries(), ([k, v]) => [k, new Set(v)])) };
+    // Use the AI state from aiPeekTarget (which has triedDirections/hitStack mutations persisted)
+    const currentAIState = pendingAIStateRef.current
+      ? { ...pendingAIStateRef.current, hitStack: [...pendingAIStateRef.current.hitStack], triedDirections: new Map(Array.from(pendingAIStateRef.current.triedDirections.entries(), ([k, v]) => [k, new Set(v)])) }
+      : { ...aiState, hitStack: [...aiState.hitStack], triedDirections: new Map(Array.from(aiState.triedDirections.entries(), ([k, v]) => [k, new Set(v)])) };
+    pendingAIStateRef.current = null;
 
     const newBoard = board.map((r) => r.map((c) => ({ ...c })));
     const cell = board[row][col];
