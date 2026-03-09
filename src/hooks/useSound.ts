@@ -169,24 +169,81 @@ export function useSound() {
     setTimeout(() => playTone(900, 0.15, 'square', 0.2), 120);
   }, []);
 
-  /** Incoming hit — deep boom when opponent strikes your ship */
+  /** Incoming hit — punchy arcade explosion when opponent strikes your ship */
   const playIncomingHit = useCallback(() => {
     const ctx = getCtx();
     const now = ctx.currentTime;
-    // Deep boom
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(120, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.35);
-    gain.gain.setValueAtTime(0.35, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.4);
-    // Impact noise burst
-    playNoise(0.2, 0.25);
+
+    // Layer 1: Impact crack — sharp initial transient (square wave snap)
+    const crack = ctx.createOscillator();
+    const crackGain = ctx.createGain();
+    crack.type = 'square';
+    crack.frequency.setValueAtTime(800, now);
+    crack.frequency.exponentialRampToValueAtTime(200, now + 0.04);
+    crackGain.gain.setValueAtTime(0.45, now);
+    crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+    crack.connect(crackGain);
+    crackGain.connect(ctx.destination);
+    crack.start(now);
+    crack.stop(now + 0.06);
+
+    // Layer 1b: Noise burst for the crack transient
+    const crackBuf = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
+    const crackData = crackBuf.getChannelData(0);
+    for (let i = 0; i < crackData.length; i++) crackData[i] = Math.random() * 2 - 1;
+    const crackSrc = ctx.createBufferSource();
+    crackSrc.buffer = crackBuf;
+    const crackNoiseGain = ctx.createGain();
+    crackNoiseGain.gain.setValueAtTime(0.5, now);
+    crackNoiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    crackSrc.connect(crackNoiseGain);
+    crackNoiseGain.connect(ctx.destination);
+    crackSrc.start(now);
+
+    // Layer 2: Compact explosion burst — low-mid frequency boom
+    const boom = ctx.createOscillator();
+    const boomGain = ctx.createGain();
+    boom.type = 'sawtooth';
+    boom.frequency.setValueAtTime(150, now + 0.02);
+    boom.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+    boomGain.gain.setValueAtTime(0.4, now + 0.02);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    boom.connect(boomGain);
+    boomGain.connect(ctx.destination);
+    boom.start(now + 0.02);
+    boom.stop(now + 0.25);
+
+    // Layer 2b: Explosion noise body
+    const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+    const noiseData = noiseBuf.getChannelData(0);
+    for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1;
+    const noiseSrc = ctx.createBufferSource();
+    noiseSrc.buffer = noiseBuf;
+    const noiseGain = ctx.createGain();
+    // Low-pass filter for chunky body
+    const lpf = ctx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.setValueAtTime(1200, now + 0.03);
+    lpf.frequency.exponentialRampToValueAtTime(300, now + 0.25);
+    noiseGain.gain.setValueAtTime(0.35, now + 0.03);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    noiseSrc.connect(lpf);
+    lpf.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noiseSrc.start(now + 0.03);
+
+    // Layer 3: Short rumble tail — sub-bass decay
+    const rumble = ctx.createOscillator();
+    const rumbleGain = ctx.createGain();
+    rumble.type = 'sine';
+    rumble.frequency.setValueAtTime(60, now + 0.1);
+    rumble.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+    rumbleGain.gain.setValueAtTime(0.25, now + 0.1);
+    rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+    rumble.connect(rumbleGain);
+    rumbleGain.connect(ctx.destination);
+    rumble.start(now + 0.1);
+    rumble.stop(now + 0.38);
   }, []);
 
   return {
