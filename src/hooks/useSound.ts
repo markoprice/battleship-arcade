@@ -171,7 +171,6 @@ export function useSound() {
 
   /** Incoming hit — punchy arcade explosion when opponent strikes your ship */
   const playIncomingHit = useCallback(() => {
-    console.log('[SOUND] playIncomingHit fired — v2 arcade explosion');
     const ctx = getCtx();
     const now = ctx.currentTime;
 
