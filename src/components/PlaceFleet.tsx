@@ -28,6 +28,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
   const [invalidHoverCells, setInvalidHoverCells] = useState<[number, number][]>([]);
 
   const [showReadyPopup, setShowReadyPopup] = useState(false);
+  const [readyFocusIndex, setReadyFocusIndex] = useState(0); // 0 = YES, 1 = NO
   const placedShipIds = placedShips.map((s) => s.shipId);
   const allPlaced = placedShipIds.length === ships.length;
   const prevAllPlacedRef = useRef(false);
@@ -108,6 +109,28 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
     [selectedShip, orientation, board, placedShips, getCells]
   );
 
+  // Reset focus when popup opens
+  useEffect(() => {
+    if (showReadyPopup) setReadyFocusIndex(0);
+  }, [showReadyPopup]);
+
+  // Enter key handler for Ready popup
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!showReadyPopup) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (readyFocusIndex === 0) onReady(board, placedShips);
+        else setShowReadyPopup(false);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        setReadyFocusIndex((prev) => (prev === 0 ? 1 : 0));
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [showReadyPopup, readyFocusIndex, onReady, board, placedShips]);
+
   // Auto-show READY FOR BATTLE? popup when last ship is placed
   useEffect(() => {
     if (allPlaced && !prevAllPlacedRef.current) {
@@ -166,6 +189,14 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
         >
           PLACE YOUR FLEET
         </h1>
+        <div
+          style={{
+            width: 'min(60%, 600px)',
+            height: '2px',
+            margin: '6px auto 0',
+            background: 'linear-gradient(90deg, transparent, #FFD700, transparent)',
+          }}
+        />
 
         {/* Side-by-side layout: grid on left, panel on right */}
         <div className="flex-1 flex items-start justify-center" style={{ gap: '40px' }}>
@@ -432,9 +463,9 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                       fontFamily: '"Press Start 2P", cursive',
                       color: '#FFD700',
                       backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      border: '3px solid #FFD700',
+                      border: `3px solid ${readyFocusIndex === 0 ? '#FFE44D' : '#FFD700'}`,
                       textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
-                      boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
+                      boxShadow: readyFocusIndex === 0 ? '0 0 25px rgba(255, 215, 0, 0.5)' : '0 0 20px rgba(255, 215, 0, 0.3)',
                       padding: '12px 24px',
                     }}
                   >
@@ -447,7 +478,8 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                       fontFamily: '"Press Start 2P", cursive',
                       color: '#9B8FB8',
                       backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      border: '3px solid #9B8FB8',
+                      border: `3px solid ${readyFocusIndex === 1 ? '#B8A8D8' : '#9B8FB8'}`,
+                      boxShadow: readyFocusIndex === 1 ? '0 0 15px rgba(155,143,184,0.4)' : 'none',
                       padding: '12px 24px',
                     }}
                   >

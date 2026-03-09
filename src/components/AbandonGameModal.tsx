@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
@@ -7,6 +8,30 @@ interface Props {
 }
 
 export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
+  const [focusIndex, setFocusIndex] = useState(0); // 0 = YES, 1 = NO
+
+  // Reset focus when opened
+  useEffect(() => {
+    if (open) setFocusIndex(0);
+  }, [open]);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!open) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusIndex === 0) onConfirm();
+      else onCancel();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      setFocusIndex((prev) => (prev === 0 ? 1 : 0));
+    }
+  }, [open, focusIndex, onConfirm, onCancel]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -57,9 +82,10 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
                   fontFamily: '"Press Start 2P", cursive',
                   fontSize: '12px',
                   color: '#ff4444',
-                  background: 'rgba(255, 68, 68, 0.1)',
-                  border: '2px solid #ff4444',
+                  background: focusIndex === 0 ? 'rgba(255, 68, 68, 0.25)' : 'rgba(255, 68, 68, 0.1)',
+                  border: `2px solid ${focusIndex === 0 ? '#ff6666' : '#ff4444'}`,
                   borderRadius: '2px',
+                  boxShadow: focusIndex === 0 ? '0 0 12px rgba(255,68,68,0.4)' : 'none',
                 }}
               >
                 YES
@@ -71,9 +97,10 @@ export default function AbandonGameModal({ open, onConfirm, onCancel }: Props) {
                   fontFamily: '"Press Start 2P", cursive',
                   fontSize: '12px',
                   color: '#21C19A',
-                  background: 'rgba(33, 193, 154, 0.1)',
-                  border: '2px solid #21C19A',
+                  background: focusIndex === 1 ? 'rgba(33, 193, 154, 0.25)' : 'rgba(33, 193, 154, 0.1)',
+                  border: `2px solid ${focusIndex === 1 ? '#2AD4A8' : '#21C19A'}`,
                   borderRadius: '2px',
+                  boxShadow: focusIndex === 1 ? '0 0 12px rgba(33,193,154,0.4)' : 'none',
                 }}
               >
                 NO

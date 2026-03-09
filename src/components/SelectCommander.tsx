@@ -346,8 +346,8 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
             </div>
           </div>
 
-          {/* PRODUCT stacked label */}
-          <StackedLabel text="PRODUCT" color="#21C19A" />
+          {/* ENG stacked label */}
+          <StackedLabel text="ENG" color="#21C19A" />
         </div>
 
         {/* PLACE YOUR FLEET button — right below the tile area */}

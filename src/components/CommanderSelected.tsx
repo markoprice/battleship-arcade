@@ -95,7 +95,7 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
           textShadow: `0 0 8px ${glowColor}`,
         }}
       >
-        {isSales ? 'SALES' : 'PRODUCT'}
+        {isSales ? 'SALES' : 'ENG'}
       </motion.div>
 
       {/* Stats with animated bars */}

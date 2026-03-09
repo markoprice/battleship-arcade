@@ -379,9 +379,9 @@ function GameGrid({
                         ? (sunk ? '0px solid transparent' : `1px solid ${shipBorderColor}22`)
                         : `1px solid ${borderColor}33`,
                     background: isHit
-                      ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(0, 0, 0, 0.3)')
+                      ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(0, 40, 80, 0.45)')
                       : isMiss
-                        ? 'rgba(0, 0, 0, 0.3)'
+                        ? 'rgba(0, 40, 80, 0.45)'
                         : showShipCell
                           ? 'rgba(0, 255, 100, 0.15)'
                           : 'rgba(0, 0, 0, 0.3)',
@@ -725,14 +725,6 @@ export default function Gameplay({
           >
             BATTLESHIP
           </h1>
-          <div
-            style={{
-              width: 'min(60%, 600px)',
-              height: '2px',
-              margin: '6px auto 0',
-              background: 'linear-gradient(90deg, transparent, #0294DE, transparent)',
-            }}
-          />
         </div>
 
         {/* Grids + center ship trackers */}
@@ -831,8 +823,8 @@ export default function Gameplay({
 
         {/* Bottom: missile stream between photos + player photos with status text */}
         <div className="flex items-start justify-center" style={{ gap: '16px', paddingBottom: '4px', position: 'relative' }}>
-          {/* Player photo centered under player grid */}
-          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, position: 'relative' }}>
+          {/* Player photo left-aligned under player grid */}
+          <div className="flex flex-col items-start" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, position: 'relative' }}>
             <motion.div
               animate={shakePlayer ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
               transition={{ duration: 0.5 }}
@@ -854,7 +846,7 @@ export default function Gameplay({
                 </div>
               )}
             </motion.div>
-            {/* Status text over player photo */}
+            {/* Status text under player photo */}
             <AnimatePresence mode="wait">
               {statusText && (statusSide === 'player' || statusSide === 'both') && (
                 <motion.div
@@ -867,7 +859,7 @@ export default function Gameplay({
                     position: 'absolute',
                     top: `${photoSize + 8}px`,
                     left: 0,
-                    right: 0,
+                    width: `${photoSize}px`,
                     display: 'flex',
                     justifyContent: 'center',
                     pointerEvents: 'none',
@@ -904,8 +896,8 @@ export default function Gameplay({
             </AnimatePresence>
           </div>
 
-          {/* AI photo centered under AI grid */}
-          <div className="flex flex-col items-center" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, position: 'relative' }}>
+          {/* AI photo right-aligned under AI grid */}
+          <div className="flex flex-col items-end" style={{ width: `${CELL_SIZE * 10 + LABEL_WIDTH + 12}px`, position: 'relative' }}>
             <motion.div
               animate={shakeAI ? { x: [0, -4, 4, -3, 3, -1, 1, 0] } : { x: 0 }}
               transition={{ duration: 0.5 }}
@@ -927,7 +919,7 @@ export default function Gameplay({
                 </div>
               )}
             </motion.div>
-            {/* Status text over AI photo */}
+            {/* Status text under AI photo */}
             <AnimatePresence mode="wait">
               {statusText && (statusSide === 'ai' || statusSide === 'both') && (
                 <motion.div
@@ -939,8 +931,8 @@ export default function Gameplay({
                   style={{
                     position: 'absolute',
                     top: `${photoSize + 8}px`,
-                    left: 0,
                     right: 0,
+                    width: `${photoSize}px`,
                     display: 'flex',
                     justifyContent: 'center',
                     pointerEvents: 'none',

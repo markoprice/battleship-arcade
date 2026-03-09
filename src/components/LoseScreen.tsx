@@ -48,7 +48,7 @@ export default function LoseScreen({ onPlayAgain }: Props) {
             marginBottom: '48px',
           }}
         >
-          Product shipped faster. Better luck next quarter.
+          Engineering shipped faster. Better luck next quarter.
         </div>
       </motion.div>
 
