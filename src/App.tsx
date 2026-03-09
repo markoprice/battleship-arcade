@@ -16,36 +16,30 @@ function App() {
   const sound = useSound();
 
   const handleHomeStart = useCallback(() => {
-    sound.playStart();
-    sound.startSonarLoop();
     game.setScreen('select');
-  }, [sound, game]);
+  }, [game]);
 
   const handleSelectCommander = useCallback(
     (player: Character, ai: Character) => {
-      sound.playSelect();
       game.setPlayerCharacter(player);
       game.setAICharacter(ai);
       game.setScreen('place');
     },
-    [sound, game]
+    [game]
   );
 
   const handleCommanderStart = useCallback(() => {
-    sound.playStart();
-    sound.stopSonarLoop();
     game.initGame();
     game.setScreen('gameplay');
-  }, [sound, game]);
+  }, [game]);
 
   const handleFleetReady = useCallback(
     (board: Board, placedShips: PlacedShip[]) => {
-      sound.playStart();
       game.setPlayerBoard(board);
       game.setPlayerShips(placedShips);
       game.setScreen('commander');
     },
-    [sound, game]
+    [game]
   );
 
   const handleWin = useCallback(() => {
@@ -59,14 +53,12 @@ function App() {
   }, [sound, game]);
 
   const handlePlayAgain = useCallback(() => {
-    sound.stopSonarLoop();
     game.resetGame();
-  }, [sound, game]);
+  }, [game]);
 
   const handleAbandon = useCallback(() => {
-    sound.stopSonarLoop();
     game.resetGame();
-  }, [sound, game]);
+  }, [game]);
 
   return (
     <div className="w-full h-full">

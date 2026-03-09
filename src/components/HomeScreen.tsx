@@ -2,11 +2,113 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import homeBg from '../assets/01-home_bg.jpg';
 
+// Chill ominous 8-bit ambient loop for the home screen
+function useHomeAmbient() {
+  const ctxRef = useRef<AudioContext | null>(null);
+  const nodesRef = useRef<AudioNode[]>([]);
+
+  useEffect(() => {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new AudioCtx();
+    ctxRef.current = ctx;
+
+    // Master volume — keep it quiet and atmospheric
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0, ctx.currentTime);
+    master.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 2); // fade in
+    master.connect(ctx.destination);
+
+    // Deep bass drone
+    const bass = ctx.createOscillator();
+    bass.type = 'triangle';
+    bass.frequency.setValueAtTime(55, ctx.currentTime); // low A
+    const bassGain = ctx.createGain();
+    bassGain.gain.setValueAtTime(0.3, ctx.currentTime);
+    bass.connect(bassGain);
+    bassGain.connect(master);
+    bass.start();
+    nodesRef.current.push(bass);
+
+    // Slow LFO on bass frequency for subtle movement
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.08, ctx.currentTime);
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.setValueAtTime(3, ctx.currentTime);
+    lfo.connect(lfoGain);
+    lfoGain.connect(bass.frequency);
+    lfo.start();
+    nodesRef.current.push(lfo);
+
+    // Pad layer — square wave chord (minor)
+    const padNotes = [110, 131, 165]; // A2, C3 (minor third), E3
+    padNotes.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.04, ctx.currentTime);
+      osc.connect(g);
+      g.connect(master);
+      osc.start();
+      nodesRef.current.push(osc);
+    });
+
+    // Slow melodic arpeggio — single notes cycling every ~4s
+    const melody = [220, 262, 196, 247]; // A3, C4, G3, B3
+    let melodyIdx = 0;
+    const melodyOsc = ctx.createOscillator();
+    melodyOsc.type = 'square';
+    melodyOsc.frequency.setValueAtTime(melody[0], ctx.currentTime);
+    const melodyGain = ctx.createGain();
+    melodyGain.gain.setValueAtTime(0, ctx.currentTime);
+    melodyOsc.connect(melodyGain);
+    melodyGain.connect(master);
+    melodyOsc.start();
+    nodesRef.current.push(melodyOsc);
+
+    // Cycle melody notes with fade in/out
+    const melodyInterval = setInterval(() => {
+      if (ctx.state === 'closed') return;
+      melodyIdx = (melodyIdx + 1) % melody.length;
+      const now = ctx.currentTime;
+      melodyGain.gain.setValueAtTime(0, now);
+      melodyGain.gain.linearRampToValueAtTime(0.08, now + 0.3);
+      melodyGain.gain.linearRampToValueAtTime(0, now + 3.5);
+      melodyOsc.frequency.setValueAtTime(melody[melodyIdx], now);
+    }, 4000);
+
+    // Trigger first note after a beat
+    setTimeout(() => {
+      if (ctx.state === 'closed') return;
+      const now = ctx.currentTime;
+      melodyGain.gain.setValueAtTime(0, now);
+      melodyGain.gain.linearRampToValueAtTime(0.08, now + 0.3);
+      melodyGain.gain.linearRampToValueAtTime(0, now + 3.5);
+    }, 1500);
+
+    return () => {
+      clearInterval(melodyInterval);
+      // Fade out before closing
+      const now = ctx.currentTime;
+      master.gain.linearRampToValueAtTime(0, now + 0.3);
+      setTimeout(() => {
+        nodesRef.current.forEach((n) => {
+          try { (n as OscillatorNode).stop(); } catch { /* already stopped */ }
+        });
+        nodesRef.current = [];
+        ctx.close();
+      }, 350);
+    };
+  }, []);
+}
+
 interface Props {
   onStart: () => void;
 }
 
 export default function HomeScreen({ onStart }: Props) {
+  useHomeAmbient();
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgBounds, setImgBounds] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
