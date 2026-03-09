@@ -308,8 +308,12 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                   >
                     {shipShapes.map((s, i) => (
                       <g key={i}>
-                        {/* Ship-shaped silhouette — arcade game piece */}
-                        <path d={s.silhouettePath} fill={s.fillColor} stroke="none" />
+                        {/* Hull silhouette — main ship body */}
+                        <path d={s.hullPath} fill={s.fillColor} stroke="none" />
+                        {/* Superstructure details — bridge, turrets, island, conning tower */}
+                        {s.detailPaths.map((dp, j) => (
+                          <path key={j} d={dp} fill={s.detailColor} stroke="none" />
+                        ))}
                         {/* Chunky perimeter outline — retro sprite border */}
                         <path d={s.outlinePath} stroke={s.color} strokeWidth="3" fill="none" strokeLinecap="butt" />
                       </g>

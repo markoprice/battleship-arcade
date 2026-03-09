@@ -180,98 +180,212 @@ function SplashAnimation() {
 
 
 /**
- * Pixel-art ship silhouette definitions.
- * Each shape is an array of [x, y] points defining a polygon,
- * in normalised coordinates where one cell = 1.0 unit.
+ * Top-down naval vessel silhouette definitions.
+ * Each ship has a hull outline (main polygon) plus optional superstructure
+ * detail polygons (bridge, turrets, island, conning tower) for realism.
+ *
+ * Coordinates are in normalised units where one cell = 1.0.
  * Horizontal orientation; ships pointing right (bow on the right).
- * The polygon is slightly inset from the cell edges so grid lines remain visible.
+ * Slightly inset from cell edges so grid lines remain visible.
  */
-const INSET = 0.06; // fraction of a cell to inset from edges
-const SHIP_SILHOUETTES: Record<string, [number, number][]> = {
-  // Carrier (5 cells) — long flat-deck aircraft carrier with angled bow
-  carrier: [
-    [INSET, 0.30],                    // top-left (flight deck port side)
-    [4.0, 0.30],                      // top runs most of length
-    [4.5, 0.15],                      // bow tapers up
-    [5 - INSET, 0.50],               // bow tip (center)
-    [4.5, 0.85],                      // bow tapers down
-    [4.0, 0.70],                      // bottom runs back
-    [INSET, 0.70],                    // bottom-left
-  ],
-  // Battleship (4 cells) — chunky warship with wide hull and narrow bow
-  battleship: [
-    [INSET, 0.25],                    // top-left
-    [2.8, 0.25],                      // top runs forward
-    [3.3, 0.18],                      // bow narrows up
-    [4 - INSET, 0.42],               // bow tip upper
-    [4 - INSET, 0.58],               // bow tip lower
-    [3.3, 0.82],                      // bow narrows down
-    [2.8, 0.75],                      // bottom runs back
-    [INSET, 0.75],                    // bottom-left
-  ],
-  // Destroyer (3 cells) — sleek narrower profile
-  destroyer: [
-    [INSET, 0.28],                    // top-left
-    [2.0, 0.28],                      // top forward
-    [2.5, 0.18],                      // bow narrows
-    [3 - INSET, 0.50],               // bow tip
-    [2.5, 0.82],                      // bow bottom
-    [2.0, 0.72],                      // bottom forward
-    [INSET, 0.72],                    // bottom-left
-  ],
-  // Submarine (3 cells) — rounded capsule / cigar shape
-  submarine: [
-    [0.3, 0.22],                      // top-left rounded
-    [INSET, 0.38],                    // stern top indent
-    [INSET, 0.62],                    // stern bottom indent
-    [0.3, 0.78],                      // bottom-left rounded
-    [2.7, 0.78],                      // bottom-right rounded
-    [3 - INSET, 0.62],               // bow bottom
-    [3 - INSET, 0.38],               // bow top
-    [2.7, 0.22],                      // top-right rounded
-  ],
-  // Patrol boat (2 cells) — small fast boat
-  patrol: [
-    [INSET, 0.30],                    // top-left
-    [1.4, 0.30],                      // top forward
-    [2 - INSET, 0.50],               // bow tip
-    [1.4, 0.70],                      // bottom forward
-    [INSET, 0.70],                    // bottom-left
-  ],
+const INSET = 0.08;
+interface ShipShape {
+  hull: [number, number][];
+  details: [number, number][][]; // additional superstructure polygons
+}
+const SHIP_SILHOUETTES: Record<string, ShipShape> = {
+  // Carrier (5 cells) — long flat flight deck, small island superstructure near rear
+  carrier: {
+    hull: [
+      // Stern (flat back)
+      [INSET, 0.32],
+      // Port side runs forward
+      [3.8, 0.30],
+      // Bow tapers to a gentle point
+      [4.4, 0.22],
+      [4.8, 0.38],
+      [5 - INSET, 0.50],
+      [4.8, 0.62],
+      [4.4, 0.78],
+      // Starboard side runs back
+      [3.8, 0.70],
+      [INSET, 0.68],
+    ],
+    details: [
+      // Island superstructure (small rectangle, starboard side, near rear)
+      [
+        [0.7, 0.32],
+        [1.5, 0.32],
+        [1.5, 0.42],
+        [0.7, 0.42],
+      ],
+    ],
+  },
+  // Battleship (4 cells) — wide hull, turret bumps along centerline
+  battleship: {
+    hull: [
+      // Stern
+      [INSET, 0.28],
+      // Port side widens
+      [0.3, 0.22],
+      [2.6, 0.22],
+      // Bow narrows to a pointed prow
+      [3.2, 0.18],
+      [3.6, 0.30],
+      [4 - INSET, 0.50],
+      [3.6, 0.70],
+      [3.2, 0.82],
+      // Starboard side
+      [2.6, 0.78],
+      [0.3, 0.78],
+      [INSET, 0.72],
+    ],
+    details: [
+      // Front turret
+      [
+        [2.4, 0.38],
+        [2.9, 0.38],
+        [2.9, 0.62],
+        [2.4, 0.62],
+      ],
+      // Rear turret
+      [
+        [0.5, 0.38],
+        [1.0, 0.38],
+        [1.0, 0.62],
+        [0.5, 0.62],
+      ],
+      // Bridge (center)
+      [
+        [1.4, 0.35],
+        [2.0, 0.35],
+        [2.0, 0.65],
+        [1.4, 0.65],
+      ],
+    ],
+  },
+  // Destroyer (3 cells) — narrow hull, raised bridge near front
+  destroyer: {
+    hull: [
+      // Stern
+      [INSET, 0.32],
+      [0.2, 0.26],
+      // Port side
+      [2.0, 0.24],
+      // Bow tapers
+      [2.5, 0.20],
+      [2.8, 0.35],
+      [3 - INSET, 0.50],
+      [2.8, 0.65],
+      [2.5, 0.80],
+      // Starboard side
+      [2.0, 0.76],
+      [0.2, 0.74],
+      [INSET, 0.68],
+    ],
+    details: [
+      // Bridge superstructure (forward)
+      [
+        [1.5, 0.34],
+        [2.1, 0.34],
+        [2.1, 0.66],
+        [1.5, 0.66],
+      ],
+    ],
+  },
+  // Submarine (3 cells) — rounded cigar body, conning tower bump
+  submarine: {
+    hull: [
+      // Rounded stern
+      [0.25, 0.30],
+      [INSET, 0.42],
+      [INSET, 0.58],
+      [0.25, 0.70],
+      // Body runs forward
+      [2.75, 0.70],
+      // Rounded bow
+      [3 - INSET, 0.58],
+      [3 - INSET, 0.42],
+      [2.75, 0.30],
+    ],
+    details: [
+      // Conning tower (small raised bump, center-aft)
+      [
+        [1.1, 0.28],
+        [1.7, 0.28],
+        [1.7, 0.40],
+        [1.1, 0.40],
+      ],
+    ],
+  },
+  // Patrol boat (2 cells) — small speedboat, pointed bow, narrow stern
+  patrol: {
+    hull: [
+      // Stern (narrow)
+      [INSET, 0.38],
+      [0.15, 0.28],
+      // Port side
+      [1.3, 0.24],
+      // Bow point
+      [1.7, 0.35],
+      [2 - INSET, 0.50],
+      [1.7, 0.65],
+      // Starboard side
+      [1.3, 0.76],
+      [0.15, 0.72],
+      [INSET, 0.62],
+    ],
+    details: [
+      // Small cabin/bridge
+      [
+        [0.5, 0.36],
+        [0.9, 0.36],
+        [0.9, 0.64],
+        [0.5, 0.64],
+      ],
+    ],
+  },
 };
 
-/** Build an SVG polygon path string for a ship silhouette, given its cells and cell size.
- *  Determines orientation from cell layout and applies the correct silhouette shape. */
+/** Convert a polygon (array of [x,y] normalised coords) to an SVG path string,
+ *  applying offset and cell size, with optional coordinate swap for vertical ships. */
+function polyToPath(
+  poly: [number, number][],
+  ox: number, oy: number,
+  cellSize: number,
+  vertical: boolean,
+): string {
+  const pts = poly.map(([nx, ny]) =>
+    vertical
+      ? `${ox + ny * cellSize},${oy + nx * cellSize}`
+      : `${ox + nx * cellSize},${oy + ny * cellSize}`
+  );
+  return `M${pts.join('L')}Z`;
+}
+
+/** Build SVG path strings for a ship silhouette (hull + superstructure details).
+ *  Determines orientation from cell layout and applies the correct shapes. */
 function buildShipSilhouettePath(
   shipId: string,
   cells: [number, number][],
   cellSize: number,
-): string {
-  const silhouette = SHIP_SILHOUETTES[shipId];
-  if (!silhouette) return '';
+): { hullPath: string; detailPaths: string[] } {
+  const shape = SHIP_SILHOUETTES[shipId];
+  if (!shape) return { hullPath: '', detailPaths: [] };
 
   // Sort cells to determine orientation and origin
   const sorted = [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   const [minR, minC] = sorted[0];
   const isHorizontal = sorted.length > 1 && sorted[1][1] !== sorted[0][1];
+  const vertical = !isHorizontal;
 
-  if (isHorizontal) {
-    // Ship points right: x = col direction, y = row direction
-    const ox = minC * cellSize;
-    const oy = minR * cellSize;
-    const points = silhouette.map(([nx, ny]) =>
-      `${ox + nx * cellSize},${oy + ny * cellSize}`
-    );
-    return `M${points.join('L')}Z`;
-  } else {
-    // Vertical: rotate 90° — swap x/y in the silhouette coordinates
-    const ox = minC * cellSize;
-    const oy = minR * cellSize;
-    const points = silhouette.map(([nx, ny]) =>
-      `${ox + ny * cellSize},${oy + nx * cellSize}`
-    );
-    return `M${points.join('L')}Z`;
-  }
+  const ox = minC * cellSize;
+  const oy = minR * cellSize;
+
+  const hullPath = polyToPath(shape.hull, ox, oy, cellSize, vertical);
+  const detailPaths = shape.details.map(d => polyToPath(d, ox, oy, cellSize, vertical));
+
+  return { hullPath, detailPaths };
 }
 
 /** Build SVG data for arcade-style ship silhouettes on a 10×10 board.
@@ -282,7 +396,7 @@ export function buildShipOutlinePaths(
   placedShips: PlacedShip[],
   defaultColor: string,
   isPlayerBoard = false,
-): { silhouettePath: string; outlinePath: string; color: string; fillColor: string }[] {
+): { hullPath: string; detailPaths: string[]; outlinePath: string; color: string; fillColor: string; detailColor: string }[] {
   // Group cells by shipId
   const shipCells = new Map<string, [number, number][]>();
   for (let r = 0; r < 10; r++) {
@@ -295,13 +409,13 @@ export function buildShipOutlinePaths(
     }
   }
 
-  const results: { silhouettePath: string; outlinePath: string; color: string; fillColor: string }[] = [];
+  const results: { hullPath: string; detailPaths: string[]; outlinePath: string; color: string; fillColor: string; detailColor: string }[] = [];
   shipCells.forEach((cells, shipId) => {
     const cellSet = new Set(cells.map(([r, c]) => `${r},${c}`));
     const sunk = placedShips.find((s) => s.shipId === shipId)?.sunk ?? false;
 
-    // Build ship-shaped silhouette path
-    const silhouette = buildShipSilhouettePath(shipId, cells, cellSize);
+    // Build ship-shaped silhouette paths (hull + superstructure details)
+    const { hullPath, detailPaths } = buildShipSilhouettePath(shipId, cells, cellSize);
 
     // Outline path: only outer perimeter edges (for grid-aligned border)
     let outline = '';
@@ -317,7 +431,9 @@ export function buildShipOutlinePaths(
     const strokeColor = sunk ? '#ff4444' : defaultColor;
     // Player ships: mostly opaque fill. Enemy sunk ships: translucent red.
     const fillOpacity = sunk ? 'rgba(255,40,0,0.35)' : isPlayerBoard ? `${defaultColor}B0` : `${defaultColor}20`;
-    results.push({ silhouettePath: silhouette, outlinePath: outline, color: strokeColor, fillColor: fillOpacity });
+    // Superstructure detail color: slightly lighter/brighter than hull fill
+    const detailFill = sunk ? 'rgba(255,80,0,0.45)' : isPlayerBoard ? `${defaultColor}D0` : `${defaultColor}30`;
+    results.push({ hullPath, detailPaths, outlinePath: outline, color: strokeColor, fillColor: fillOpacity, detailColor: detailFill });
   });
   return results;
 }
@@ -502,8 +618,12 @@ function GameGrid({
             >
               {ships.map((s, i) => (
                 <g key={i}>
-                  {/* Ship-shaped silhouette — arcade game piece */}
-                  <path d={s.silhouettePath} fill={s.fillColor} stroke="none" />
+                  {/* Hull silhouette — main ship body */}
+                  <path d={s.hullPath} fill={s.fillColor} stroke="none" />
+                  {/* Superstructure details — bridge, turrets, island, conning tower */}
+                  {s.detailPaths.map((dp, j) => (
+                    <path key={j} d={dp} fill={s.detailColor} stroke="none" />
+                  ))}
                   {/* Chunky perimeter outline — retro sprite border */}
                   <path d={s.outlinePath} stroke={s.color} strokeWidth="3" fill="none" strokeLinecap="butt" />
                 </g>
