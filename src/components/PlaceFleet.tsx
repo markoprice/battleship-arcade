@@ -306,8 +306,6 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                         {s.detailPaths.map((dp, j) => (
                           <path key={j} d={dp} fill={s.detailColor} stroke="none" />
                         ))}
-                        {/* Chunky perimeter outline — retro sprite border */}
-                        <path d={s.outlinePath} stroke={s.color} strokeWidth="3" fill="none" strokeLinecap="butt" />
                       </g>
                     ))}
                   </svg>

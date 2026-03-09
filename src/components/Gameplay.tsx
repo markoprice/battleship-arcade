@@ -423,6 +423,15 @@ function buildShipSilhouettePath(
   return { hullPath, detailPaths };
 }
 
+/** Lighten a hex color by a given amount (0-255) per channel */
+function lightenHex(hex: string, amount: number): string {
+  const h = hex.replace('#', '');
+  const r = Math.min(255, parseInt(h.substring(0, 2), 16) + amount);
+  const g = Math.min(255, parseInt(h.substring(2, 4), 16) + amount);
+  const b = Math.min(255, parseInt(h.substring(4, 6), 16) + amount);
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
 /** Build SVG data for arcade-style ship silhouettes on a 10×10 board.
  *  Returns a ship-shaped silhouette path and a perimeter outline path per ship. */
 export function buildShipOutlinePaths(
@@ -464,10 +473,10 @@ export function buildShipOutlinePaths(
     }
 
     const strokeColor = sunk ? '#ff4444' : defaultColor;
-    // Player ships: mostly opaque fill. Enemy sunk ships: translucent red.
-    const fillOpacity = sunk ? 'rgba(255,40,0,0.35)' : isPlayerBoard ? `${defaultColor}B0` : `${defaultColor}20`;
-    // Superstructure detail color: slightly lighter/brighter than hull fill
-    const detailFill = sunk ? 'rgba(255,80,0,0.45)' : isPlayerBoard ? `${defaultColor}D0` : `${defaultColor}30`;
+    // Player ships: fully opaque solid fill. Enemy sunk ships: translucent red.
+    const fillOpacity = sunk ? 'rgba(255,40,0,0.35)' : isPlayerBoard ? defaultColor : `${defaultColor}20`;
+    // Superstructure detail color: lighter shade for depth
+    const detailFill = sunk ? 'rgba(255,80,0,0.45)' : isPlayerBoard ? lightenHex(defaultColor, 40) : `${defaultColor}30`;
     results.push({ hullPath, detailPaths, outlinePath: outline, color: strokeColor, fillColor: fillOpacity, detailColor: detailFill });
   });
   return results;
@@ -570,10 +579,11 @@ function GameGrid({
               const isHit = cell.state === 'hit';
               const isMiss = cell.state === 'miss';
               const hasShip = (cell.state === 'ship' || cell.state === 'hit') && !!cell.shipId;
+              const showShip = hasShip && (!isEnemy || isShipSunk(cell.shipId, placedShips));
               const canClick = isEnemy && !isHit && !isMiss && !disabled;
               const sunk = hasShip && isShipSunk(cell.shipId, placedShips);
 
-              // Uniform grid lines for ALL cells — ships are rendered as SVG silhouettes, not cell styles
+              // Uniform grid lines for ALL cells
               const gridLine = `1px solid ${borderColor}33`;
 
               return (
@@ -590,7 +600,9 @@ function GameGrid({
                       ? (sunk ? 'rgba(255, 40, 0, 0.4)' : 'rgba(80, 20, 0, 0.6)')
                       : isMiss
                         ? 'rgba(0, 40, 80, 0.45)'
-                        : 'rgba(0, 0, 0, 0.3)',
+                        : showShip
+                          ? 'rgba(0, 20, 50, 0.55)'
+                          : 'rgba(0, 0, 0, 0.3)',
                     cursor: canClick ? 'crosshair' : 'default',
                     display: 'flex',
                     alignItems: 'center',
@@ -653,8 +665,6 @@ function GameGrid({
                   {s.detailPaths.map((dp, j) => (
                     <path key={j} d={dp} fill={s.detailColor} stroke="none" />
                   ))}
-                  {/* Chunky perimeter outline — retro sprite border */}
-                  <path d={s.outlinePath} stroke={s.color} strokeWidth="3" fill="none" strokeLinecap="butt" />
                 </g>
               ))}
             </svg>
