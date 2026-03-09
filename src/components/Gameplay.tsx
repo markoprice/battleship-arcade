@@ -14,10 +14,9 @@ interface Props {
   playerShips: PlacedShip[];
   aiShips: PlacedShip[];
   isPlayerTurn: boolean;
-  calloutText: string;
-  onPlayerFire: (row: number, col: number) => 'hit' | 'miss' | 'already' | 'sunk' | 'win';
+  onPlayerFire: (row: number, col: number) => { result: 'hit' | 'miss' | 'already' | 'sunk' | 'win'; shipName?: string };
   onAIPeekTarget: () => { row: number; col: number; predictedResult: 'hit' | 'miss' };
-  onAIFire: () => { row: number; col: number; result: 'hit' | 'miss' | 'sunk' | 'lose' };
+  onAIFire: () => { row: number; col: number; result: 'hit' | 'miss' | 'sunk' | 'lose'; shipName?: string };
   onEndPlayerTurn: () => void;
   onStartPlayerTurn: () => void;
   onWin: () => void;
@@ -27,6 +26,10 @@ interface Props {
   playSplash: () => void;
   playShipSunk: () => void;
 }
+
+// NBA Jam-style callout phrases
+const SALES_CELEBRATORY = ['Kaboom!', 'Boomshakalaka!', 'With Authority!', 'Razzle dazzle!', 'Count it!', 'Yes!'];
+const ENG_WARNING = ['Uh-oh!', 'Watch out!', "That's gotta hurt!", "That's trouble!", 'Big problems!', 'Incoming!', 'Not good!', 'This looks bad!', 'Ahoy Mateys!'];
 
 const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
@@ -492,7 +495,6 @@ export default function Gameplay({
   playerShips,
   aiShips,
   isPlayerTurn,
-  calloutText,
   onPlayerFire,
   onAIPeekTarget,
   onAIFire,
@@ -518,16 +520,26 @@ export default function Gameplay({
   const [missileDirection, setMissileDirection] = useState<'left-to-right' | 'right-to-left' | null>(null);
   const missileIdRef = useRef(0);
 
-  // Track which grid was last hit for callout positioning
-  const [calloutSide, setCalloutSide] = useState<'player' | 'ai'>('ai');
+  // Grid callout state (NBA Jam-style notifications over grids)
+  const [gridCallout, setGridCallout] = useState<{
+    bigText: string;
+    smallText: string;
+    side: 'player' | 'ai';
+    key: number;
+  } | null>(null);
+  const gridCalloutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gridCalloutKeyRef = useRef(0);
 
-  // Status text displayed over player photos
+  // NBA Jam streak tracking
+  const salesSunkCountRef = useRef(0);
+  const engSunkCountRef = useRef(0);
+  const salesSunkStreakRef = useRef(0); // consecutive sinks without miss
+  const fireHotHandPickRef = useRef<string | null>(null);
+
+  // Status text displayed beside player photos
   const [statusText, setStatusText] = useState<string>('YOUR TURN');
   const [statusColor, setStatusColor] = useState<string>('#FFD700');
-  // Which player's photo should show the status text
   const [statusSide, setStatusSide] = useState<'player' | 'ai' | 'both'>('player');
-  const playerStreakRef = useRef(0);
-  const aiStreakRef = useRef(0);
   // Photo shake state
   const [shakePlayer, setShakePlayer] = useState(false);
   const [shakeAI, setShakeAI] = useState(false);
@@ -539,7 +551,48 @@ export default function Gameplay({
       cancelledRef.current = true;
       timeoutIdsRef.current.forEach(clearTimeout);
       timeoutIdsRef.current = [];
+      if (gridCalloutTimerRef.current) clearTimeout(gridCalloutTimerRef.current);
     };
+  }, []);
+
+  // Show a grid callout over the specified grid
+  const showGridCallout = useCallback((bigText: string, smallText: string, side: 'player' | 'ai') => {
+    if (gridCalloutTimerRef.current) clearTimeout(gridCalloutTimerRef.current);
+    gridCalloutKeyRef.current += 1;
+    setGridCallout({ bigText, smallText, side, key: gridCalloutKeyRef.current });
+    gridCalloutTimerRef.current = setTimeout(() => {
+      setGridCallout(null);
+      gridCalloutTimerRef.current = null;
+    }, 2500);
+  }, []);
+
+  // Get NBA Jam phrase for Sales sinking an Eng ship
+  const getSalesSunkBigText = useCallback((totalSunk: number, streak: number): string => {
+    // 4th ship overall = "1 SHIP LEFT!"
+    if (totalSunk === 4) return '1 SHIP LEFT!';
+    // 2nd ship overall = "He\'s heating up!"
+    if (totalSunk === 2) return "He's heating up!";
+    // 3 consecutive sinks without miss = the other fire/hot hand phrase
+    if (streak >= 3) {
+      if (!fireHotHandPickRef.current) {
+        fireHotHandPickRef.current = Math.random() < 0.5 ? "He's on fire!" : "He's got the hot hand!";
+      }
+      return fireHotHandPickRef.current === "He's on fire!" ? "He's got the hot hand!" : "He's on fire!";
+    }
+    // 2 consecutive sinks without miss = one of fire/hot hand
+    if (streak >= 2) {
+      const pick = Math.random() < 0.5 ? "He's on fire!" : "He's got the hot hand!";
+      fireHotHandPickRef.current = pick;
+      return pick;
+    }
+    // Random celebratory
+    return SALES_CELEBRATORY[Math.floor(Math.random() * SALES_CELEBRATORY.length)];
+  }, []);
+
+  // Get phrase for Eng sinking a Sales ship
+  const getEngSunkBigText = useCallback((totalSunk: number): string => {
+    if (totalSunk === 4) return '1 SHIP LEFT!';
+    return ENG_WARNING[Math.floor(Math.random() * ENG_WARNING.length)];
   }, []);
 
   // Handle AI shot — starts missile animation from right to left
@@ -557,26 +610,34 @@ export default function Gameplay({
 
     onAIPeekTarget();
     const aiResult = onAIFire();
-    setCalloutSide('player');
+    const cellLabel = `${COLS[aiResult.col]}${aiResult.row + 1}`;
 
-    if (aiResult.result === 'hit' || aiResult.result === 'sunk') {
+    if (aiResult.result === 'hit') {
       playExplosion();
-      if (aiResult.result === 'sunk') playShipSunk();
-      aiStreakRef.current += 1;
-      setStatusText(`[X${aiStreakRef.current}] HIT!`);
-      setStatusColor('#ff6600');
-      setStatusSide('player');
-      // Shake player photo on hit
+      showGridCallout(`${cellLabel} HIT!`, '', 'player');
+      setStatusText('');
+      setShakePlayer(true);
+      timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
+    } else if (aiResult.result === 'sunk') {
+      playExplosion();
+      playShipSunk();
+      engSunkCountRef.current += 1;
+      const bigText = getEngSunkBigText(engSunkCountRef.current);
+      showGridCallout(bigText, `${aiResult.shipName?.toUpperCase() ?? 'SHIP'} DOWN`, 'player');
+      setStatusText('');
       setShakePlayer(true);
       timeoutIdsRef.current.push(setTimeout(() => setShakePlayer(false), 500));
     } else if (aiResult.result === 'miss') {
       playSplash();
-      aiStreakRef.current = 0;
       setStatusText('MISS!');
       setStatusColor('#4488ff');
       setStatusSide('player');
     } else if (aiResult.result === 'lose') {
+      playExplosion();
       playShipSunk();
+      engSunkCountRef.current += 1;
+      const bigText = getEngSunkBigText(engSunkCountRef.current);
+      showGridCallout(bigText, `${aiResult.shipName?.toUpperCase() ?? 'SHIP'} DOWN`, 'player');
       setStatusText('GAME OVER');
       setStatusColor('#ff4444');
       setStatusSide('player');
@@ -586,7 +647,7 @@ export default function Gameplay({
         processingRef.current = false;
         setProcessing(false);
         onLose();
-      }, 1500));
+      }, 2500));
       return;
     }
 
@@ -603,7 +664,7 @@ export default function Gameplay({
         setProcessing(false);
       }, 800));
     }, 1500));
-  }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playExplosion, playSplash, playShipSunk]);
+  }, [onAIPeekTarget, onAIFire, onStartPlayerTurn, onLose, playExplosion, playSplash, playShipSunk, showGridCallout, getEngSunkBigText]);
 
   // Called when player missile stream animation finishes (purely visual now)
   const handlePlayerMissileComplete = useCallback(() => {
@@ -620,44 +681,53 @@ export default function Gameplay({
       setProcessing(true);
 
       // Fire immediately — update the board right away
-      const result = onPlayerFire(row, col);
-      if (result === 'already') {
+      const fireResult = onPlayerFire(row, col);
+      if (fireResult.result === 'already') {
         processingRef.current = false;
         setProcessing(false);
         return;
       }
 
-      setCalloutSide('ai');
+      const cellLabel = `${COLS[col]}${row + 1}`;
 
-      // Show result text immediately
-      if (result === 'hit' || result === 'sunk') {
+      if (fireResult.result === 'hit') {
         playExplosion();
-        if (result === 'sunk') playShipSunk();
-        playerStreakRef.current += 1;
-        setStatusText(`[X${playerStreakRef.current}] HIT!`);
-        setStatusColor('#ff6600');
-        setStatusSide('ai');
+        showGridCallout(`${cellLabel} HIT!`, '', 'ai');
+        setStatusText('');
         setShakeAI(true);
         timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
-      } else if (result === 'miss') {
+      } else if (fireResult.result === 'sunk') {
+        playExplosion();
+        playShipSunk();
+        salesSunkCountRef.current += 1;
+        salesSunkStreakRef.current += 1;
+        const bigText = getSalesSunkBigText(salesSunkCountRef.current, salesSunkStreakRef.current);
+        showGridCallout(bigText, `${fireResult.shipName?.toUpperCase() ?? 'SHIP'} DOWN`, 'ai');
+        setStatusText('');
+        setShakeAI(true);
+        timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
+      } else if (fireResult.result === 'miss') {
         playSplash();
-        playerStreakRef.current = 0;
+        salesSunkStreakRef.current = 0;
+        fireHotHandPickRef.current = null;
         setStatusText('MISS!');
         setStatusColor('#4488ff');
         setStatusSide('ai');
-      } else if (result === 'win') {
+      } else if (fireResult.result === 'win') {
+        playExplosion();
         playShipSunk();
-        playerStreakRef.current += 1;
-        setStatusText(`[X${playerStreakRef.current}] HIT!`);
-        setStatusColor('#ff6600');
-        setStatusSide('ai');
+        salesSunkCountRef.current += 1;
+        salesSunkStreakRef.current += 1;
+        const bigText = getSalesSunkBigText(salesSunkCountRef.current, salesSunkStreakRef.current);
+        showGridCallout(bigText, `${fireResult.shipName?.toUpperCase() ?? 'SHIP'} DOWN`, 'ai');
+        setStatusText('');
         setShakeAI(true);
         timeoutIdsRef.current.push(setTimeout(() => setShakeAI(false), 500));
         timeoutIdsRef.current.push(setTimeout(() => {
           processingRef.current = false;
           setProcessing(false);
           onWin();
-        }, 1500));
+        }, 2500));
         // Still fire missile animation visually
         missileIdRef.current += 1;
         setMissileDirection('left-to-right');
@@ -684,7 +754,7 @@ export default function Gameplay({
         }, 800));
       }, 1500));
     },
-    [isPlayerTurn, aiBoard, onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk]
+    [isPlayerTurn, aiBoard, onPlayerFire, fireAIShot, onEndPlayerTurn, onWin, playExplosion, playSplash, playShipSunk, showGridCallout, getSalesSunkBigText]
   );
 
   // Auto-unlock processing if stuck
@@ -739,28 +809,42 @@ export default function Gameplay({
               gridRef={playerGridRef}
               placedShips={playerShips}
             />
-            {/* Ship sunk callout over player grid */}
+            {/* Grid callout over player grid (Eng hitting Sales) */}
             <AnimatePresence>
-              {calloutText && calloutSide === 'player' && (
+              {gridCallout && gridCallout.side === 'player' && (
                 <motion.div
+                  key={gridCallout.key}
                   className="absolute pointer-events-none flex items-center justify-center"
-                  style={{ top: '30%', left: 0, right: 0, zIndex: 55 }}
+                  style={{ top: '25%', left: 0, right: 0, zIndex: 55 }}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 1.5, opacity: 0 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <div style={{
-                    fontFamily: '"Press Start 2P", cursive',
-                    fontSize: '14px',
-                    color: '#ff4444',
-                    textShadow: '0 0 20px rgba(255, 68, 68, 0.8), 2px 2px 0 #500',
-                    background: 'rgba(0,0,0,0.7)',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    border: '1px solid rgba(255,68,68,0.4)',
-                  }}>
-                    {calloutText}
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                      fontFamily: '"Press Start 2P", cursive',
+                      fontSize: gridCallout.smallText ? '20px' : '14px',
+                      color: '#ff4444',
+                      textShadow: '0 0 20px rgba(255, 68, 68, 0.8), 2px 2px 0 #500',
+                      background: 'rgba(0,0,0,0.7)',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255,68,68,0.4)',
+                    }}>
+                      {gridCallout.bigText}
+                    </div>
+                    {gridCallout.smallText && (
+                      <div style={{
+                        fontFamily: '"Press Start 2P", cursive',
+                        fontSize: '12px',
+                        color: '#ff4444',
+                        textShadow: '0 0 15px rgba(255, 68, 68, 0.6)',
+                        marginTop: '6px',
+                      }}>
+                        {gridCallout.smallText}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -857,28 +941,42 @@ export default function Gameplay({
               gridRef={aiGridRef}
               placedShips={aiShips}
             />
-            {/* Ship sunk callout over AI grid */}
+            {/* Grid callout over AI grid (Sales hitting Eng) */}
             <AnimatePresence>
-              {calloutText && calloutSide === 'ai' && (
+              {gridCallout && gridCallout.side === 'ai' && (
                 <motion.div
+                  key={gridCallout.key}
                   className="absolute pointer-events-none flex items-center justify-center"
-                  style={{ top: '30%', left: 0, right: 0, zIndex: 55 }}
+                  style={{ top: '25%', left: 0, right: 0, zIndex: 55 }}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 1.5, opacity: 0 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <div style={{
-                    fontFamily: '"Press Start 2P", cursive',
-                    fontSize: '14px',
-                    color: '#FFD700',
-                    textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 2px 2px 0 #8B0000',
-                    background: 'rgba(0,0,0,0.7)',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    border: '1px solid rgba(255,215,0,0.4)',
-                  }}>
-                    {calloutText}
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                      fontFamily: '"Press Start 2P", cursive',
+                      fontSize: gridCallout.smallText ? '20px' : '14px',
+                      color: '#FFD700',
+                      textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 2px 2px 0 #8B0000',
+                      background: 'rgba(0,0,0,0.7)',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255,215,0,0.4)',
+                    }}>
+                      {gridCallout.bigText}
+                    </div>
+                    {gridCallout.smallText && (
+                      <div style={{
+                        fontFamily: '"Press Start 2P", cursive',
+                        fontSize: '12px',
+                        color: '#FFD700',
+                        textShadow: '0 0 15px rgba(255, 215, 0, 0.6)',
+                        marginTop: '6px',
+                      }}>
+                        {gridCallout.smallText}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}

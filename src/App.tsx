@@ -98,7 +98,6 @@ function App() {
             playerShips={game.playerShips}
             aiShips={game.aiShips}
             isPlayerTurn={game.isPlayerTurn}
-            calloutText={game.calloutText}
             onPlayerFire={game.playerFire}
             onAIPeekTarget={game.aiPeekTarget}
             onAIFire={game.aiFireOnce}

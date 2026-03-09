@@ -58,7 +58,6 @@ export function useGameState() {
   const [playerShips, setPlayerShips] = useState<PlacedShip[]>([]);
   const [aiShips, setAIShips] = useState<PlacedShip[]>([]);
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
-  const [calloutText, setCalloutText] = useState('');
   const [consecutiveHits, setConsecutiveHits] = useState(0);
   const [aiState, setAIState] = useState<AIState>({
     mode: 'hunt',
@@ -71,28 +70,14 @@ export function useGameState() {
     setAIBoard(ai.board);
     setAIShips(ai.ships);
     setIsPlayerTurn(true);
-    setCalloutText('');
     setConsecutiveHits(0);
     setAIState({ mode: 'hunt', hitStack: [], triedDirections: new Map() });
   }, []);
 
-  const calloutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showCallout = useCallback((text: string) => {
-    if (calloutTimerRef.current !== null) {
-      clearTimeout(calloutTimerRef.current);
-    }
-    setCalloutText(text);
-    calloutTimerRef.current = setTimeout(() => {
-      setCalloutText('');
-      calloutTimerRef.current = null;
-    }, 2000);
-  }, []);
-
   const playerFire = useCallback(
-    (row: number, col: number): 'hit' | 'miss' | 'already' | 'sunk' | 'win' => {
+    (row: number, col: number): { result: 'hit' | 'miss' | 'already' | 'sunk' | 'win'; shipName?: string } => {
       const cell = aiBoard[row][col];
-      if (cell.state === 'hit' || cell.state === 'miss') return 'already';
+      if (cell.state === 'hit' || cell.state === 'miss') return { result: 'already' };
 
       const newBoard = aiBoard.map((r) => r.map((c) => ({ ...c })));
 
@@ -116,26 +101,25 @@ export function useGameState() {
             s.shipId === shipId ? { ...s, sunk: true } : s
           );
           setAIShips(newAIShips);
+          const sunkShip = ships.find((s) => s.id === shipId);
 
           // Check win
           if (newAIShips.every((s) => s.sunk)) {
-            return 'win';
+            return { result: 'win', shipName: sunkShip?.name };
           }
 
-          const sunkShip = ships.find((s) => s.id === shipId);
-          showCallout(`${sunkShip?.name.toUpperCase() ?? 'SHIP'} DOWN`);
-          return 'sunk';
+          return { result: 'sunk', shipName: sunkShip?.name };
         }
 
-        return 'hit';
+        return { result: 'hit' };
       } else {
         newBoard[row][col] = { state: 'miss' };
         setAIBoard(newBoard);
         setConsecutiveHits(0);
-        return 'miss';
+        return { result: 'miss' };
       }
     },
-    [aiBoard, aiShips, consecutiveHits, showCallout]
+    [aiBoard, aiShips, consecutiveHits]
   );
 
   // Peek at AI's next target without updating board state (for missile animation)
@@ -222,6 +206,7 @@ export function useGameState() {
     row: number;
     col: number;
     result: 'hit' | 'miss' | 'sunk' | 'lose';
+    shipName?: string;
   } => {
     const target = pendingAITarget.current;
     if (!target) {
@@ -271,14 +256,13 @@ export function useGameState() {
         }
 
         setAIState(currentAIState);
+        const sunkShip = ships.find((s) => s.id === shipId);
 
         if (newPlayerShips.every((s) => s.sunk)) {
-          return { row, col, result: 'lose' };
+          return { row, col, result: 'lose' as const, shipName: sunkShip?.name };
         }
 
-        const sunkShip = ships.find((s) => s.id === shipId);
-        showCallout(`${sunkShip?.name.toUpperCase() ?? 'SHIP'} DOWN`);
-        return { row, col, result: 'sunk' };
+        return { row, col, result: 'sunk' as const, shipName: sunkShip?.name };
       }
 
       setAIState(currentAIState);
@@ -289,7 +273,7 @@ export function useGameState() {
       setAIState(currentAIState);
       return { row, col, result: 'miss' };
     }
-  }, [playerBoard, playerShips, aiState, showCallout]);
+  }, [playerBoard, playerShips, aiState]);
 
   const resetGame = useCallback(() => {
     setScreen('home');
@@ -300,7 +284,6 @@ export function useGameState() {
     setPlayerShips([]);
     setAIShips([]);
     setIsPlayerTurn(true);
-    setCalloutText('');
     setConsecutiveHits(0);
     setAIState({ mode: 'hunt', hitStack: [], triedDirections: new Map() });
   }, []);
@@ -320,7 +303,6 @@ export function useGameState() {
     aiShips,
     isPlayerTurn,
     setIsPlayerTurn,
-    calloutText,
     initGame,
     playerFire,
     aiPeekTarget,
