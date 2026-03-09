@@ -648,10 +648,11 @@ export default function Gameplay({
         timeoutIdsRef.current.push(setTimeout(() => {
           if (cancelledRef.current) return;
           onEndPlayerTurn();
+          const aiDelay = 1000 + Math.random() * 1000; // 1–2s random
           timeoutIdsRef.current.push(setTimeout(() => {
             if (cancelledRef.current) return;
             fireAIShot();
-          }, 800));
+          }, aiDelay));
         }, 300));
       }, 600));
     },

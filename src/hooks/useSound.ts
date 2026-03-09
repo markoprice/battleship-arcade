@@ -72,27 +72,55 @@ export function useSound() {
   }, []);
 
   const playExplosion = useCallback(() => {
-    // Deep boom — low rumble with falling pitch
     const ctx = getCtx();
-    // Bass rumble oscillator with pitch drop
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.5);
-    gain.gain.setValueAtTime(0.35, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.6);
-    // Noise burst for crackle
-    playNoise(0.4, 0.3);
-    // Secondary low thud
-    setTimeout(() => {
-      playTone(40, 0.3, 'sine', 0.25);
-      playNoise(0.2, 0.15);
-    }, 80);
+    const now = ctx.currentTime;
+
+    // 1) Filtered noise burst — sounds like debris/crackle
+    const noiseLen = 0.6;
+    const bufSize = ctx.sampleRate * noiseLen;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const noiseSrc = ctx.createBufferSource();
+    noiseSrc.buffer = buf;
+    const lpf = ctx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.setValueAtTime(4000, now);
+    lpf.frequency.exponentialRampToValueAtTime(200, now + noiseLen);
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.5, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + noiseLen);
+    noiseSrc.connect(lpf);
+    lpf.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noiseSrc.start(now);
+    noiseSrc.stop(now + noiseLen);
+
+    // 2) Deep bass punch — sine wave dropping from 150Hz to 20Hz
+    const bassOsc = ctx.createOscillator();
+    const bassGain = ctx.createGain();
+    bassOsc.type = 'sine';
+    bassOsc.frequency.setValueAtTime(150, now);
+    bassOsc.frequency.exponentialRampToValueAtTime(20, now + 0.5);
+    bassGain.gain.setValueAtTime(0.6, now);
+    bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    bassOsc.connect(bassGain);
+    bassGain.connect(ctx.destination);
+    bassOsc.start(now);
+    bassOsc.stop(now + 0.5);
+
+    // 3) Mid-range crack — distorted square wave snap
+    const crackOsc = ctx.createOscillator();
+    const crackGain = ctx.createGain();
+    crackOsc.type = 'square';
+    crackOsc.frequency.setValueAtTime(200, now);
+    crackOsc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+    crackGain.gain.setValueAtTime(0.3, now);
+    crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    crackOsc.connect(crackGain);
+    crackGain.connect(ctx.destination);
+    crackOsc.start(now);
+    crackOsc.stop(now + 0.15);
   }, []);
 
   const playSplash = useCallback(() => {
