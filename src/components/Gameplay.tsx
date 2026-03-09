@@ -29,8 +29,8 @@ interface Props {
 }
 
 // NBA Jam-style callout phrases
-const SALES_CELEBRATORY = ['Kaboom!', 'Boomshakalaka!', 'With Authority!', 'Razzle dazzle!', 'Count it!', 'Yes!'];
-const ENG_WARNING = ['Uh-oh!', 'Watch out!', "That's gotta hurt!", "That's trouble!", 'Big problems!', 'Incoming!', 'Not good!', 'This looks bad!', 'Ahoy Mateys!'];
+const SALES_CELEBRATORY = ['KABOOM!', 'BOOMSHAKALAKA!', 'WITH AUTHORITY!', 'RAZZLE DAZZLE!', 'COUNT IT!', 'YES!'];
+const ENG_WARNING = ['UH-OH!', 'WATCH OUT!', "THAT'S GOTTA HURT!", "THAT'S TROUBLE!", 'BIG PROBLEMS!', 'INCOMING!', 'NOT GOOD!', 'THIS LOOKS BAD!', 'AHOY MATEYS!'];
 
 const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
@@ -506,17 +506,17 @@ export default function Gameplay({
     // 4th ship overall = "1 SHIP LEFT!"
     if (totalSunk === 4) return '1 SHIP LEFT!';
     // 2nd ship overall = "He\'s heating up!"
-    if (totalSunk === 2) return "He's heating up!";
+    if (totalSunk === 2) return "HE'S HEATING UP!";
     // 3 consecutive sinks without miss = the other fire/hot hand phrase
     if (streak >= 3) {
       if (!fireHotHandPickRef.current) {
-        fireHotHandPickRef.current = Math.random() < 0.5 ? "He's on fire!" : "He's got the hot hand!";
+        fireHotHandPickRef.current = Math.random() < 0.5 ? "HE'S ON FIRE!" : "HE'S GOT THE HOT HAND!";
       }
-      return fireHotHandPickRef.current === "He's on fire!" ? "He's got the hot hand!" : "He's on fire!";
+      return fireHotHandPickRef.current === "HE'S ON FIRE!" ? "HE'S GOT THE HOT HAND!" : "HE'S ON FIRE!";
     }
     // 2 consecutive sinks without miss = one of fire/hot hand
     if (streak >= 2) {
-      const pick = Math.random() < 0.5 ? "He's on fire!" : "He's got the hot hand!";
+      const pick = Math.random() < 0.5 ? "HE'S ON FIRE!" : "HE'S GOT THE HOT HAND!";
       fireHotHandPickRef.current = pick;
       return pick;
     }
