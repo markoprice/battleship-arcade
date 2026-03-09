@@ -343,7 +343,7 @@ function GameGrid({
               // Compute ship group border edges (only for own ships or sunk enemy ships)
               const showBorders = hasShip && (!isEnemy || sunk);
               const borders = showBorders ? getShipBorders(row, col, board) : null;
-              const shipBorderColor = sunk ? '#ff4444' : 'rgba(0, 255, 100, 0.8)';
+              const shipBorderColor = sunk ? '#ff4444' : borderColor;
               const shipBorderWidth = '2px';
 
               return (
@@ -377,7 +377,7 @@ function GameGrid({
                       : isMiss
                         ? 'rgba(0, 40, 80, 0.45)'
                         : showShipCell
-                          ? 'rgba(0, 255, 100, 0.15)'
+                          ? `${borderColor}26`
                           : 'rgba(0, 0, 0, 0.3)',
                     cursor: canClick ? 'crosshair' : 'default',
                     display: 'flex',

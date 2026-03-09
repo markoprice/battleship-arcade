@@ -256,7 +256,7 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                       bottom: !sameShip(row + 1, col),
                       left: !sameShip(row, col - 1),
                     } : null;
-                    const shipBorderColor = 'rgba(0, 255, 100, 0.8)';
+                    const shipBorderColor = '#3969CA';
                     const defaultBorder = '1px solid rgba(0, 229, 255, 0.3)';
 
                     return (
@@ -266,20 +266,20 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                         style={{
                           width: `${CELL}px`,
                           height: `${CELL}px`,
-                          borderTop: borders?.top ? `2px solid ${shipBorderColor}` : (borders && !borders.top) ? `1px solid rgba(0, 255, 100, 0.13)` : defaultBorder,
-                          borderRight: borders?.right ? `2px solid ${shipBorderColor}` : (borders && !borders.right) ? `1px solid rgba(0, 255, 100, 0.13)` : defaultBorder,
-                          borderBottom: borders?.bottom ? `2px solid ${shipBorderColor}` : (borders && !borders.bottom) ? `1px solid rgba(0, 255, 100, 0.13)` : defaultBorder,
-                          borderLeft: borders?.left ? `2px solid ${shipBorderColor}` : (borders && !borders.left) ? `1px solid rgba(0, 255, 100, 0.13)` : defaultBorder,
+                          borderTop: borders?.top ? `2px solid ${shipBorderColor}` :                           (borders && !borders.top) ? `1px solid ${shipBorderColor}22` : defaultBorder,
+                                                    borderRight: borders?.right ? `2px solid ${shipBorderColor}` : (borders && !borders.right) ? `1px solid ${shipBorderColor}22` : defaultBorder,
+                                                    borderBottom: borders?.bottom ? `2px solid ${shipBorderColor}` : (borders && !borders.bottom) ? `1px solid ${shipBorderColor}22` : defaultBorder,
+                                                    borderLeft: borders?.left ? `2px solid ${shipBorderColor}` : (borders && !borders.left) ? `1px solid ${shipBorderColor}22` : defaultBorder,
                           boxSizing: 'border-box',
                           background: isShip
-                            ? 'rgba(0, 255, 100, 0.15)'
+                            ? 'rgba(57, 105, 202, 0.2)'
                             : hover
-                              ? 'rgba(0, 255, 100, 0.25)'
+                              ? 'rgba(57, 105, 202, 0.3)'
                               : invalid
                                 ? 'rgba(255, 60, 60, 0.3)'
                                 : 'rgba(0, 229, 255, 0.05)',
                           boxShadow: hover
-                              ? '0 0 5px rgba(0, 255, 100, 0.3)'
+                              ? '0 0 5px rgba(57, 105, 202, 0.4)'
                               : invalid
                                 ? '0 0 5px rgba(255, 60, 60, 0.3)'
                                 : 'none',
