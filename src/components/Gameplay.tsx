@@ -651,7 +651,7 @@ export default function Gameplay({
           timeoutIdsRef.current.push(setTimeout(() => {
             if (cancelledRef.current) return;
             fireAIShot();
-          }, 100));
+          }, 800));
         }, 300));
       }, 600));
     },
