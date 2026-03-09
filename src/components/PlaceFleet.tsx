@@ -264,6 +264,8 @@ export default function PlaceFleet({ onReady, onExit }: Props) {
                         key={col}
                         className="cursor-pointer transition-all flex items-center justify-center"
                         style={{
+                          position: 'relative',
+                          zIndex: hasShipBorder ? 2 : 1,
                           width: `${CELL}px`,
                           height: `${CELL}px`,
                           borderTop: borders?.top ? `2px solid ${shipBorderColor}` :                           (borders && !borders.top) ? `1px solid ${shipBorderColor}22` : defaultBorder,

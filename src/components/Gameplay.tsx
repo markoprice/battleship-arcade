@@ -403,6 +403,7 @@ function GameGrid({
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
+                    zIndex: showBorders ? 2 : 1,
                     overflow: 'hidden',
                     boxSizing: 'border-box',
                   }}
