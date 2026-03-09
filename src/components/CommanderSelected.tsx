@@ -49,21 +49,20 @@ function LargePortrait({ character, side, delay }: { character: Character; side:
         )}
       </motion.div>
 
-      {/* Player name */}
+      {/* Player name — yellow, same style as SELECT COMMANDER */}
       <motion.div
-        className="text-center mt-6"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: delay + 0.5, duration: 0.6, type: 'spring', bounce: 0.4 }}
+        className="text-center mt-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: delay + 0.5, duration: 0.5 }}
         style={{
           fontFamily: '"Press Start 2P", cursive',
-          color: borderColor,
-          fontSize: '24px',
-          textShadow: `0 0 20px ${glowColor}, 0 0 40px ${glowColor}`,
-          letterSpacing: '4px',
+          color: '#FFD700',
+          fontSize: '14px',
+          textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
         }}
       >
-        {character.name.split(' ')[0].toUpperCase()}
+        {character.name}
       </motion.div>
     </motion.div>
   );
