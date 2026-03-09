@@ -16,30 +16,34 @@ function App() {
   const sound = useSound();
 
   const handleHomeStart = useCallback(() => {
+    sound.playStart();
     game.setScreen('select');
-  }, [game]);
+  }, [sound, game]);
 
   const handleSelectCommander = useCallback(
     (player: Character, ai: Character) => {
+      sound.playSelect();
       game.setPlayerCharacter(player);
       game.setAICharacter(ai);
       game.setScreen('place');
     },
-    [game]
+    [sound, game]
   );
 
   const handleCommanderStart = useCallback(() => {
+    sound.playStart();
     game.initGame();
     game.setScreen('gameplay');
-  }, [game]);
+  }, [sound, game]);
 
   const handleFleetReady = useCallback(
     (board: Board, placedShips: PlacedShip[]) => {
+      sound.playStart();
       game.setPlayerBoard(board);
       game.setPlayerShips(placedShips);
       game.setScreen('commander');
     },
-    [game]
+    [sound, game]
   );
 
   const handleWin = useCallback(() => {
