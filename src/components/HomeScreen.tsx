@@ -3,14 +3,14 @@ import { motion } from 'framer-motion';
 import homeBg from '../assets/01-home_bg.jpg';
 
 // Chill ominous 8-bit ambient loop for the home screen
+// Defers AudioContext creation until first user gesture to satisfy autoplay policy
 function useHomeAmbient() {
   const ctxRef = useRef<AudioContext | null>(null);
   const nodesRef = useRef<AudioNode[]>([]);
   const startedRef = useRef(false);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    let melodyInterval: ReturnType<typeof setInterval> | null = null;
-    let melodyTimeout: ReturnType<typeof setTimeout> | null = null;
     let mounted = true;
 
     const startAmbient = () => {
@@ -20,9 +20,6 @@ function useHomeAmbient() {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new AudioCtx();
       ctxRef.current = ctx;
-
-      // Resume if suspended (autoplay policy)
-      if (ctx.state === 'suspended') ctx.resume();
 
       // Master volume — keep it quiet and atmospheric
       const master = ctx.createGain();
@@ -80,7 +77,7 @@ function useHomeAmbient() {
       nodesRef.current.push(melodyOsc);
 
       // Cycle melody notes with fade in/out
-      melodyInterval = setInterval(() => {
+      const melodyInterval = setInterval(() => {
         if (ctx.state === 'closed') return;
         melodyIdx = (melodyIdx + 1) % melody.length;
         const now = ctx.currentTime;
@@ -91,45 +88,50 @@ function useHomeAmbient() {
       }, 4000);
 
       // Trigger first note after a beat
-      melodyTimeout = setTimeout(() => {
+      const melodyTimeout = setTimeout(() => {
         if (ctx.state === 'closed') return;
         const now = ctx.currentTime;
         melodyGainNode.gain.setValueAtTime(0, now);
         melodyGainNode.gain.linearRampToValueAtTime(0.08, now + 0.3);
         melodyGainNode.gain.linearRampToValueAtTime(0, now + 3.5);
       }, 1500);
-    };
 
-    // Try starting immediately (works if user already interacted with page)
-    startAmbient();
-
-    // Also listen for any user interaction to unlock audio
-    const unlock = () => {
-      startAmbient();
-      // Also resume if context was suspended
-      if (ctxRef.current?.state === 'suspended') ctxRef.current.resume();
-    };
-    document.addEventListener('click', unlock, { once: true });
-    document.addEventListener('mousemove', unlock, { once: true });
-    document.addEventListener('keydown', unlock, { once: true });
-
-    return () => {
-      mounted = false;
-      document.removeEventListener('click', unlock);
-      document.removeEventListener('mousemove', unlock);
-      document.removeEventListener('keydown', unlock);
-      if (melodyInterval) clearInterval(melodyInterval);
-      if (melodyTimeout) clearTimeout(melodyTimeout);
-      const ctx = ctxRef.current;
-      if (ctx && ctx.state !== 'closed') {
+      // Store cleanup for when effect tears down
+      cleanupRef.current = () => {
+        clearInterval(melodyInterval);
+        clearTimeout(melodyTimeout);
         try {
           nodesRef.current.forEach((n) => {
             try { (n as OscillatorNode).stop(); } catch { /* already stopped */ }
           });
         } catch { /* ignore */ }
         nodesRef.current = [];
-        ctx.close();
-      }
+        if (ctx.state !== 'closed') ctx.close();
+      };
+    };
+
+    // Listen for user interaction to unlock audio and start ambient
+    // Using multiple event types because some browsers only unlock on click
+    const unlock = () => {
+      startAmbient();
+      // Remove all listeners once started
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('mousedown', unlock);
+      document.removeEventListener('touchstart', unlock);
+      document.removeEventListener('keydown', unlock);
+    };
+    document.addEventListener('click', unlock);
+    document.addEventListener('mousedown', unlock);
+    document.addEventListener('touchstart', unlock);
+    document.addEventListener('keydown', unlock);
+
+    return () => {
+      mounted = false;
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('mousedown', unlock);
+      document.removeEventListener('touchstart', unlock);
+      document.removeEventListener('keydown', unlock);
+      if (cleanupRef.current) cleanupRef.current();
       startedRef.current = false;
     };
   }, []);

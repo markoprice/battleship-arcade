@@ -63,7 +63,7 @@ export default function SelectCommander({ onSelect, onExit }: Props) {
     };
 
     spin(0);
-  }, []);
+  }, [sound]);
 
   // Cleanup roulette on unmount
   useEffect(() => {
